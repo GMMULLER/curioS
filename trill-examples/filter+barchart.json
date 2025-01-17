@@ -1,0 +1,49 @@
+{
+    "dataflow": {
+        "nodes": [
+            {
+                "id": "node1",
+                "type": "Computation Analysis",
+                "content": "import pandas as pd\nd = {'a': [\"A\", \"B\", \"C\", \"D\", \"E\", \"F\", \"G\", \"H\", \"I\"], 'b': [28, 55, 43, 91, 81, 53, 19, 87, 52]}\ndf = pd.DataFrame(data=d)\nreturn df"
+            },
+            {
+                "id": "node2",
+                "type": "Vega-Lite",
+                "content": "{\n    \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n    \"description\": \"A simple bar chart with embedded data.\",\n    \"mark\": \"bar\",\n    \"encoding\": {\n        \"x\": {\"field\": \"a\", \"type\": \"nominal\", \"axis\": {\"labelAngle\": 0}},\n        \"y\": {\"field\": \"b\", \"type\": \"quantitative\"}\n    }\n}"
+            },
+            {
+                "id": "node3",
+                "type": "Vega-Lite",
+                "content": "{\n    \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n    \"description\": \"A scatter plot.\",\n    \"mark\": {\"type\": \"point\", \"color\": \"red\"},\n    \"encoding\": {\n        \"x\": {\"field\": \"a\", \"type\": \"nominal\"},\n        \"y\": {\"field\": \"b\", \"type\": \"quantitative\"}\n    }\n}"
+            },
+            {
+                "id": "node4",
+                "type": "Data Cleaning",
+                "content": "df = args[0]\nfiltered_df = df[df['b'] >= 50]\nreturn filtered_df"
+            },
+            {
+                "id": "node5",
+                "type": "Vega-Lite",
+                "content": "{\n    \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n    \"description\": \"A bar chart showing values above 50.\",\n    \"mark\": {\"type\": \"bar\", \"color\": \"pink\"},\n    \"encoding\": {\n        \"x\": {\"field\": \"a\", \"type\": \"nominal\", \"axis\": {\"labelAngle\": 0}},\n        \"y\": {\"field\": \"b\", \"type\": \"quantitative\"}\n    }\n}"
+            }
+        ],
+        "edges": [
+            {
+                "source": "node1",
+                "target": "node2"
+            },
+            {
+                "source": "node1",
+                "target": "node3"
+            },
+            {
+                "source": "node1",
+                "target": "node4"
+            },
+            {
+                "source": "node4",
+                "target": "node5"
+            }
+        ]
+    }
+}

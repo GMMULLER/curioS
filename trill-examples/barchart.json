@@ -1,0 +1,33 @@
+{
+    "dataflow": {
+        "nodes": [
+            {
+                "id": "node1",
+                "type": "Computation Analysis",
+                "content": "import pandas as pd
+                            d = {'a': [\"A\", \"B\", \"C\", \"D\", \"E\", \"F\", \"G\", \"H\", \"I\"], 'b': [28, 55, 43, 91, 81, 53, 19, 87, 52]}
+                            df = pd.DataFrame(data=d)
+                            return df"
+            },
+            {
+                "id": "node2",
+                "type": "Vega-Lite",
+                "content": "{
+                    \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",
+                    \"description\": \"A simple bar chart with embedded data.\",
+                    \"mark\": \"bar\",
+                    \"encoding\": {
+                        \"x\": {\"field\": \"a\", \"type\": \"nominal\", \"axis\": {\"labelAngle\": 0}},
+                        \"y\": {\"field\": \"b\", \"type\": \"quantitative\"}
+                    }
+                }"
+            }
+        ],
+        "edges": [
+            {
+                "source": "node1",
+                "target": "node2"
+            }
+        ]
+    }
+}
