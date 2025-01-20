@@ -18,9 +18,29 @@
                 },
                 "content": {
                   "type": "string"
+                },
+                "metadata": {
+                  "type": "object",
+                  "properties": {
+                    "annotations": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "note": {
+                            "type": "string"
+                          },
+                          "author": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["note", "author"]
+                      }
+                    }
+                  }
                 }
               },
-              "required": ["id", "type", "content"]
+              "required": ["id", "type"]
             }
           },
           "edges": {

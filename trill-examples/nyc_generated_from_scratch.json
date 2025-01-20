@@ -1,0 +1,40 @@
+{
+    "dataflow": {
+        "nodes": [
+            {
+                "id": "load_nyc_311_data",
+                "type": "Data Loading",
+                "content": "import pandas as pd\nurl = 'https://data.cityofnewyork.us/resource/fhrw-4uyv.csv'\ndata = pd.read_csv(url)\nreturn data"
+            },
+            {
+                "id": "clean_nyc_311_data",
+                "type": "Data Cleaning",
+                "content": "import pandas as pd\n\ndata = arg\n\n# Drop rows with missing essential data\ncleaned_data = data.dropna(subset=['complaint_type', 'borough', 'created_date'])\n\n# Convert 'created_date' to datetime\ncleaned_data['created_date'] = pd.to_datetime(cleaned_data['created_date'])\n\nreturn cleaned_data"
+            },
+            {
+                "id": "transform_borough_data",
+                "type": "Data Transformation",
+                "content": "import pandas as pd\n\ndata = arg\n\n# Group data by borough and count complaints\ntransformed_data = data.groupby('borough').size().reset_index(name='complaint_count')\n\nreturn transformed_data"
+            },
+            {
+                "id": "vega_lite_bar_chart",
+                "type": "Vega-Lite",
+                "content": "{\n    \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n    \"mark\": \"bar\",\n    \"encoding\": {\n        \"x\": {\"field\": \"borough\", \"type\": \"nominal\", \"title\": \"Borough\"},\n        \"y\": {\"field\": \"complaint_count\", \"type\": \"quantitative\", \"title\": \"Complaint Count\"},\n        \"color\": {\"field\": \"borough\", \"type\": \"nominal\"}\n    }\n}"
+            }
+        ],
+        "edges": [
+            {
+                "source": "load_nyc_311_data",
+                "target": "clean_nyc_311_data"
+            },
+            {
+                "source": "clean_nyc_311_data",
+                "target": "transform_borough_data"
+            },
+            {
+                "source": "transform_borough_data",
+                "target": "vega_lite_bar_chart"
+            }
+        ]
+    }
+}

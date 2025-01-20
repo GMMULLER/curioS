@@ -1,0 +1,40 @@
+{
+    "dataflow": {
+        "nodes": [
+            {
+                "id": "load_311_data",
+                "type": "Data Loading",
+                "content": "import pandas as pd\n\n# Download 311 data from NYC Open Data API\nurl = 'https://data.cityofnewyork.us/resource/erm2-nwe9.csv'\n# Load data into a pandas DataFrame\ndata = pd.read_csv(url)\nreturn data"
+            },
+            {
+                "id": "clean_311_data",
+                "type": "Data Cleaning",
+                "content": "import pandas as pd\n\n# Receive the raw data from the previous node\ndata = args[0]\n\n# Convert the date to datetime format\ndata['created_date'] = pd.to_datetime(data['created_date'])\n\n# Filter out rows with missing dates\ndata = data.dropna(subset=['created_date'])\nreturn data"
+            },
+            {
+                "id": "transform_to_yearly_complaints",
+                "type": "Data Transformation",
+                "content": "import pandas as pd\n\n# Receive cleaned data from the previous node\ndata = args[0]\n\n# Extract the year from the created_date column\ndata['year'] = data['created_date'].dt.year\n\n# Calculate the average number of complaints per year\naverage_complaints = data.groupby('year').size().reset_index(name='average_complaints')\nreturn average_complaints"
+            },
+            {
+                "id": "scatterplot_complaints",
+                "type": "Vega-Lite",
+                "content": "{\n    \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n    \"mark\": \"point\",\n    \"encoding\": {\n        \"x\": {\"field\": \"year\", \"type\": \"ordinal\", \"title\": \"Year\"},\n        \"y\": {\"field\": \"average_complaints\", \"type\": \"quantitative\", \"title\": \"Average Complaints\"}\n    },\n    \"config\": {\n        \"background\": \"#f9f9f9\"\n    }\n}"
+            }
+        ],
+        "edges": [
+            {
+                "source": "load_311_data",
+                "target": "clean_311_data"
+            },
+            {
+                "source": "clean_311_data",
+                "target": "transform_to_yearly_complaints"
+            },
+            {
+                "source": "transform_to_yearly_complaints",
+                "target": "scatterplot_complaints"
+            }
+        ]
+    }
+}
