@@ -5,12 +5,10 @@ import geopandas as gpd
 import pandas as pd
 import json
 def userCode(arg):
-	import pandas as pd
-	
-	d = {'a': ["A", "B", "C", "D", "E", "F", "G", "H", "I"], 'b': [28, 55, 43, 91, 81, 53, 19, 87, 52]}
-	df = pd.DataFrame(data=d)
-	
-	return df
+	import pandas as pd
+	url = 'https://data.cityofnewyork.us/resource/fhrw-4uyv.csv'
+	data = pd.read_csv(url)
+	return data
 boxType = 'DATA_LOADING'
 def dumpsInput(input):
 	if input['dataType'] == 'outputs':

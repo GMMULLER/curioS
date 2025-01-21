@@ -1,0 +1,144 @@
+{
+    "dataflow": {
+        "nodes": [
+            {
+                "id": "load_mean_radiant_and_meteorological_milan",
+                "type": "Data Loading",
+                "content": "import rasterio\nimport pandas as pd\ntimestamp = 12\nsrc = rasterio.open(f'Milan_Tmrt_2022_203_{timestamp:02d}00D.tif')\nsensor = pd.read_csv('Milan_22.07.2022_Weather_File_UMEP_CSV.csv', delimiter=';')\nreturn src, sensor"
+            },
+            {
+                "id": "compute_utci_milan",
+                "type": "Computation Analysis",
+                "content": "import xarray as xr\nfrom pythermalcomfort import models\nimport numpy as np\nfrom rasterio.warp import Resampling\nsrc, sensor = arg[0]\ntimestamp = 12\nupscale_factor = 0.25\ndata = src.read(\n    out_shape=(\n        src.count,\n        int(src.height * upscale_factor),\n        int(src.width * upscale_factor)\n    ),\n    resampling=Resampling.nearest,\n    masked=True\n)\ndata.data[data.data == src.nodatavals[0]] = np.nan\nsensor = sensor[sensor['it'] == timestamp]\ntdb = sensor['Td'].values[0]\nv = sensor['Wind'].values[0]\nrh = sensor['RH'].values[0]\ndef xutci(tdb, tr, v, rh, units='SI'):\n    return xr.apply_ufunc(\n        models.utci,\n        tdb,\n        tr,\n        v,\n        rh,\n        units\n    )\nutci = xutci(tdb, data[0], v, rh)\nreturn src, utci.tolist(), [data.shape[-1], data.shape[-2]]"
+            },
+            {
+                "id": "load_and_merge_demographic_milan",
+                "type": "Data Loading",
+                "content": "import geopandas as gpd\ngdf = gpd.read_file('R03_21-11_WGS84_P_SocioDemographics_MILANO_Selected.shp')\nreturn gdf"
+            },
+            {
+                "id": "spatial_join_milan",
+                "type": "Computation Analysis",
+                "content": "import numpy as np\nfrom rasterstats import zonal_stats\nsrc, utci, shape = arg[0]\ngdf = arg[1]\ntransform = src.transform * src.transform.scale(\n    (src.width / shape[0]),\n    (src.height / shape[1])\n)\njoined = zonal_stats(gdf, utci, stats=['min', 'max', 'mean', 'median'], affine=transform)\ngdf['mean'] = [d['mean'] for d in joined]\nreturn gdf.loc[:, [gdf.geometry.name, 'mean', \"gt_65\"]]"
+            },
+            {
+                "id": "filter_utci_milan",
+                "type": "Data Cleaning",
+                "content": "import geopandas as gpd\ngdf = arg\nfiltered_gdf = gdf.set_crs(32632).to_crs(3395)\nfiltered_gdf = filtered_gdf[filtered_gdf['mean'] > 0]\nfiltered_gdf.metadata = {\n    'name': 'census'\n}\nreturn filtered_gdf"
+            },
+            {
+                "id": "scatterplot_milan",
+                "type": "Vega-Lite",
+                "content": "{\n    \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n    \"params\": [\n        {\"name\": \"clickSelect\", \"select\": \"interval\"}\n    ],\n    \"mark\": {\n        \"type\": \"point\",\n        \"cursor\": \"pointer\"\n    },\n    \"encoding\": {\n        \"x\": {\"field\": \"gt_65\", \"type\": \"quantitative\"},\n        \"y\": {\"field\": \"mean\", \"type\": \"quantitative\", \"scale\": {\"domain\": [37, 42]}},\n        \"fillOpacity\": {\n            \"condition\": {\"param\": \"clickSelect\", \"value\": 1},\n            \"value\": 0.3\n        },\n        \"color\": {\n            \"field\": \"interacted\",\n            \"type\": \"nominal\",\n            \"condition\": {\"test\": \"datum.interacted === '1'\", \"value\": \"red\", \"else\": \"blue\"}\n        }\n    },\n    \"config\": {\n        \"scale\": {\n            \"bandPaddingInner\": 0.2\n        }\n    }\n}"
+            },
+            {
+                "id": "filter_for_boxplot_milan",
+                "type": "Data Cleaning",
+                "content": "gdf = arg\nreturn gdf.loc[:, [\"gt_65\"]]"
+            },
+            {
+                "id": "boxplot_milan",
+                "type": "Vega-Lite",
+                "content": "{\n    \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n    \"transform\": [\n        {\n            \"fold\": [\"gt_65\"],\n            \"as\": [\"Variable\", \"Value\"]\n        }\n    ],\n    \"mark\": {\n        \"type\": \"boxplot\",\n        \"size\": 60\n    },\n    \"encoding\": {\n        \"x\": {\"field\": \"Variable\", \"type\": \"nominal\", \"title\": \"Variable\"},\n        \"y\": {\"field\": \"Value\", \"type\": \"quantitative\", \"title\": \"Value\"}\n    }\n}"
+            },
+            {
+                "id": "load_mean_radiant_and_meteorological_chicago",
+                "type": "Data Loading",
+                "content": "import rasterio\nimport pandas as pd\ntimestamp = 12\nsrc = rasterio.open(f'Chicago_Tmrt_2022_203_{timestamp:02d}00D.tif')\nsensor = pd.read_csv('Chicago_22.07.2022_Weather_File_UMEP_CSV.csv', delimiter=';')\nreturn src, sensor"
+            },
+            {
+                "id": "compute_utci_chicago",
+                "type": "Computation Analysis",
+                "content": "import xarray as xr\nfrom pythermalcomfort import models\nimport numpy as np\nfrom rasterio.warp import Resampling\nsrc, sensor = arg[0]\ntimestamp = 12\nupscale_factor = 0.25\ndata = src.read(\n    out_shape=(\n        src.count,\n        int(src.height * upscale_factor),\n        int(src.width * upscale_factor)\n    ),\n    resampling=Resampling.nearest,\n    masked=True\n)\ndata.data[data.data == src.nodatavals[0]] = np.nan\nsensor = sensor[sensor['it'] == timestamp]\ntdb = sensor['Td'].values[0]\nv = sensor['Wind'].values[0]\nrh = sensor['RH'].values[0]\ndef xutci(tdb, tr, v, rh, units='SI'):\n    return xr.apply_ufunc(\n        models.utci,\n        tdb,\n        tr,\n        v,\n        rh,\n        units\n    )\nutci = xutci(tdb, data[0], v, rh)\nreturn src, utci.tolist(), [data.shape[-1], data.shape[-2]]"
+            },
+            {
+                "id": "load_and_merge_demographic_chicago",
+                "type": "Data Loading",
+                "content": "import geopandas as gpd\ngdf = gpd.read_file('R03_21-11_WGS84_P_SocioDemographics_CHICAGO_Selected.shp')\nreturn gdf"
+            },
+            {
+                "id": "spatial_join_chicago",
+                "type": "Computation Analysis",
+                "content": "import numpy as np\nfrom rasterstats import zonal_stats\nsrc, utci, shape = arg[0]\ngdf = arg[1]\ntransform = src.transform * src.transform.scale(\n    (src.width / shape[0]),\n    (src.height / shape[1])\n)\njoined = zonal_stats(gdf, utci, stats=['min', 'max', 'mean', 'median'], affine=transform)\ngdf['mean'] = [d['mean'] for d in joined]\nreturn gdf.loc[:, [gdf.geometry.name, 'mean', \"gt_65\"]]"
+            },
+            {
+                "id": "filter_utci_chicago",
+                "type": "Data Cleaning",
+                "content": "import geopandas as gpd\ngdf = arg\nfiltered_gdf = gdf.set_crs(32632).to_crs(3395)\nfiltered_gdf = filtered_gdf[filtered_gdf['mean'] > 0]\nfiltered_gdf.metadata = {\n    'name': 'census'\n}\nreturn filtered_gdf"
+            },
+            {
+                "id": "scatterplot_chicago",
+                "type": "Vega-Lite",
+                "content": "{\n    \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n    \"params\": [\n        {\"name\": \"clickSelect\", \"select\": \"interval\"}\n    ],\n    \"mark\": {\n        \"type\": \"point\",\n        \"cursor\": \"pointer\"\n    },\n    \"encoding\": {\n        \"x\": {\"field\": \"gt_65\", \"type\": \"quantitative\"},\n        \"y\": {\"field\": \"mean\", \"type\": \"quantitative\", \"scale\": {\"domain\": [37, 42]}},\n        \"fillOpacity\": {\n            \"condition\": {\"param\": \"clickSelect\", \"value\": 1},\n            \"value\": 0.3\n        },\n        \"color\": {\n            \"field\": \"interacted\",\n            \"type\": \"nominal\",\n            \"condition\": {\"test\": \"datum.interacted === '1'\", \"value\": \"red\", \"else\": \"blue\"}\n        }\n    },\n    \"config\": {\n        \"scale\": {\n            \"bandPaddingInner\": 0.2\n        }\n    }\n}"
+            },
+            {
+                "id": "filter_for_boxplot_chicago",
+                "type": "Data Cleaning",
+                "content": "gdf = arg\nreturn gdf.loc[:, [\"gt_65\"]]"
+            },
+            {
+                "id": "boxplot_chicago",
+                "type": "Vega-Lite",
+                "content": "{\n    \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",\n    \"transform\": [\n        {\n            \"fold\": [\"gt_65\"],\n            \"as\": [\"Variable\", \"Value\"]\n        }\n    ],\n    \"mark\": {\n        \"type\": \"boxplot\",\n        \"size\": 60\n    },\n    \"encoding\": {\n        \"x\": {\"field\": \"Variable\", \"type\": \"nominal\", \"title\": \"Variable\"},\n        \"y\": {\"field\": \"Value\", \"type\": \"quantitative\", \"title\": \"Value\"}\n    }\n}"
+            }
+        ],
+        "edges": [
+            {
+                "source": "load_mean_radiant_and_meteorological_milan",
+                "target": "compute_utci_milan"
+            },
+            {
+                "source": "compute_utci_milan",
+                "target": "spatial_join_milan"
+            },
+            {
+                "source": "load_and_merge_demographic_milan",
+                "target": "spatial_join_milan"
+            },
+            {
+                "source": "spatial_join_milan",
+                "target": "filter_utci_milan"
+            },
+            {
+                "source": "filter_utci_milan",
+                "target": "scatterplot_milan"
+            },
+            {
+                "source": "filter_utci_milan",
+                "target": "filter_for_boxplot_milan"
+            },
+            {
+                "source": "filter_for_boxplot_milan",
+                "target": "boxplot_milan"
+            },
+            {
+                "source": "load_mean_radiant_and_meteorological_chicago",
+                "target": "compute_utci_chicago"
+            },
+            {
+                "source": "compute_utci_chicago",
+                "target": "spatial_join_chicago"
+            },
+            {
+                "source": "load_and_merge_demographic_chicago",
+                "target": "spatial_join_chicago"
+            },
+            {
+                "source": "spatial_join_chicago",
+                "target": "filter_utci_chicago"
+            },
+            {
+                "source": "filter_utci_chicago",
+                "target": "scatterplot_chicago"
+            },
+            {
+                "source": "filter_utci_chicago",
+                "target": "filter_for_boxplot_chicago"
+            },
+            {
+                "source": "filter_for_boxplot_chicago",
+                "target": "boxplot_chicago"
+            }
+        ]
+    }
+}
