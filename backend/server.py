@@ -1018,3 +1018,58 @@ def truncate_db_prov():
 
 if __name__ == '__main__':
     app.run(host=address, port=port, threaded=False)
+
+@app.route('/evlLLM', zmethods=['POST'])
+def evl_llm():
+    
+# curl -X 'POST' \
+# 'https://arcade.evl.uic.edu/llama32-11B-vision/v1/chat/completions' \
+# -H 'accept: application/json' \
+# -H 'Content-Type: application/json' \
+# -d '{
+#     "model": "meta/llama-3.2-11b-vision-instruct",
+#     "messages": [
+#         {
+#             "role": "user",
+#             "content": [
+#                 {"type": "text", "text": "Whats in this image?"},
+#                 {"type": "image_url",
+#                     "image_url": { "url": "https://huggingface.co/datasets/huggingface/documentation-images/resolve/mai
+# n/transformers/rabbit.png" }
+#                 }
+#             ]
+#         }
+#     ],
+#     "stream": false,
+#     "max_tokens": 2000
+# }'
+
+    url = "https://arcade.evl.uic.edu/llama32-11B-vision/v1/chat/completions"
+    model = "meta/llama-3.2-11b-vision-instruct"
+
+    data = request.json.get('data')
+
+    text = data['text']
+    image = data['image']
+    parameters = data['parameters']
+
+    content = []
+
+    if text != None:
+        text = text.format(*parameters)
+        content.append({"type": "text", "text": ""})
+
+
+    messages = [
+        {
+            'role': 'system',
+            'content': """You are an expert in visual analytics workflows. Your task is to behave as an assistant to users of a system for building visual analytics workflows."""
+        },
+        {
+            'role': 'user',
+
+        }
+    ]
+
+
+    return "",200

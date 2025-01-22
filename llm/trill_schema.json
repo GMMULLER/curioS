@@ -14,7 +14,8 @@
                   "type": "string"
                 },
                 "type": {
-                  "type": "string"
+                  "type": "string",
+                  "enum": ["Data Loading", "Data Export", "Data Cleaning", "Data Transformation", "Computation Analysis", "Vega-Lite", "Merge Flow"]
                 },
                 "content": {
                   "type": "string"
@@ -53,6 +54,10 @@
                 },
                 "target": {
                   "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": ["Interaction", "Data"]
                 }
               },
               "required": ["source", "target"]
