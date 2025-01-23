@@ -1060,10 +1060,6 @@ def evl_llm():
 
     messages = [
         {
-            'role': 'system',
-            'content': """You are an expert in visual analytics workflows. Your task is to behave as an assistant to users of a system for building visual analytics workflows."""
-        },
-        {
             'role': 'user',
             'content': content
         }
