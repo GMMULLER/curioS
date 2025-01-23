@@ -1015,50 +1015,48 @@ def truncate_db_prov():
 
     return "",200
 
-
-if __name__ == '__main__':
-    app.run(host=address, port=port, threaded=False)
-
-@app.route('/evlLLM', zmethods=['POST'])
+@app.route('/evlLLM', methods=['POST'])
 def evl_llm():
-    
-# curl -X 'POST' \
-# 'https://arcade.evl.uic.edu/llama32-11B-vision/v1/chat/completions' \
-# -H 'accept: application/json' \
-# -H 'Content-Type: application/json' \
-# -d '{
-#     "model": "meta/llama-3.2-11b-vision-instruct",
-#     "messages": [
-#         {
-#             "role": "user",
-#             "content": [
-#                 {"type": "text", "text": "Whats in this image?"},
-#                 {"type": "image_url",
-#                     "image_url": { "url": "https://huggingface.co/datasets/huggingface/documentation-images/resolve/mai
-# n/transformers/rabbit.png" }
-#                 }
-#             ]
-#         }
-#     ],
-#     "stream": false,
-#     "max_tokens": 2000
-# }'
+
+# curl -X "POST" "https://arcade.evl.uic.edu/llama32-11B-vision/v1/chat/completions" -H "accept: application/json" -H "Content-Type: application/json" -d "{\"model\":\"meta/llama-3.2-11b-vision-instruct\",\"messages\":[{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"Whatsinthisimage?\"}]}],\"stream\":false,\"max_tokens\":2000}"
 
     url = "https://arcade.evl.uic.edu/llama32-11B-vision/v1/chat/completions"
     model = "meta/llama-3.2-11b-vision-instruct"
 
-    data = request.json.get('data')
+    headers = {
+        "accept": "application/json",
+        "Content-Type": "application/json"
+    }
 
-    text = data['text']
-    image = data['image']
-    parameters = data['parameters']
+    data = request.get_json()
+    text = data.get("text", None)
+    image = data.get("image", None)
+    trill = data.get("trill", None)
+
+    # parameters = data.get("image", None)
+
+    prompt_preamble_file = open("llm_prompt_preamble.txt")
+    prompt_preamble = prompt_preamble_file.read()
+    
+    if trill != None:
+        prompt_preamble += "\n\n"
+        prompt_preamble += json.dumps(trill, indent=4)
+    else:
+        prompt_preamble += "The dataflow is currently empty"
+    
+    prompt_preamble += "\n\nThis is the user request for you. Reply to their request based on the given dataflow (if any):"
 
     content = []
 
-    if text != None:
-        text = text.format(*parameters)
-        content.append({"type": "text", "text": ""})
+    print(prompt_preamble+"\n\n"+text)
 
+    if text != None:
+        # if parameters != None:
+            # text = text.format(*parameters)
+        content.append({"type": "text", "text": prompt_preamble+"\n\n"+text})
+
+    if image != None:
+        content.append({"type": "image_url", "image_url": {"url": image}})
 
     messages = [
         {
@@ -1067,9 +1065,21 @@ def evl_llm():
         },
         {
             'role': 'user',
-
+            'content': content
         }
     ]
 
+    request_data = {
+        "model": model,
+        "messages": messages,
+        "stream": False,
+        "max_tokens": 2000
+    }
 
-    return "",200
+    response = requests.post(url, headers=headers, json=request_data)
+
+    return jsonify(response.json())
+
+if __name__ == '__main__':
+    app.run(host=address, port=port, threaded=False)
+

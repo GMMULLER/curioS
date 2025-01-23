@@ -77,6 +77,10 @@ function UtkBox({ data, isConnectable }) {
   const { workflowName } = useFlowContext();
 
   useEffect(() => {
+    data.code = code;
+  }, [code]);
+
+  useEffect(() => {
     if (data.templateId != undefined) {
       setTemplateData({
         id: data.templateId,

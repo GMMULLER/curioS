@@ -34,6 +34,10 @@ function ComputationAnalysisBox({ data, isConnectable }) {
   const { editUserTemplate } = useTemplateContext();
 
   useEffect(() => {
+    data.code = code;
+  }, [code]);
+
+  useEffect(() => {
     if (data.templateId != undefined) {
       setTemplateData({
         id: data.templateId,

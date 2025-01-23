@@ -34,6 +34,10 @@ function DataTransformationBox({ data, isConnectable }) {
   const { user } = useUserContext();
 
   useEffect(() => {
+    data.code = code;
+  }, [code]);
+
+  useEffect(() => {
     if (data.templateId != undefined) {
       setTemplateData({
         id: data.templateId,

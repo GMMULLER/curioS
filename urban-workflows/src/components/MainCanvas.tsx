@@ -12,7 +12,7 @@ import ReactFlow, {
 } from "reactflow";
 
 import { useFlowContext } from "../providers/FlowProvider";
-import { ToolsMenu } from "./tools-menu";
+import { ToolsMenu, LLMCommunication } from "./tools-menu";
 import ComputationAnalysisBox from "./ComputationAnalysisBox";
 import DataTransformationBox from "./DataTransformationBox";
 import { BoxType, EdgeType } from "../constants";
@@ -169,6 +169,7 @@ export function MainCanvas() {
             >
                 <UserMenu />
                 <ToolsMenu />
+                <LLMCommunication />
                 <RightClickMenu
                   showMenu={showMenu}
                   menuPosition={menuPosition}
@@ -186,3 +187,4 @@ export function MainCanvas() {
         </div>
     );
 }
+
