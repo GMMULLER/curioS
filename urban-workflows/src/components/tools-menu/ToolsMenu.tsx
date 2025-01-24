@@ -27,7 +27,6 @@ import {
 import { Tooltip, OverlayTrigger } from "react-bootstrap";
 import { Template, useTemplateContext } from "../../providers/TemplateProvider";
 import { useUserContext } from "../../providers/UserProvider";
-import FileUpload from "./FileUpload";
 
 export function ToolsMenu() {
     const { createCodeNode } = useCode();
@@ -279,10 +278,6 @@ export function ToolsMenu() {
                 </OverlayTrigger>
             </div>
 
-            <FileUpload
-                style={fileUploadStyle}
-            />
-
             {/* Templates */}
             {/* {getBoxesType().map((type: string, indexType: number) => {
                 return <div id={"templates_modal_"+type} key={"templates_modal_"+type+"_"+indexType} style={templatesModalStyle}>
@@ -317,27 +312,10 @@ const overlayTriggerProps = {
     hide: 10,
 };
 
-const fileUploadStyle: CSS.Properties = {
-    position: "fixed",
-    zIndex: 100,
-    top: "400px",
-    width: "100px",
-    textAlign: "center",
-    height: "35px",
-    left: "50px",
-    backgroundColor: "white",
-    fontWeight: "bold",
-    color: "#888787",
-    borderRadius: "4px",
-    cursor: "pointer", 
-    outline: "none",
-    padding: "5px",
-};
-
 const containerStyle: CSS.Properties = {
     position: "fixed",
     zIndex: 100,
-    top: "50px",
+    top: "150px",
     left: "50px",
     backgroundColor: "white",
     boxShadow: "0px 0px 5px 0px black",
@@ -405,7 +383,7 @@ const buttonStyleAny: CSS.Properties = {
 const templatesModalStyle: CSS.Properties = {
     position: "fixed", 
     zIndex: 100, 
-    top: "50px", 
+    top: "150px", 
     left: "180px",
     display: "none", 
     width: "600px", 

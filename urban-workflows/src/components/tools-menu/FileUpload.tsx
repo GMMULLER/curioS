@@ -25,9 +25,9 @@ const FileUpload = ({style}:FileUploadProps) => {
     };
 
   return (
-    <div style={{...style, boxShadow: "0px 0px 5px 0px black"}}>
-        <label htmlFor="uploadFile" style={{cursor: "pointer", margin: 0}}>Upload file</label>
-        <input type="file" id="uploadFile" style={{visibility: "hidden"}} onChange={handleFileChange} />
+    <div style={{...style, boxShadow: "0px 0px 5px 0px black"}} onClick={() => document.getElementById('uploadFile')?.click()}>
+        <label htmlFor="uploadFile" style={{cursor: "pointer", margin: 0, pointerEvents: "none"}}>Upload Dataset</label>
+        <input type="file" id="uploadFile" style={{visibility: "hidden", width: 0 }} onChange={handleFileChange} />
         {/* <button onClick={handleSubmit}>Upload</button> */}
     </div>
   );

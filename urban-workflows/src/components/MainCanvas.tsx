@@ -12,7 +12,7 @@ import ReactFlow, {
 } from "reactflow";
 
 import { useFlowContext } from "../providers/FlowProvider";
-import { ToolsMenu, LLMCommunication } from "./tools-menu";
+import { ToolsMenu, LLMCommunication, UpMenu } from "./tools-menu";
 import ComputationAnalysisBox from "./ComputationAnalysisBox";
 import DataTransformationBox from "./DataTransformationBox";
 import { BoxType, EdgeType } from "../constants";
@@ -170,6 +170,11 @@ export function MainCanvas() {
                 <UserMenu />
                 <ToolsMenu />
                 <LLMCommunication />
+                <UpMenu 
+                    setDashBoardMode={setDashBoardMode}
+                    setDashboardOn={setDashboardOn}
+                    dashboardOn={dashboardOn}
+                />
                 <RightClickMenu
                   showMenu={showMenu}
                   menuPosition={menuPosition}
@@ -180,7 +185,6 @@ export function MainCanvas() {
                     },
                   ]}
                 />
-                <button className="nowheel nodrag" style={{...buttonStyle, position: "fixed", right: "10px", color: "#888787", fontWeight: "bold", bottom: "20px", zIndex: 100, ...(dashboardOn ? {boxShadow: "0px 0px 5px 0px red"} : {boxShadow: "0px 0px 5px 0px black"})}} onClick={() => {setDashBoardMode(!dashboardOn); setDashboardOn(!dashboardOn);}}>Dashboard mode</button>
                 <Background />
                 <Controls />
             </ReactFlow>
