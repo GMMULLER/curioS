@@ -20,6 +20,12 @@
                 "content": {
                   "type": "string"
                 },
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                },
                 "metadata": {
                   "type": "object",
                   "properties": {
@@ -41,7 +47,7 @@
                   }
                 }
               },
-              "required": ["id", "type"]
+              "required": ["id", "type", "x", "y"]
             }
           },
           "edges": {
@@ -49,6 +55,9 @@
             "items": {
               "type": "object",
               "properties": {
+                "id": {
+                  "type": "string"
+                },
                 "source": {
                   "type": "string"
                 },
@@ -60,11 +69,14 @@
                   "enum": ["Interaction", "Data"]
                 }
               },
-              "required": ["source", "target"]
+              "required": ["source", "target", "id"]
             }
+          },
+          "name": {
+            "type": "string"
           }
         },
-        "required": ["nodes", "edges"]
+        "required": ["nodes", "edges", "name"]
       }
     },
     "required": ["dataflow"]

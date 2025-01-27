@@ -2,11 +2,15 @@ import React, { useEffect, useState } from "react";
 import CSS from "csstype";
 import FileUpload from "./FileUpload";
 import './UpMenu.css';
+import { TrillGenerator } from "../../TrillGenerator";
+import { useFlowContext } from "../../providers/FlowProvider";
+import { useCode } from "../../hook/useCode";
 
 export function UpMenu({ setDashBoardMode, setDashboardOn, dashboardOn }: { setDashBoardMode: (mode: boolean) => void; setDashboardOn: (mode: boolean) => void; dashboardOn: boolean }) {
-    const [workflowName, setWorkflowName] = useState("Untitled Workflow");
     const [isEditing, setIsEditing] = useState(false);
     const [fileMenuOpen, setFileMenuOpen] = useState(false);
+    const { nodes, edges, workflowName, setWorkflowName } = useFlowContext();
+    const { loadTrill } = useCode();
 
     const handleNameChange = (e: any) => {
         setWorkflowName(e.target.value);
@@ -21,6 +25,57 @@ export function UpMenu({ setDashBoardMode, setDashboardOn, dashboardOn }: { setD
             setIsEditing(false);
         }
     };
+
+    const exportTrill = (e:any) => {
+        let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowName);
+        
+        const jsonString = JSON.stringify(trill_spec, null, 2);
+
+        const blob = new Blob([jsonString], { type: 'application/json' });
+
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = workflowName+'.json';
+
+        document.body.appendChild(link);
+
+        link.click();
+
+        document.body.removeChild(link);
+    }
+
+    const handleFileUpload = (e:any) => {
+        const file = e.target.files[0]; // Get the selected file
+
+        if (file && file.type === 'application/json') {
+            const reader = new FileReader();
+    
+            reader.onload = (e:any) => {
+                try {
+                    const jsonContent = JSON.parse(e.target.result);
+
+                    console.log('Uploaded JSON content:', jsonContent);
+                    loadTrill(jsonContent);
+                } catch (err) {
+                    console.error('Invalid JSON file:', err);
+                }
+            };
+    
+            reader.onerror = (e:any) => {
+                console.error('Error reading file:', e.target.error);
+            };
+    
+            reader.readAsText(file);
+        } else {
+            console.error('Please select a valid .json file.');
+        }
+    }
+
+    const loadTrillFile = (e:any) => {
+        const fileInput = document.getElementById('loadTrill') as HTMLElement;
+        fileInput.click();
+    }
+
 
     return (
         <>
@@ -37,8 +92,11 @@ export function UpMenu({ setDashBoardMode, setDashboardOn, dashboardOn }: { setD
                     {fileMenuOpen && (
                         <div style={dropdownMenu}>
                             <button style={dropdownItem}>New Workflow</button>
-                            <button style={dropdownItem}>Export as Trill</button>
-                            <button style={dropdownItem}>Load Trill</button>
+                            <button style={dropdownItem} onClick={exportTrill}>Export as Trill</button>
+                            <div>
+                                <button style={dropdownItem} onClick={loadTrillFile}>Load Trill</button>
+                                <input type="file" accept=".json" id="loadTrill" style={{ display: 'none' }} onChange={handleFileUpload}/>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -66,7 +124,6 @@ export function UpMenu({ setDashBoardMode, setDashboardOn, dashboardOn }: { setD
                     </h1>
                 )}
             </div>
-            {/* <button  style={{...(dashboardOn ? {boxShadow: "0px 0px 5px 0px red"} : {boxShadow: "0px 0px 5px 0px black"})}} >Dashboard mode</button> */}
 
         </>
 

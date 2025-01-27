@@ -138,7 +138,7 @@ function DataExportBox({ data, isConnectable }) {
           data={data}
           output={output}
           boxType={BoxType.DATA_EXPORT}
-          defaultValue={templateData.code}
+          defaultValue={templateData.code ? templateData.code : data.defaultCode}
           readOnly={
             (templateData.custom != undefined &&
               templateData.custom == false) ||

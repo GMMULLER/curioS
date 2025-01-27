@@ -139,7 +139,7 @@ function DataTransformationBox({ data, isConnectable }) {
           data={data}
           output={output}
           boxType={BoxType.DATA_TRANSFORMATION}
-          defaultValue={templateData.code}
+          defaultValue={templateData.code ? templateData.code : data.defaultCode}
           readOnly={
             (templateData.custom != undefined &&
               templateData.custom == false) ||

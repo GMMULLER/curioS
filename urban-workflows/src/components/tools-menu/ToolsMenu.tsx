@@ -102,7 +102,7 @@ export function ToolsMenu() {
                 >
                     <div
                         style={optionStyle}
-                        onClick={() => createCodeNode(BoxType.COMPUTATION_ANALYSIS, null)}
+                        onClick={() => createCodeNode(BoxType.COMPUTATION_ANALYSIS)}
                     >
                         <FontAwesomeIcon icon={faMagnifyingGlassChart} style={iconStyle} />
                     </div>
@@ -115,7 +115,7 @@ export function ToolsMenu() {
                 >
                     <div
                         style={optionStyle}
-                        onClick={() => createCodeNode(BoxType.DATA_TRANSFORMATION, null)}
+                        onClick={() => createCodeNode(BoxType.DATA_TRANSFORMATION)}
                     >
                         <FontAwesomeIcon icon={faDatabase} style={iconStyle} />
                     </div>
@@ -128,7 +128,7 @@ export function ToolsMenu() {
                 >
                     <div
                         style={optionStyle}
-                        onClick={() => createCodeNode(BoxType.DATA_LOADING, null)}
+                        onClick={() => createCodeNode(BoxType.DATA_LOADING)}
                     >
                         <FontAwesomeIcon icon={faUpload} style={iconStyle} />
                     </div>
@@ -141,7 +141,7 @@ export function ToolsMenu() {
                 >
                     <div
                         style={optionStyle}
-                        onClick={() => createCodeNode(BoxType.VIS_VEGA, null)}
+                        onClick={() => createCodeNode(BoxType.VIS_VEGA)}
                     >
                         <FontAwesomeIcon icon={faChartLine} style={iconStyle} />
                     </div>
@@ -154,7 +154,7 @@ export function ToolsMenu() {
                 >
                     <div
                         style={optionStyle}
-                        onClick={() => createCodeNode(BoxType.VIS_TEXT, null)}
+                        onClick={() => createCodeNode(BoxType.VIS_TEXT)}
                     >
                         <FontAwesomeIcon icon={faFont} style={iconStyle} />
                     </div>
@@ -167,7 +167,7 @@ export function ToolsMenu() {
                 >
                     <div
                         style={optionStyle}
-                        onClick={() => createCodeNode(BoxType.DATA_EXPORT, null)}
+                        onClick={() => createCodeNode(BoxType.DATA_EXPORT)}
                     >
                         <FontAwesomeIcon icon={faDownload} style={iconStyle} />
                     </div>
@@ -180,7 +180,7 @@ export function ToolsMenu() {
                 >
                     <div
                         style={optionStyle}
-                        onClick={() => createCodeNode(BoxType.DATA_CLEANING, null)}
+                        onClick={() => createCodeNode(BoxType.DATA_CLEANING)}
                     >
                         <FontAwesomeIcon icon={faBroom} style={iconStyle} />
                     </div>
@@ -193,7 +193,7 @@ export function ToolsMenu() {
                 >
                     <div
                         style={optionStyle}
-                        onClick={() => createCodeNode(BoxType.FLOW_SWITCH, null)}
+                        onClick={() => createCodeNode(BoxType.FLOW_SWITCH)}
                     >
                         <FontAwesomeIcon icon={faRepeat} style={iconStyle} />
                     </div>
@@ -206,7 +206,7 @@ export function ToolsMenu() {
                 >
                     <div
                         style={optionStyle}
-                        onClick={() => createCodeNode(BoxType.VIS_UTK, null)}
+                        onClick={() => createCodeNode(BoxType.VIS_UTK)}
                     >
                         <FontAwesomeIcon icon={faCube} style={iconStyle} />
                     </div>
@@ -219,7 +219,7 @@ export function ToolsMenu() {
                 >
                     <div
                         style={optionStyle}
-                        onClick={() => createCodeNode(BoxType.VIS_TABLE, null)}
+                        onClick={() => createCodeNode(BoxType.VIS_TABLE)}
                     >
                         <FontAwesomeIcon icon={faTable} style={iconStyle} />
                     </div>
@@ -232,7 +232,7 @@ export function ToolsMenu() {
                 >
                     <div
                         style={optionStyle}
-                        onClick={() => createCodeNode(BoxType.VIS_IMAGE, null)}
+                        onClick={() => createCodeNode(BoxType.VIS_IMAGE)}
                     >
                         <FontAwesomeIcon icon={faImage} style={iconStyle} />
                     </div>
@@ -245,7 +245,7 @@ export function ToolsMenu() {
                 >
                     <div
                         style={optionStyle}
-                        onClick={() => createCodeNode(BoxType.CONSTANTS, null)}
+                        onClick={() => createCodeNode(BoxType.CONSTANTS)}
                     >
                         <FontAwesomeIcon icon={faSquareRootVariable} style={iconStyle} />
                     </div>
@@ -258,7 +258,7 @@ export function ToolsMenu() {
                 >
                     <div
                         style={optionStyle}
-                        onClick={() => createCodeNode(BoxType.DATA_POOL, null)}
+                        onClick={() => createCodeNode(BoxType.DATA_POOL)}
                     >
                         <FontAwesomeIcon icon={faServer} style={iconStyle} />
                     </div>
@@ -271,7 +271,7 @@ export function ToolsMenu() {
                 >
                     <div
                         style={optionStyle}
-                        onClick={() => createCodeNode(BoxType.MERGE_FLOW, null)}
+                        onClick={() => createCodeNode(BoxType.MERGE_FLOW)}
                     >
                         <FontAwesomeIcon icon={faCodeMerge} style={iconStyle} />
                     </div>

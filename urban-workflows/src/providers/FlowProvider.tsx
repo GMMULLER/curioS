@@ -24,6 +24,7 @@ import {
 import { ConnectionValidator } from "../ConnectionValidator";
 import { BoxType, EdgeType, VisInteractionType } from "../constants";
 import { useProvenanceContext } from "./ProvenanceProvider";
+import { useCode } from "../hook/useCode";
 
 export interface IOutput {
     nodeId: string;
@@ -63,6 +64,8 @@ interface FlowContextProps {
     updatePositionWorkflow: (nodeId:string, position: any) => void;
     updatePositionDashboard: (nodeId:string, position: any) => void;
     applyNewOutput: (output: IOutput) => void;
+    setWorkflowName: (name: string) => void;
+    loadParsedTrill: (workflowName: string, node: any, edges: any) => void;
 }
 
 export const FlowContext = createContext<FlowContextProps>({
@@ -84,6 +87,8 @@ export const FlowContext = createContext<FlowContextProps>({
     updatePositionWorkflow: () => {},
     updatePositionDashboard: () => {},
     applyNewOutput: () => {},
+    setWorkflowName: () => {},
+    loadParsedTrill: () => {}
 });
 
 const FlowProvider = ({ children }: { children: ReactNode }) => {
@@ -98,14 +103,14 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
 
     const [positionsInDashboard, _setPositionsInDashboard] = useState<any>({}); // [nodeId] -> change
     const positionsInDashboardRef = useRef(positionsInDashboard);
-    const setPositionsInDashboard = (data: string) => {
+    const setPositionsInDashboard = (data: any) => {
         positionsInDashboardRef.current = data;
         _setPositionsInDashboard(data);
     };
 
     const [positionsInWorkflow, _setPositionsInWorkflow] = useState<any>({}); // [nodeId] -> change
     const positionsInWorkflowRef = useRef(positionsInWorkflow);
-    const setPositionsInWorkflow = (data: string) => {
+    const setPositionsInWorkflow = (data: any) => {
         positionsInWorkflowRef.current = data;
         _setPositionsInWorkflow(data);
     };
@@ -115,9 +120,33 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
 
     const [workflowName, setWorkflowName] = useState<string>("DefaultWorkflow");
   
+    // const { createCodeNode } = useCode();
+
     useEffect(() => {
         addWorkflow(workflowName);
     }, [])
+
+    const loadParsedTrill = (workflowName: string, nodes: any, edges: any) => {
+
+        // Reset, workflowName
+        setNodes(nodes);
+        setEdges(edges);
+        setOutputs([]);
+        setInteractions([]);
+        setDashboardPins({});
+        setPositionsInDashboard({});
+        setPositionsInWorkflow({});
+        setWorkflowName(workflowName);
+
+        // createCodeNode(trill.dataflow.nodes[0].type, {code: trill.dataflow.nodes[0].content, position: {x: trill.dataflow.nodes[0].x, y: trill.dataflow.nodes[0].y}});
+
+        // createCodeNode(BoxType.COMPUTATION_ANALYSIS);
+
+        // Move nodes to the right positions with setPositionsInWorkflow
+
+        // Unset dashboardMode (setDashBoardMode)
+        // 
+    }
 
     const setDashBoardMode = (value: boolean) => {
 
@@ -758,6 +787,8 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
                 updatePositionWorkflow,
                 updatePositionDashboard,
                 applyNewOutput,
+                setWorkflowName,
+                loadParsedTrill
             }}
         >
             {children}

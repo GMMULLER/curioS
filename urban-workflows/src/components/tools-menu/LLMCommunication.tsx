@@ -8,7 +8,7 @@ export function LLMCommunication() {
   const [textInput, setTextInput] = useState<string>("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const { nodes, edges } = useFlowContext();
+  const { nodes, edges, workflowName } = useFlowContext();
 
   const handleTextInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setTextInput(event.target.value);
@@ -90,11 +90,9 @@ export function LLMCommunication() {
         payload.image = imageString;
       }
 
-      let trill_spec = TrillGenerator.generateTrill(nodes, edges);
+      let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowName);
 
-      if(trill_spec != undefined){
-        payload.trill = trill_spec;
-      }
+      payload.trill = trill_spec;
 
       const response = await fetch(`${process.env.BACKEND_URL}/evlLLM`, {
         method: "POST",

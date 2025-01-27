@@ -492,7 +492,7 @@ function VegaBox({ data, isConnectable }) {
           output={output}
           boxType={BoxType.VIS_VEGA}
           applyGrammar={compileGrammar}
-          defaultValue={templateData.code}
+          defaultValue={templateData.code ? templateData.code : data.defaultCode}
           readOnly={
             (templateData.custom != undefined &&
               templateData.custom == false) ||

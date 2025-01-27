@@ -6,16 +6,28 @@ import { IInteraction, IOutput, useFlowContext } from "../providers/FlowProvider
 import { PythonInterpreter } from "../PythonInterpreter";
 import { usePosition } from "./usePosition";
 import { Template } from "../providers/TemplateProvider";
-import { AccessLevelType } from "../constants";
+import { AccessLevelType, BoxType } from "../constants";
 
 const pythonInterpreter = new PythonInterpreter();
 
+type CreateCodeNodeOptions = {
+    nodeId?: string;
+    code?: string;
+    description?: string;
+    templateId?: string;
+    templateName?: string;
+    accessLevel?: AccessLevelType;
+    customTemplate?: boolean;
+    position?: { x: number; y: number };
+};
+
 interface IUseCode {
-    createCodeNode: (boxType: string, template: Template | null) => void;
+    createCodeNode: (boxType: string, options?: CreateCodeNodeOptions) => void;
+    loadTrill: (trill: any) => void;
 }
 
 export function useCode(): IUseCode {
-    const { addNode, setOutputs, setInteractions, applyNewPropagation, applyNewOutput } = useFlowContext();
+    const { addNode, setOutputs, setInteractions, applyNewPropagation, applyNewOutput, loadParsedTrill } = useFlowContext();
     const { getPosition } = usePosition();
 
     const outputCallback = useCallback(
@@ -46,54 +58,81 @@ export function useCode(): IUseCode {
         })
     }, [setInteractions]);
 
-    const createCodeNode = useCallback((boxType: string, template: Template | null = null) => {
-        const nodeId = uuid();
+    const loadTrill = (trill: any) => {
 
-        if(template != null){
-            const node: Node = {
-                id: nodeId,
-                type: boxType,
-                position: getPosition(),
-                data: {
-                    nodeId: nodeId,
-                    pythonInterpreter: pythonInterpreter,
-                    defaultCode: template.code,
-                    description: template.description,
-                    templateId: template.id,
-                    templateName: template.name,
-                    accessLevel: template.accessLevel,
-                    hidden: false,
-                    nodeType: boxType,
-                    customTemplate: template.custom,
-                    input: "",
-                    outputCallback,
-                    interactionsCallback,
-                    propagationCallback: applyNewPropagation,
-                },
-            };
-    
-            addNode(node);
-        }else{
-            const node: Node = {
-                id: nodeId,
-                type: boxType,
-                position: getPosition(),
-                data: {
-                    nodeId: nodeId,
-                    pythonInterpreter: pythonInterpreter,
-                    input: "",
-                    nodeType: boxType,
-                    hidden: false,
-                    outputCallback,
-                    interactionsCallback,
-                    propagationCallback: applyNewPropagation,
-                },
-            };
-    
-            addNode(node);
+        let nodes = [];
+        let edges = [];
+
+        for(const node of trill.dataflow.nodes){
+            nodes.push(generateCodeNode(node.type, {nodeId: node.id, code: node.content, position: {x: node.x, y: node.y}}));
         }
+
+        for(const edge of trill.dataflow.edges){
+
+            let add_edge: any = {
+                id: edge.id,
+                markerEnd: {type: "arrow"},
+                source: edge.source,
+                sourceHandle: "out",
+                target: edge.target,
+                targetHandle: "in"
+            }
+
+            if(edge.type == "Interaction"){
+                add_edge.markerStart = {type: "arrow"};
+                add_edge.sourceHandle = "in/out";
+                add_edge.targetHandle = "in/out";
+                add_edge.type = "BIDIRECTIONAL_EDGE";
+            }
+
+            edges.push(add_edge);
+        }
+
+        loadParsedTrill(trill.name, nodes, edges);
+    }
+
+    const generateCodeNode = useCallback((boxType: string, options: CreateCodeNodeOptions = {}) => {
+        const {
+            nodeId = uuid(),
+            code = undefined,
+            description = undefined,
+            templateId = undefined,
+            templateName = undefined,
+            accessLevel = undefined,
+            customTemplate = undefined,
+            position = getPosition(),
+        } = options;
+
+        const node: Node = {
+            id: nodeId,
+            type: boxType,
+            position,
+            data: {
+                nodeId: nodeId,
+                pythonInterpreter: pythonInterpreter,
+                defaultCode: code,
+                description,
+                templateId,
+                templateName,
+                accessLevel,
+                hidden: false,
+                nodeType: boxType,
+                customTemplate,
+                input: "",
+                outputCallback,
+                interactionsCallback,
+                propagationCallback: applyNewPropagation,
+            },
+        };
+
+        return node;
 
     }, [addNode, outputCallback, getPosition]);
 
-    return { createCodeNode };
+    const createCodeNode = useCallback((boxType: string, options: CreateCodeNodeOptions = {}) => {
+        let node = generateCodeNode(boxType, options);
+        addNode(node);
+    }, [addNode, outputCallback, getPosition]);
+
+    return { createCodeNode, loadTrill };
 }

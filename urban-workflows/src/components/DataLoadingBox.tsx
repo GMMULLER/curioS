@@ -131,7 +131,7 @@ function DataLoadingBox({ data, isConnectable }) {
           data={data}
           output={output}
           boxType={BoxType.DATA_LOADING}
-          defaultValue={templateData.code}
+          defaultValue={templateData.code ? templateData.code : data.defaultCode}
           readOnly={
             (templateData.custom != undefined &&
               templateData.custom == false) ||

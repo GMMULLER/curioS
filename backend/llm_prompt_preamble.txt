@@ -71,23 +71,23 @@ Nodes in these dataflows either process data or visualize it. Each type of node 
 
 Here is a description of the available types of node:
 
-- Data Loading: used to load or generate data. Process data.
-- Data Export: used to save data. Process data.
-- Data Cleaning: used to clean data. Process data.
-- Data Transformation: used to transform data. Process data.
-- Computation Analysis: used to generic computations over the data. Process data.
-- Vega-Lite: used to render vega-lite visualizations. Visualize data.
-- Merge Flow: used to merge one or more flows into a single flow. 
+- DATA_LOADING: used to load or generate data. Process data.
+- DATA_EXPORT: used to save data. Process data.
+- DATA_CLEANING: used to clean data. Process data.
+- DATA_TRANSFORMATION: used to transform data. Process data.
+- COMPUTATION_ANALYSIS: used to generic computations over the data. Process data.
+- VIS_VEGA: used to render vega-lite visualizations. Visualize data.
+- MERGE_FLOW: used to merge one or more flows into a single flow. 
 
 Nodes are uncontrollable, controllable through python code or controllable through grammar:
 
-- Data Loading: controllable through python code.
-- Data Export: controllable through python code.
-- Data Cleaning: controllable through python code.
-- Data Transformation: controllable through python code.
-- Computation Analysis: controllable through python code.
-- Vega-Lite: controllable through grammar.
-- Merge Flow: uncontrollable. 
+- DATA_LOADING: controllable through python code.
+- DATA_EXPORT: controllable through python code.
+- DATA_CLEANING: controllable through python code.
+- DATA_TRANSFORMATION: controllable through python code.
+- COMPUTATION_ANALYSIS: controllable through python code.
+- VIS_VEGA: controllable through grammar.
+- MERGE_FLOW: uncontrollable. 
 
 An output connection of a node can be connected to the input connection of different nodes. The input connection of a node can receive input from many sources.
 
@@ -126,23 +126,23 @@ Data input and output compatilibity table for the nodes:
 
 Input supported:
 
-- Data Loading: no input supported
-- Data Export: DataFrame, GeoDataframe, Raster
-- Data Cleaning: DataFrame, GeoDataframe, Raster
-- Data Transformation: Dataframe, GeoDataframe, Raster
-- Computation Analysis: Dataframe, GeoDataframe, Value, List, JSON, Raster
-- Vega-Lite: DataFrame
-- Merge Flow: DataFrame, GeoDataframe, Value, List, JSON, Raster
+- DATA_LOADING: no input supported
+- DATA_EXPORT: DataFrame, GeoDataframe, Raster
+- DATA_CLEANING: DataFrame, GeoDataframe, Raster
+- DATA_TRANSFORMATION: Dataframe, GeoDataframe, Raster
+- COMPUTATION_ANALYSIS: Dataframe, GeoDataframe, Value, List, JSON, Raster
+- VIS_VEGA: DataFrame
+- MERGE_FLOW: DataFrame, GeoDataframe, Value, List, JSON, Raster
 
 Output supported:
 
-- Data Loading: DataFrame, GeoDataframe, Raster
-- Data Export: no output supported
-- Data Cleaning: Dataframe, GeoDataframe, Raster
-- Data Transformation: Dataframe, GeoDataframe, Raster
-- Computation Analysis: Dataframe, GeoDataframe, Value, List, JSON, Raster
-- Vega-Lite: DataFrame
-- Merge Flow: DataFrame, GeoDataframe, Value, List, JSON, Raster
+- DATA_LOADING: DataFrame, GeoDataframe, Raster
+- DATA_EXPORT: no output supported
+- DATA_CLEANING: Dataframe, GeoDataframe, Raster
+- DATA_TRANSFORMATION: Dataframe, GeoDataframe, Raster
+- COMPUTATION_ANALYSIS: Dataframe, GeoDataframe, Value, List, JSON, Raster
+- VIS_VEGA: DataFrame
+- MERGE_FLOW: DataFrame, GeoDataframe, Value, List, JSON, Raster
 
 Make sure to pay attention to the compatibility between output and input of the nodes.
 
@@ -153,7 +153,7 @@ An example of a dataflow:
         "nodes": [
             {
                 "id": "load_mean_radiant",
-                "type": "Data Loading",
+                "type": "DATA_LOADING",
                 "content": "import rasterio
                             timestamp = 12
                             src = rasterio.open(f'Milan_Tmrt_2022_203_{timestamp:02d}00D.tif')
@@ -162,18 +162,18 @@ An example of a dataflow:
             },
             {
                 "id": "load_meteorological",
-                "type": "Data Loading",
+                "type": "DATA_LOADING",
                 "content": "import pandas as pd
                             sensor = pd.read_csv('Milan_22.07.2022_Weather_File_UMEP_CSV.csv', delimiter=';')
                             return sensor"
             },
             {
                 "id": "merge_raster_meteorological",
-                "type": "Merge Flow"
+                "type": "MERGE_FLOW"
             },
             {
                 "id": "compute_utci",
-                "type": "Computation Analysis",
+                "type": "COMPUTATION_ANALYSIS",
                 "content": "import xarray as xr
                             from pythermalcomfort import models
                             import numpy as np
@@ -218,18 +218,18 @@ An example of a dataflow:
             },
             {
                 "id": "load_socio_demographic",
-                "type": "Data Loading",
+                "type": "DATA_LOADING",
                 "content": "import geopandas as gpd
                             gdf = gpd.read_file('R03_21-11_WGS84_P_SocioDemographics_MILANO_Selected.shp')
                             return gdf"
             },
             {
                 "id": "merge_raster_demographic",
-                "type": "Merge Flow"    
+                "type": "MERGE_FLOW"    
             },
             {
                 "id": "spatial_join",
-                "type": "Computation Analysis",
+                "type": "COMPUTATION_ANALYSIS",
                 "content": "import numpy as np
                             from rasterstats import zonal_stats
 
@@ -251,7 +251,7 @@ An example of a dataflow:
             },
             {
                 "id": "filter_utci",
-                "type": "Data Cleaning",
+                "type": "DATA_CLEANING",
                 "content": "import geopandas as gpd
 
                             gdf = arg
@@ -269,7 +269,7 @@ An example of a dataflow:
             },
             {
                 "id": "scatterplot",
-                "type": "Vega-Lite",
+                "type": "VIS_VEGA",
                 "content": "{
                             \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",
                             \"params\": [
@@ -301,13 +301,13 @@ An example of a dataflow:
             },
             {
                 "id": "filter_for_boxplot",
-                "type": "Data Cleaning",
+                "type": "DATA_CLEANING",
                 "content": "gdf = arg
                             return gdf.loc[:, [\"gt_65\"]]"
             },
             {
                 "id": "boxplot",
-                "type": "Vega-Lite",
+                "type": "VIS_VEGA",
                 "content": "{
                             \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\",
                             \"transform\": [

@@ -832,7 +832,7 @@ function UtkBox({ data, isConnectable }) {
           boxType={BoxType.VIS_UTK}
           applyGrammar={compileGrammar}
           defaultValue={
-            templateData.code == undefined ? defaultGrammar : templateData.code
+            templateData.code == undefined ? data.defaultCode ? data.defaultCode : defaultGrammar : templateData.code
           }
           readOnly={
             (templateData.custom != undefined &&
