@@ -51,7 +51,7 @@ function VegaBox({ data, isConnectable }) {
 
   const { editUserTemplate } = useTemplateContext();
   const { user } = useUserContext();
-  const { workflowName } = useFlowContext();
+  const { workflowNameRef } = useFlowContext();
 
   useEffect(() => {
     data.code = code;
@@ -413,8 +413,8 @@ function VegaBox({ data, isConnectable }) {
       boxExecProv(
         startTime,
         endTime,
-        workflowName,
-        BoxType.VIS_VEGA + "_" + data.nodeId,
+        workflowNameRef.current,
+        BoxType.VIS_VEGA + "-" + data.nodeId,
         mapTypes(typesInput),
         mapTypes(typesOuput),
         code

@@ -8,7 +8,7 @@ import { BoxType } from "../constants";
 
 interface ProvenanceContextProps {
     addUser: (user_name: string, user_type: string, user_IP: string) => void;
-    addWorkflow: (workflow_name: string) => void;
+    addWorkflow: (workflow_name: string) => Promise<void>;
     newBox: (workflow_name: string, activity_name: string) => void;
     deleteBox: (workflow_name: string, activity_name: string) => void;
     newConnection: (workflow_name: string, sourceNodeId: string, sourceNodeType: BoxType, targetNodeId: string, targetNodeType: BoxType) => void;
@@ -20,7 +20,7 @@ interface ProvenanceContextProps {
 
 export const ProvenanceContext = createContext<ProvenanceContextProps>({
     addUser: () => {},
-    addWorkflow: () => {},
+    addWorkflow: async () => Promise.resolve(),
     newBox: () => {},
     deleteBox: () => {},
     newConnection: () => {},
@@ -86,20 +86,20 @@ const ProvenanceProvider = ({ children }: { children: ReactNode }) => {
         })
     }
 
-    const addWorkflow = (workflow_name: string) => {
-        fetch(process.env.BACKEND_URL+"/truncateDBProv", {
+    const addWorkflow = async (workflow_name: string): Promise<void> => {
+        await fetch(process.env.BACKEND_URL+"/truncateDBProv", {
             method: "GET"
-        }).then(() => {
-            fetch(process.env.BACKEND_URL+"/saveWorkflowProv", {
-                method: "POST",
-                body: JSON.stringify({
-                    workflow: workflow_name
-                }),
-                headers: {
-                    "Content-type": "application/json; charset=UTF-8",
-                }
-            });
-        })
+        });
+
+        await fetch(process.env.BACKEND_URL + "/saveWorkflowProv", {
+            method: "POST",
+            body: JSON.stringify({
+                workflow: workflow_name
+            }),
+            headers: {
+                "Content-type": "application/json; charset=UTF-8",
+            }
+        });
     }
 
     const newConnection = (workflow_name: string, sourceNodeId: string, sourceNodeType: BoxType, targetNodeId: string, targetNodeType: BoxType) => {

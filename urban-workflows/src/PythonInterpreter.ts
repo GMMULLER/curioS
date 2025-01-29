@@ -151,7 +151,7 @@ export class PythonInterpreter {
                 }
             }
 
-            boxExecProv(startTime, endTime, workflow_name, boxType+"_"+nodeId, mapTypes(typesInput), mapTypes(typesOuput), unresolvedUserCode);
+            boxExecProv(startTime, endTime, workflow_name, boxType+"-"+nodeId, mapTypes(typesInput), mapTypes(typesOuput), unresolvedUserCode);
 
             // fetch(process.env.BACKEND_URL+"/boxExecProv", {
             //     method: "POST",

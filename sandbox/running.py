@@ -5,11 +5,14 @@ import geopandas as gpd
 import pandas as pd
 import json
 def userCode(arg):
-	import pandas as pd
-	
-	d = {'a': ["A", "B", "C", "D", "E", "F", "G", "H", "I"], 'b': [28, 55, 43, 91, 81, 53, 19, 87, 52]}
-	df = pd.DataFrame(data=d)
-	
+	import pandas as pd
+	# Create mockup data
+	data = {
+	    'A': [1, 2, 3, 4, 5],
+	    'B': [2.5, 3.7, 7.2, 9.1, 5.6]
+	}
+	# Create DataFrame
+	df = pd.DataFrame(data)
 	return df
 boxType = 'DATA_LOADING'
 def dumpsInput(input):

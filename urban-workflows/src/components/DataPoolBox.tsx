@@ -42,7 +42,7 @@ function DataPoolBox({ data, isConnectable }) {
     const [plotResolutionMode, setPlotResolutionMode] = useState<string>(ResolutionType.OVERWRITE) // how interaction conflicts are solved in the context of one plot
 
     const [showDescriptionModal, setDescriptionModal] = useState(false);
-    const { workflowName } = useFlowContext();
+    const { workflowNameRef } = useFlowContext();
     const { boxExecProv } = useProvenanceContext();
 
     const dataInputBypass = useRef(false);
@@ -196,7 +196,7 @@ function DataPoolBox({ data, isConnectable }) {
         
             let typesOuput: string[] = [...typesInput];
 
-            boxExecProv(startTime, startTime, workflowName, BoxType.DATA_POOL+"_"+data.nodeId, mapTypes(typesInput), mapTypes(typesOuput), "");
+            boxExecProv(startTime, startTime, workflowNameRef.current, BoxType.DATA_POOL+"-"+data.nodeId, mapTypes(typesInput), mapTypes(typesOuput), "");
         
         }
 

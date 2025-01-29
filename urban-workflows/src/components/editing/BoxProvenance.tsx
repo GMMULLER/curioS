@@ -22,14 +22,14 @@ function BoxProvenance({ data, boxType, setCode }: BoxProvenanceProps) {
     const { provenanceGraphBoxesRef } = useProvenanceContext();
     const provenanceBypass = useRef(false);
 
-    const { workflowName } = useFlowContext();
+    const { workflowNameRef } = useFlowContext();
 
     const [provNodes, setProvNodes] = useState<{id: string, label: string}[]>([]);
     const [provEdges, setProvEdges] = useState<{id: string, source: string, target: string, label: string}[]>([]);
 
 	useEffect(() => {
         if(provenanceBypass.current){
-            let workflow_name = workflowName;
+            let workflow_name = workflowNameRef.current;
             let activity_name = boxType+"_"+data.nodeId;
 
             if(provenanceGraphBoxesRef.current[workflow_name] == undefined)
@@ -67,7 +67,7 @@ function BoxProvenance({ data, boxType, setCode }: BoxProvenanceProps) {
 	}, [provenanceGraphBoxesRef.current]);
 
     const onNodeClick = (nodeData: any) => {
-        let workflow_name = workflowName;
+        let workflow_name = workflowNameRef.current;
         let activity_name = boxType+"_"+data.nodeId;
 
         let index = parseInt(nodeData.id.replace("n-",""));

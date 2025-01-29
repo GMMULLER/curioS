@@ -3,12 +3,14 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import CSS from "csstype";
 import { useFlowContext } from "../../providers/FlowProvider";
 import { TrillGenerator } from "../../TrillGenerator";
+import { useCode } from "../../hook/useCode";
 
 export function LLMCommunication() {
   const [textInput, setTextInput] = useState<string>("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const { nodes, edges, workflowName } = useFlowContext();
+  const { nodes, edges, workflowNameRef } = useFlowContext();
+  const { loadTrill } = useCode();
 
   const handleTextInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setTextInput(event.target.value);
@@ -90,7 +92,7 @@ export function LLMCommunication() {
         payload.image = imageString;
       }
 
-      let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowName);
+      let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowNameRef.current);
 
       payload.trill = trill_spec;
 
@@ -107,11 +109,11 @@ export function LLMCommunication() {
       }
 
       const result = await response.json();
-      console.log("Server response:", result);
-      alert("Submission successful!");
+      console.log("result.choices[0].message.content", result.choices[0].message.content);
+      loadTrill(JSON.parse(result.choices[0].message.content));
     } catch (error) {
-      console.error("Error submitting data:", error);
-      alert("Failed to submit data. Please try again later.");
+      console.error("Error generating trill:", error);
+      alert("Failed to generating trill. Try modifying your prompt");
     } finally {
       setIsSubmitting(false);
     }

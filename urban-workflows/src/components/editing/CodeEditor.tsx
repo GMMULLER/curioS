@@ -26,7 +26,7 @@ type CodeEditorProps = {
 function CodeEditor({ setOutputCallback, data, output, boxType, replacedCode, sendCodeToWidgets, replacedCodeDirty, readOnly, defaultValue, floatCode}: CodeEditorProps) {
     const [code, setCode] = useState<string>(""); // code with all original markers
 
-    const { workflowName } = useFlowContext();
+    const { workflowNameRef } = useFlowContext();
     const { boxExecProv } = useProvenanceContext();
 
     const replacedCodeDirtyBypass = useRef(false);
@@ -78,7 +78,7 @@ function CodeEditor({ setOutputCallback, data, output, boxType, replacedCode, se
                 processExecutionResult,
                 boxType,
                 data.nodeId,
-                workflowName,
+                workflowNameRef.current,
                 boxExecProv
             );
         }

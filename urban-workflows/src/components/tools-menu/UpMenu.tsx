@@ -9,7 +9,7 @@ import { useCode } from "../../hook/useCode";
 export function UpMenu({ setDashBoardMode, setDashboardOn, dashboardOn }: { setDashBoardMode: (mode: boolean) => void; setDashboardOn: (mode: boolean) => void; dashboardOn: boolean }) {
     const [isEditing, setIsEditing] = useState(false);
     const [fileMenuOpen, setFileMenuOpen] = useState(false);
-    const { nodes, edges, workflowName, setWorkflowName } = useFlowContext();
+    const { nodes, edges, workflowNameRef, setWorkflowName } = useFlowContext();
     const { loadTrill } = useCode();
 
     const handleNameChange = (e: any) => {
@@ -27,7 +27,7 @@ export function UpMenu({ setDashBoardMode, setDashboardOn, dashboardOn }: { setD
     };
 
     const exportTrill = (e:any) => {
-        let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowName);
+        let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowNameRef.current);
         
         const jsonString = JSON.stringify(trill_spec, null, 2);
 
@@ -35,7 +35,7 @@ export function UpMenu({ setDashBoardMode, setDashboardOn, dashboardOn }: { setD
 
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = workflowName+'.json';
+        link.download = workflowNameRef.current+'.json';
 
         document.body.appendChild(link);
 
@@ -108,7 +108,7 @@ export function UpMenu({ setDashBoardMode, setDashboardOn, dashboardOn }: { setD
                 {isEditing ? (
                     <input
                         type="text"
-                        value={workflowName}
+                        value={workflowNameRef.current}
                         onChange={handleNameChange}
                         onBlur={handleNameBlur}
                         onKeyPress={handleKeyPress}
@@ -120,7 +120,7 @@ export function UpMenu({ setDashBoardMode, setDashboardOn, dashboardOn }: { setD
                         style={workflowNameStyle}
                         onClick={() => setIsEditing(true)}
                     >
-                        {workflowName}
+                        {workflowNameRef.current}
                     </h1>
                 )}
             </div>

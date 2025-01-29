@@ -74,7 +74,7 @@ function UtkBox({ data, isConnectable }) {
 
   const { editUserTemplate } = useTemplateContext();
   const { user } = useUserContext();
-  const { workflowName } = useFlowContext();
+  const { workflowNameRef } = useFlowContext();
 
   useEffect(() => {
     data.code = code;
@@ -230,8 +230,8 @@ function UtkBox({ data, isConnectable }) {
       boxExecProv(
         startTime,
         endTime,
-        workflowName,
-        BoxType.VIS_UTK + "_" + data.nodeId,
+        workflowNameRef.current,
+        BoxType.VIS_UTK + "-" + data.nodeId,
         mapTypes(typesInput),
         mapTypes(typesOuput),
         code

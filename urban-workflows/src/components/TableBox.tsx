@@ -42,7 +42,7 @@ function TableBox({ data, isConnectable }) {
   const dataInputBypass = useRef(false);
 
   const { boxExecProv } = useProvenanceContext();
-  const { workflowName } = useFlowContext();
+  const { workflowNameRef } = useFlowContext();
   const { user } = useUserContext();
 
   useEffect(() => {
@@ -156,8 +156,8 @@ function TableBox({ data, isConnectable }) {
       boxExecProv(
         startTime,
         startTime,
-        workflowName,
-        BoxType.VIS_TABLE + "_" + data.nodeId,
+        workflowNameRef.current,
+        BoxType.VIS_TABLE + "-" + data.nodeId,
         mapTypes(typesInput),
         mapTypes(typesOuput),
         ""

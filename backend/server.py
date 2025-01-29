@@ -328,7 +328,8 @@ def new_box_prov():
     # id of the new just added relation
     output_relation_id = cursor.lastrowid
 
-    boxType = "_".join(data['activity_name'].split("_")[:-1])
+    # boxType = "_".join(data['activity_name'].split("_")[:-1])
+    boxType = data['activity_name'].split("-")[0]
 
     # adding a attributeRelation to each output type that this activity supports
     for outputType in outputTypesSupported[boxType]:
@@ -366,7 +367,8 @@ def new_box_prov():
         # # id of the new just added relation
         # output_relation_id = cursor.lastrowid
     
-        boxType = "_".join(activity[0].split("_")[:-1])
+        # boxType = "_".join(activity[0].split("_")[:-1])
+        boxType = activity[0].split("-")[0]
 
         # # adding a attributeRelation to each output type that this activity supports
         # for outputType in outputTypesSupported[boxType]:
@@ -638,11 +640,11 @@ def new_connection_prov():
                 conn.commit()
 
     # get the source activity of the connection
-    cursor.execute("SELECT output_relation_id FROM activity WHERE workflow_id = ? AND activity_name = ?", (workflow_id, data['sourceNodeType']+"_"+data['sourceNodeId'],))
+    cursor.execute("SELECT output_relation_id FROM activity WHERE workflow_id = ? AND activity_name = ?", (workflow_id, data['sourceNodeType']+"-"+data['sourceNodeId'],))
     source_activity = cursor.fetchone()
 
     # update input relation of the activity
-    cursor.execute("UPDATE activity SET input_relation_id = ? WHERE workflow_id = ? AND activity_name = ?", (source_activity[0], workflow_id, data['targetNodeType']+"_"+data['targetNodeId'],))
+    cursor.execute("UPDATE activity SET input_relation_id = ? WHERE workflow_id = ? AND activity_name = ?", (source_activity[0], workflow_id, data['targetNodeType']+"-"+data['targetNodeId'],))
 
     conn.commit()
     conn.close()
@@ -730,7 +732,8 @@ def delete_connection_prov():
         # # id of the new just added relation
         # output_relation_id = cursor.lastrowid
 
-        boxType = "_".join(activity[0].split("_")[:-1])
+        # boxType = "_".join(activity[0].split("_")[:-1])
+        boxType = activity[0].split("-")[0]
 
         # # adding a attributeRelation to each output type that this activity supports
         # for outputType in outputTypesSupported[boxType]:
@@ -763,7 +766,7 @@ def delete_connection_prov():
                 conn.commit()
 
     # update input relation of the activity
-    cursor.execute("UPDATE activity SET input_relation_id = NULL WHERE workflow_id = ? AND activity_name = ?", (workflow_id, data['targetNodeType']+"_"+data['targetNodeId'],))
+    cursor.execute("UPDATE activity SET input_relation_id = NULL WHERE workflow_id = ? AND activity_name = ?", (workflow_id, data['targetNodeType']+"-"+data['targetNodeId'],))
 
     conn.commit()
     conn.close()
@@ -1017,8 +1020,6 @@ def truncate_db_prov():
 
 @app.route('/evlLLM', methods=['POST'])
 def evl_llm():
-
-# curl -X "POST" "https://arcade.evl.uic.edu/llama32-11B-vision/v1/chat/completions" -H "accept: application/json" -H "Content-Type: application/json" -d "{\"model\":\"meta/llama-3.2-11b-vision-instruct\",\"messages\":[{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"Whatsinthisimage?\"}]}],\"stream\":false,\"max_tokens\":2000}"
 
     url = "https://arcade.evl.uic.edu/llama32-11B-vision/v1/chat/completions"
     model = "meta/llama-3.2-11b-vision-instruct"

@@ -27,7 +27,7 @@ interface IUseCode {
 }
 
 export function useCode(): IUseCode {
-    const { addNode, setOutputs, setInteractions, applyNewPropagation, applyNewOutput, loadParsedTrill } = useFlowContext();
+    const { addNode, setOutputs, setInteractions, applyNewPropagation, applyNewOutput, loadParsedTrill, workflowNameRef } = useFlowContext();
     const { getPosition } = usePosition();
 
     const outputCallback = useCallback(
@@ -64,7 +64,16 @@ export function useCode(): IUseCode {
         let edges = [];
 
         for(const node of trill.dataflow.nodes){
-            nodes.push(generateCodeNode(node.type, {nodeId: node.id, code: node.content, position: {x: node.x, y: node.y}}));
+            let x = node.x;
+            let y = node.y;
+
+            if(x == undefined || y == undefined){
+                let position = getPosition();
+                x = position.x + 800;
+                y = position.y;
+            }
+
+            nodes.push(generateCodeNode(node.type, {nodeId: node.id, code: node.content, position: {x: x, y: y}}));
         }
 
         for(const edge of trill.dataflow.edges){
@@ -88,7 +97,7 @@ export function useCode(): IUseCode {
             edges.push(add_edge);
         }
 
-        loadParsedTrill(trill.name, nodes, edges);
+        loadParsedTrill(trill.dataflow.name, nodes, edges);
     }
 
     const generateCodeNode = useCallback((boxType: string, options: CreateCodeNodeOptions = {}) => {
