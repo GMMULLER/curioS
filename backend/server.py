@@ -6,6 +6,7 @@ from models import User, UserSession
 from services.google_oauth import GoogleOAuth
 from middlewares import require_auth
 import sqlite3
+from openai import OpenAI
 
 app = Flask(__name__)
 address = 'localhost'
@@ -1049,8 +1050,6 @@ def evl_llm():
 
     content = []
 
-    print(prompt_preamble+"\n\n"+text)
-
     if text != None:
         # if parameters != None:
             # text = text.format(*parameters)
@@ -1076,6 +1075,46 @@ def evl_llm():
     response = requests.post(url, headers=headers, json=request_data)
 
     return jsonify(response.json())
+
+@app.route('/openAI', methods=['POST'])
+def llm_openaAI():
+
+    api_file = open("api.env")
+    api_key = api_file.read()
+
+    data = request.get_json()
+    text = data.get("text", None)
+    image = data.get("image", None)
+    trill = data.get("trill", None)
+
+    client = OpenAI(
+        api_key=api_key
+    )
+
+    prompt_preamble_file = open("llm_prompt_preamble.txt")
+    prompt_preamble = prompt_preamble_file.read()
+    
+    if trill != None:
+        prompt_preamble += "\n\n"
+        prompt_preamble += json.dumps(trill, indent=4)
+    else:
+        prompt_preamble += "The dataflow is currently empty"
+    
+    prompt_preamble += "\n\nThis is the user request for you. Reply to their request based on the given dataflow (if any):"
+
+    content = prompt_preamble+"\n\n"+text
+
+    completion = client.chat.completions.create(
+        model="gpt-4o-mini",
+        store=True,
+        messages=[
+            {"role": "user", "content": content}
+        ]
+    )
+
+    # print(completion.choices[0].message)
+
+    return jsonify({"result": completion.choices[0].message.content})
 
 if __name__ == '__main__':
     app.run(host=address, port=port, threaded=False)

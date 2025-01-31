@@ -96,7 +96,15 @@ export function LLMCommunication() {
 
       payload.trill = trill_spec;
 
-      const response = await fetch(`${process.env.BACKEND_URL}/evlLLM`, {
+      // const response = await fetch(`${process.env.BACKEND_URL}/evlLLM`, {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(payload),
+      // });
+
+      const response = await fetch(`${process.env.BACKEND_URL}/openAI`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -109,8 +117,10 @@ export function LLMCommunication() {
       }
 
       const result = await response.json();
-      console.log("result.choices[0].message.content", result.choices[0].message.content);
-      loadTrill(JSON.parse(result.choices[0].message.content));
+      console.log("result", result);
+      // console.log("result.choices[0].message.content", result.choices[0].message.content);
+      console.log(result.result);
+      loadTrill(JSON.parse(result.result));
     } catch (error) {
       console.error("Error generating trill:", error);
       alert("Failed to generating trill. Try modifying your prompt");

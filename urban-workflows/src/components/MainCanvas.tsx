@@ -36,6 +36,7 @@ import { useRightClickMenu } from "../hook/useRightClickMenu";
 import { useCode } from "../hook/useCode";
 import { useProvenanceContext } from "../providers/ProvenanceProvider";
 import { buttonStyle } from "./styles";
+import { TrillGenerator } from "../TrillGenerator";
 
 import './MainCanvas.css';
 
@@ -78,11 +79,26 @@ export function MainCanvas() {
     const edgeTypes = useMemo(() => objectEdgeTypes, []);
 
     const reactFlow = useReactFlow();
-    const { setDashBoardMode, updatePositionWorkflow, updatePositionDashboard } = useFlowContext();
+    const { setDashBoardMode, updatePositionWorkflow, updatePositionDashboard, workflowNameRef } = useFlowContext();
 
     const [selectedEdgeId, setSelectedEdgeId] = useState<string>(""); // can only remove selected edges
     
     const [dashboardOn, setDashboardOn] = useState<boolean>(false); 
+
+    const [explainButton, setExplainButton] = useState<boolean>(false); 
+
+    const [selectedComponents, setSelectedComponents] = useState<any>({});
+
+    const generateExplanation = (e: any) => {
+        
+
+        let trill_spec = TrillGenerator.generateTrill(selectedComponents.nodes, selectedComponents.edges, workflowNameRef.current);
+
+        // Get the selected subset of nodes and edges
+        // Call generateTrill
+        // Call some function from LLMCommunications
+        // Use the output to render a floating box with explanations
+    }
 
     return (
         <div style={{ width: "100vw", height: "100vh" }} onContextMenu={onContextMenu}>
@@ -147,8 +163,6 @@ export function MainCanvas() {
                     return onEdgesChange(allowedChanges);
                 }}
                 onEdgesDelete={(edges: Edge[]) => {
-                
-                    console.log("edges", edges);
 
                     let allowedEdges: Edge[] = [];
 
@@ -159,6 +173,26 @@ export function MainCanvas() {
                     }
 
                     return onEdgesDelete(allowedEdges);
+                }}
+                selectionKeyCode="Shift"
+                onSelectionChange={(selection) => {
+                    let all_x = [];
+                    let all_y = [];
+                
+                    setSelectedComponents(selection);
+
+                    for(const node of selection.nodes){
+                        all_x.push(node.position.x);
+                        all_y.push(node.position.y);    
+                    }
+
+                    if(all_x.length > 0){ // There is a selection and the explain button should be rendered
+                        setExplainButton(true);
+                    }else{
+                        setExplainButton(false);
+                    }
+
+                    console.log(selection);
                 }}
                 onConnect={onConnect}
                 nodeTypes={nodeTypes}
@@ -187,7 +221,27 @@ export function MainCanvas() {
                 />
                 <Background />
                 <Controls />
+                <button
+                    id={"explainButton"}
+                    style={{
+                        display: explainButton ? "block" : "none",
+                        bottom: "50px",
+                        left: "50%",
+                        position: "absolute",
+                        zIndex: 10,
+                        padding: "8px 16px",
+                        backgroundColor: "#007bff",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                    }}
+                    onClick={generateExplanation}
+                >
+                    Explain
+                </button>
             </ReactFlow>
+
         </div>
     );
 }

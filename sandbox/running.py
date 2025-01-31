@@ -6,14 +6,9 @@ import pandas as pd
 import json
 def userCode(arg):
 	import pandas as pd
-	# Create mockup data
-	data = {
-	    'A': [1, 2, 3, 4, 5],
-	    'B': [2.5, 3.7, 7.2, 9.1, 5.6]
-	}
-	# Create DataFrame
-	df = pd.DataFrame(data)
-	return df
+	d = {'x': [1, 2, 3, 4, 5], 'y': [5, 4, 3, 2, 1]}
+	mockup_data = pd.DataFrame(data=d)
+	return mockup_data
 boxType = 'DATA_LOADING'
 def dumpsInput(input):
 	if input['dataType'] == 'outputs':
