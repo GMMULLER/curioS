@@ -4,6 +4,7 @@ import CSS from "csstype";
 import { useFlowContext } from "../../providers/FlowProvider";
 import { TrillGenerator } from "../../TrillGenerator";
 import { useCode } from "../../hook/useCode";
+import { useLLMContext } from "../../providers/LLMProvider";
 
 export function LLMCommunication() {
   const [textInput, setTextInput] = useState<string>("");
@@ -11,6 +12,8 @@ export function LLMCommunication() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const { nodes, edges, workflowNameRef } = useFlowContext();
   const { loadTrill } = useCode();
+  const { openAIRequest } = useLLMContext();
+  
 
   const handleTextInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setTextInput(event.target.value);
@@ -87,7 +90,7 @@ export function LLMCommunication() {
         imageString = await resizeImage(imageFile);
       }
 
-      const payload: any = { text: textInput };
+      const payload: any = { text: textInput + "\n" + "**OUTPUT THE SPECIFICATION IN THE EXACT FORMAT SPECIFIED IN THE JSON. MAKE SURE TO NOT OUTPUT ANY OTHER TEXT OR EXPLANATION ABOUT YOUR OUTPUT. ALWAYS SCAPE BREAK LINES AND TABS INSIDE CONTENT FIELD AND DO NOT USE TRIPLE QUOTES** " };
       if (imageString) {
         payload.image = imageString;
       }
@@ -96,29 +99,9 @@ export function LLMCommunication() {
 
       payload.trill = trill_spec;
 
-      // const response = await fetch(`${process.env.BACKEND_URL}/evlLLM`, {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify(payload),
-      // });
-
-      const response = await fetch(`${process.env.BACKEND_URL}/openAI`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to submit data.");
-      }
-
-      const result = await response.json();
+      let result = await openAIRequest(payload);
+      
       console.log("result", result);
-      // console.log("result.choices[0].message.content", result.choices[0].message.content);
       console.log(result.result);
       loadTrill(JSON.parse(result.result));
     } catch (error) {

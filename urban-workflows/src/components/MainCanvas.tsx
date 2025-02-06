@@ -37,8 +37,10 @@ import { useCode } from "../hook/useCode";
 import { useProvenanceContext } from "../providers/ProvenanceProvider";
 import { buttonStyle } from "./styles";
 import { TrillGenerator } from "../TrillGenerator";
+import { useLLMContext } from "../providers/LLMProvider";
 
 import './MainCanvas.css';
+import FloatingBox from "./FloatingBox";
 
 export function MainCanvas() {
     const {
@@ -52,8 +54,48 @@ export function MainCanvas() {
         onNodesDelete,
     } = useFlowContext();
 
+    const [isDragging, setIsDragging] = useState(false);
+    const [startPos, setStartPos] = useState<any>(null);
+    const [boundingBox, setBoundingBox] = useState<any>(null);
+
+    useEffect(() => {
+        const handleMouseDown = (e: any) => {
+            if (e.shiftKey && e.button === 0) {
+                setStartPos({ x: e.clientX, y: e.clientY });
+            setIsDragging(true);
+            }
+        };
+        
+        const handleMouseMove = (e: any) => {
+            if (!isDragging || !startPos) return;
+            const currentPos = { x: e.clientX, y: e.clientY };
+            setBoundingBox({
+                start_x: startPos.x,
+                start_y: startPos.y,
+                end_x: currentPos.x,
+                end_y: startPos.y,
+            });
+        };
+        
+        const handleMouseUp = () => {
+            setIsDragging(false);
+            console.log("Bounding Box:", boundingBox);
+        };
+
+        document.addEventListener("mousedown", handleMouseDown);
+        document.addEventListener("mousemove", handleMouseMove);
+        document.addEventListener("mouseup", handleMouseUp);
+
+        return () => {
+            document.removeEventListener("mousedown", handleMouseDown);
+            document.removeEventListener("mousemove", handleMouseMove);
+            document.removeEventListener("mouseup", handleMouseUp);
+        };
+    }, [isDragging, startPos, boundingBox]);
+
     const { onContextMenu, showMenu, menuPosition } = useRightClickMenu();
     const { createCodeNode } = useCode();
+     const { openAIRequest } = useLLMContext();
    
     let objectTypes: any = {};
     objectTypes[BoxType.COMPUTATION_ANALYSIS] = ComputationAnalysisBox;
@@ -89,19 +131,53 @@ export function MainCanvas() {
 
     const [selectedComponents, setSelectedComponents] = useState<any>({});
 
+    const [floatingBoxes, setFloatingBoxes] = useState<any>({});
+
     const generateExplanation = (e: any) => {
         
+        // console.log("generating explanation for", selectedComponents.nodes, selectedComponents.edges, workflowNameRef.current);
 
         let trill_spec = TrillGenerator.generateTrill(selectedComponents.nodes, selectedComponents.edges, workflowNameRef.current);
 
-        // Get the selected subset of nodes and edges
-        // Call generateTrill
+        const payload: any = {trill: trill_spec, text: "Your task as an assistant is to textually explain, in an high school level, what this dataflow is doing. Include a lot of details and separate the explanation by node and explaining the flow of the data between nodes. Explain what the code in each node does, what is being visualized, what is the purpose of each node and what is the format of the data that is being passed forward. But do not include specific information about the trill structure like node or edge numeric ids. **DO NOT PROVIDE EXPLANATIONS FOR THE EXAMPLE DATAFLOW. ALWAYS PRODUCE EXPLANATIONS FOR THE LAST DATAFLOW PROVIDED EVEN IF IT IS EMPTY**"};
+
+        openAIRequest(payload).then((response: any) => {
+            console.log("Response:", response);
+
+            setFloatingBoxes((prevFloatingBoxes: any) => {
+                let uniqueId = crypto.randomUUID()+"";
+                
+                return {
+                    ...prevFloatingBoxes,
+                    [uniqueId]: {
+                        title: "Explanation from "+workflowNameRef.current,
+                        imageUrl: "https://via.placeholder.com/400",
+                        markdownText: response.result
+                    }
+                }
+            });
+        })
+        .catch((error: any) => {
+            console.error("Error:", error);
+        });
+
         // Call some function from LLMCommunications
+        // Generate print of the selected section of the workflow
         // Use the output to render a floating box with explanations
     }
 
     return (
         <div style={{ width: "100vw", height: "100vh" }} onContextMenu={onContextMenu}>
+
+            {Object.keys(floatingBoxes).map((key, index) => (
+                <FloatingBox
+                    key={key}
+                    title={floatingBoxes[key].title}
+                    imageUrl={floatingBoxes[key].imageUrl}
+                    markdownText={floatingBoxes[key].markdownText}
+                    onClose={() => {}}
+                />
+            ))}
             <ReactFlow
                 nodes={nodes}
                 edges={edges}
@@ -191,8 +267,6 @@ export function MainCanvas() {
                     }else{
                         setExplainButton(false);
                     }
-
-                    console.log(selection);
                 }}
                 onConnect={onConnect}
                 nodeTypes={nodeTypes}
