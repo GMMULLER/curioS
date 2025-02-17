@@ -25,7 +25,6 @@
     "html2canvas": "^1.4.1",
     "js-cookie": "^3.0.5",
     "jsoneditor": "^10.0.0",
-    "jspdf": "^2.5.2",
     "react": "^18.2.0",
     "react-bootstrap": "^2.10.1",
     "react-dom": "^18.2.0",

@@ -38,6 +38,7 @@ import { useProvenanceContext } from "../providers/ProvenanceProvider";
 import { buttonStyle } from "./styles";
 import { TrillGenerator } from "../TrillGenerator";
 import { useLLMContext } from "../providers/LLMProvider";
+import html2canvas from "html2canvas";
 
 import './MainCanvas.css';
 import FloatingBox from "./FloatingBox";
@@ -79,7 +80,6 @@ export function MainCanvas() {
         
         const handleMouseUp = () => {
             setIsDragging(false);
-            console.log("Bounding Box:", boundingBox);
         };
 
         document.addEventListener("mousedown", handleMouseDown);
@@ -129,13 +129,34 @@ export function MainCanvas() {
 
     const [explainButton, setExplainButton] = useState<boolean>(false); 
 
+    // Selecting boxes to generate explanation
     const [selectedComponents, setSelectedComponents] = useState<any>({});
 
     const [floatingBoxes, setFloatingBoxes] = useState<any>({});
 
-    const generateExplanation = (e: any) => {
-        
-        // console.log("generating explanation for", selectedComponents.nodes, selectedComponents.edges, workflowNameRef.current);
+    const captureScreenshot = async (): Promise<string | null> => {
+        const screenshotTarget = document.getElementsByClassName("react-flow__renderer")[0] as HTMLElement;
+
+        if (!screenshotTarget) return null;
+    
+        return new Promise((resolve) => {
+            html2canvas(screenshotTarget).then((canvas) => {
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        const url = URL.createObjectURL(blob);
+                        resolve(url); // Return the URL
+                    } else {
+                        resolve(null);
+                    }
+                });
+            });
+        });
+    }
+
+    const generateExplanation = async (e: any) => {
+
+        // Take a screenshot for the explanation
+        let image_url = await captureScreenshot();
 
         let trill_spec = TrillGenerator.generateTrill(selectedComponents.nodes, selectedComponents.edges, workflowNameRef.current);
 
@@ -151,7 +172,7 @@ export function MainCanvas() {
                     ...prevFloatingBoxes,
                     [uniqueId]: {
                         title: "Explanation from "+workflowNameRef.current,
-                        imageUrl: "https://via.placeholder.com/400",
+                        imageUrl: image_url,
                         markdownText: response.result
                     }
                 }
@@ -160,10 +181,15 @@ export function MainCanvas() {
         .catch((error: any) => {
             console.error("Error:", error);
         });
+    }
 
-        // Call some function from LLMCommunications
-        // Generate print of the selected section of the workflow
-        // Use the output to render a floating box with explanations
+    // Delete a floating box from the list based on the id
+    const deleteFloatingBox = (id: string) => {
+        setFloatingBoxes((prevFloatingBoxes: any) => {
+            const newFloatingBoxes = { ...prevFloatingBoxes };
+            delete newFloatingBoxes[id];
+            return newFloatingBoxes;
+        });
     }
 
     return (
@@ -175,7 +201,7 @@ export function MainCanvas() {
                     title={floatingBoxes[key].title}
                     imageUrl={floatingBoxes[key].imageUrl}
                     markdownText={floatingBoxes[key].markdownText}
-                    onClose={() => {}}
+                    onClose={() => {deleteFloatingBox(key)}}
                 />
             ))}
             <ReactFlow
