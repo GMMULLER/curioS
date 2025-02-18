@@ -288,7 +288,7 @@ export function MainCanvas() {
                         all_y.push(node.position.y);    
                     }
 
-                    if(all_x.length > 0){ // There is a selection and the explain button should be rendered
+                    if(selection.nodes.length + selection.edges.length > 1){ // There is more than one element selected
                         setExplainButton(true);
                     }else{
                         setExplainButton(false);
