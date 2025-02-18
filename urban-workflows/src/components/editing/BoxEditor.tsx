@@ -12,7 +12,6 @@ import Nav from "react-bootstrap/Nav";
 import Row from "react-bootstrap/Row";
 import CSS from "csstype";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-
 import {
     faGear,
     faCircleInfo,
@@ -20,11 +19,13 @@ import {
     faExpand,
     faToolbox,
     faCode,
+    faList,
     faSpellCheck,
     faRotateLeft,
     faRightFromBracket,
 } from "@fortawesome/free-solid-svg-icons";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
+import BoxExplanation from "./BoxExplanation";
 
 type BoxEditorProps = {
     outputId?: string;
@@ -38,6 +39,7 @@ type BoxEditorProps = {
         pythonInterpreter: any;
         input: string;
         outputCallback: any;
+        code?: string;
     };
     output: { code: string; content: string };
     boxType: BoxType;
@@ -221,6 +223,17 @@ function BoxEditor({
                                     </Tab.Pane>
                                 ) : null}
 
+                                {code || grammar ? (
+                                    <Tab.Pane eventKey="explanation" style={{ height: "100%" }}>
+                                        <BoxExplanation 
+                                            box_type={boxType}
+                                            code={data.code}
+                                            current_input={data.input}
+                                            current_output={output.content}
+                                        />
+                                    </Tab.Pane>
+                                ) : null}
+
                                 {provenance == undefined || provenance ? (
                                     <Tab.Pane eventKey="provenance" style={{ height: "100%" }}>
                                         <BoxProvenance
@@ -259,7 +272,7 @@ function BoxEditor({
                     <Nav
                         variant="pills"
                         className="flex-column"
-                        style={{ backgroundColor: "#f2f2f2", borderRadius: "10px", width: "55%", marginLeft: "auto", marginTop: "6px" }}
+                        style={{ backgroundColor: "#f2f2f2", borderRadius: "10px", width: "70%", marginLeft: "auto", marginTop: "6px" }}
                     >
                         <Row
                             style={{ fontSize: "10px", paddingRight: 0, paddingLeft: 0 }}
@@ -307,6 +320,22 @@ function BoxEditor({
                                         <Nav.Item style={navItemStyle}>
                                             <Nav.Link eventKey="grammar" style={navLinkStyle}>
                                                 <FontAwesomeIcon icon={faSpellCheck} />
+                                            </Nav.Link>
+                                        </Nav.Item>
+                                    </OverlayTrigger>
+                                </Col>
+                            ) : null}
+
+                            {code || grammar ? (
+                                <Col>
+                                    <OverlayTrigger
+                                        placement="right"
+                                        delay={overlayTriggerProps}
+                                        overlay={<Tooltip>Explanation</Tooltip>}
+                                    >
+                                        <Nav.Item style={navItemStyle}>
+                                            <Nav.Link eventKey="explanation" style={navLinkStyle}>
+                                                <FontAwesomeIcon icon={faList} />
                                             </Nav.Link>
                                         </Nav.Item>
                                     </OverlayTrigger>

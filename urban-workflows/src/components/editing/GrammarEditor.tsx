@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import JSONEditorReact from "./JSONEditorReact";
-import { Button } from 'react-bootstrap';
 
 import './GrammarEditor.css';
 

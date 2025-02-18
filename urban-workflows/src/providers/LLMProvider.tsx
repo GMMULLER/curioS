@@ -7,7 +7,7 @@ import React, {
 import { BoxType } from "../constants";
 
 interface LLMContextProps {
-    openAIRequest: (payload: any) => any;
+    openAIRequest: (preamble_file: string, text: string) => any;
 }
 
 export const LLMContext = createContext<LLMContextProps>({
@@ -16,13 +16,14 @@ export const LLMContext = createContext<LLMContextProps>({
 
 const LLMProvider = ({ children }: { children: ReactNode }) => {
 
-    const openAIRequest = async (payload: any) => {
+    const openAIRequest = async (preamble_file: string, text: string) => {
+
         const response = await fetch(`${process.env.BACKEND_URL}/openAI`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify(payload),
+            body: JSON.stringify({preamble: preamble_file, text: text}),
         });
     
           if (!response.ok) {

@@ -270,7 +270,7 @@ export const BoxContainer = ({
 
                 {children}
 
-                <Row  style={{ width: "50%", marginRight: "auto", marginLeft: "10px", marginTop: "4px"}}>
+                <Row  style={{ width: "30%", marginRight: "auto", marginLeft: "10px", marginTop: "4px"}}>
                     {sendCodeToWidgets != undefined ? <Row>
                         <Col md={2}><FontAwesomeIcon className={"nowheel nodrag"} icon={faCirclePlay} style={{cursor: "pointer", fontSize: "27px", color: "#0d6efd"}} onClick={() => {
                             setOutputCallback({code: "exec", content: ""});

@@ -1079,29 +1079,21 @@ def evl_llm():
 @app.route('/openAI', methods=['POST'])
 def llm_openaAI():
 
+    data = request.get_json()
+
+    preamble_file = data.get("preamble", None)
+    text = data.get("text", None)
+
+    prompt_preamble_file = open(preamble_file+".txt")
+    prompt_preamble = prompt_preamble_file.read()
+
     api_file = open("api.env")
     api_key = api_file.read()
-
-    data = request.get_json()
-    text = data.get("text", None)
-    image = data.get("image", None)
-    trill = data.get("trill", None)
 
     client = OpenAI(
         api_key=api_key
     )
-
-    prompt_preamble_file = open("llm_prompt_preamble.txt")
-    prompt_preamble = prompt_preamble_file.read()
     
-    if trill != None:
-        prompt_preamble += "\n\n"
-        prompt_preamble += json.dumps(trill, indent=4)
-    else:
-        prompt_preamble += "The dataflow is currently empty"
-    
-    prompt_preamble += "\n\nThis is the user request for you. Reply to their request based on the given dataflow (if any):"
-
     content = prompt_preamble+"\n\n"+text
 
     completion = client.chat.completions.create(
@@ -1111,8 +1103,6 @@ def llm_openaAI():
             {"role": "user", "content": content}
         ]
     )
-
-    # print(completion.choices[0].message)
 
     return jsonify({"result": completion.choices[0].message.content})
 

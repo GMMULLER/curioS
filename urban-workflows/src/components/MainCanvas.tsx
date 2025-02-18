@@ -95,7 +95,7 @@ export function MainCanvas() {
 
     const { onContextMenu, showMenu, menuPosition } = useRightClickMenu();
     const { createCodeNode } = useCode();
-     const { openAIRequest } = useLLMContext();
+    const { openAIRequest } = useLLMContext();
    
     let objectTypes: any = {};
     objectTypes[BoxType.COMPUTATION_ANALYSIS] = ComputationAnalysisBox;
@@ -160,9 +160,9 @@ export function MainCanvas() {
 
         let trill_spec = TrillGenerator.generateTrill(selectedComponents.nodes, selectedComponents.edges, workflowNameRef.current);
 
-        const payload: any = {trill: trill_spec, text: "Your task as an assistant is to textually explain, in an high school level, what this dataflow is doing. Include a lot of details and separate the explanation by node and explaining the flow of the data between nodes. Explain what the code in each node does, what is being visualized, what is the purpose of each node and what is the format of the data that is being passed forward. But do not include specific information about the trill structure like node or edge numeric ids. **DO NOT PROVIDE EXPLANATIONS FOR THE EXAMPLE DATAFLOW. ALWAYS PRODUCE EXPLANATIONS FOR THE LAST DATAFLOW PROVIDED EVEN IF IT IS EMPTY**"};
+        let text = JSON.stringify(trill_spec) + "\n\n" + "Your task as an assistant is to textually explain, in an high school level, what this dataflow is doing. Include a lot of details and separate the explanation by node and explaining the flow of the data between nodes. Explain what the code in each node does, what is being visualized, what is the purpose of each node and what is the format of the data that is being passed forward. But do not include specific information about the trill structure like node or edge numeric ids. **DO NOT PROVIDE EXPLANATIONS FOR THE EXAMPLE DATAFLOW. ALWAYS PRODUCE EXPLANATIONS FOR THE LAST DATAFLOW PROVIDED EVEN IF IT IS EMPTY**"
 
-        openAIRequest(payload).then((response: any) => {
+        openAIRequest("default_preamble", text).then((response: any) => {
             console.log("Response:", response);
 
             setFloatingBoxes((prevFloatingBoxes: any) => {

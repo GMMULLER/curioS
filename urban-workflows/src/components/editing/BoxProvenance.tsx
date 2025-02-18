@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 
 // Bootstrap
-import Button from "react-bootstrap/Button";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { BoxType } from "../../constants";
 
 // Editor
-import Editor from "@monaco-editor/react";
 import { useFlowContext } from "../../providers/FlowProvider";
 import { useProvenanceContext } from "../../providers/ProvenanceProvider";
 import { GraphCanvas } from 'reagraph';
