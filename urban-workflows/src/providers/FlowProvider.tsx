@@ -139,11 +139,6 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
         setWorkflowName(workflowName);
         await addWorkflow(workflowName); // reseting provenance with new workflow
 
-        // // Reseting all nodes
-        // for(const node of nodes){
-        //     deleteNode(node.id);
-        // }
-
         setNodes(prevNodes => []); // Reseting nodes
 
         for(const node of loaded_nodes){ // adding new nodes one by one

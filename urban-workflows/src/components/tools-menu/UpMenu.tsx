@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import CSS from "csstype";
 import FileUpload from "./FileUpload";
 import './UpMenu.css';

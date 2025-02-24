@@ -13,7 +13,6 @@ export function LLMCommunication() {
   const { nodes, edges, workflowNameRef } = useFlowContext();
   const { loadTrill } = useCode();
   const { openAIRequest } = useLLMContext();
-  
 
   const handleTextInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setTextInput(event.target.value);
@@ -90,16 +89,9 @@ export function LLMCommunication() {
         imageString = await resizeImage(imageFile);
       }
 
-      const payload: any = { text: textInput + "\n" + "**OUTPUT THE SPECIFICATION IN THE EXACT FORMAT SPECIFIED IN THE JSON. MAKE SURE TO NOT OUTPUT ANY OTHER TEXT OR EXPLANATION ABOUT YOUR OUTPUT. ALWAYS SCAPE BREAK LINES AND TABS INSIDE CONTENT FIELD AND DO NOT USE TRIPLE QUOTES** " };
-      if (imageString) {
-        payload.image = imageString;
-      }
-
       let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowNameRef.current);
 
-      payload.trill = trill_spec;
-
-      let result = await openAIRequest(payload);
+      let result = await openAIRequest("default_preamble", JSON.stringify(trill_spec) + textInput + "\n" + "**OUTPUT THE SPECIFICATION IN THE EXACT FORMAT SPECIFIED IN THE JSON. MAKE SURE TO NOT OUTPUT ANY OTHER TEXT OR EXPLANATION ABOUT YOUR OUTPUT. ALWAYS SCAPE BREAK LINES AND TABS INSIDE CONTENT FIELD AND DO NOT USE TRIPLE QUOTES** ");
       
       console.log("result", result);
       console.log(result.result);

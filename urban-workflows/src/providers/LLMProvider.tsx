@@ -1,10 +1,8 @@
 import React, {
     createContext,
     useContext,
-    ReactNode,
-    useState
+    ReactNode
 } from "react";
-import { BoxType } from "../constants";
 
 interface LLMContextProps {
     openAIRequest: (preamble_file: string, text: string) => any;

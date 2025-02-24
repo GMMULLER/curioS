@@ -42,6 +42,7 @@ import html2canvas from "html2canvas";
 
 import './MainCanvas.css';
 import FloatingBox from "./FloatingBox";
+import { WorkflowGoal } from "./tools-menu/WorkflowGoal";
 
 export function MainCanvas() {
     const {
@@ -331,6 +332,7 @@ export function MainCanvas() {
                 connectionMode={ConnectionMode.Loose}
                 fitView
             >
+                <WorkflowGoal />
                 <UserMenu />
                 <ToolsMenu />
                 <LLMCommunication />

@@ -19,11 +19,12 @@ type CreateCodeNodeOptions = {
     accessLevel?: AccessLevelType;
     customTemplate?: boolean;
     position?: { x: number; y: number };
+    suggestion?: boolean
 };
 
 interface IUseCode {
     createCodeNode: (boxType: string, options?: CreateCodeNodeOptions) => void;
-    loadTrill: (trill: any) => void;
+    loadTrill: (trill: any, loadAsSuggestions?: boolean) => void;
 }
 
 export function useCode(): IUseCode {
@@ -58,7 +59,7 @@ export function useCode(): IUseCode {
         })
     }, [setInteractions]);
 
-    const loadTrill = (trill: any) => {
+    const loadTrill = (trill: any, loadAsSuggestions?: boolean) => {
 
         let nodes = [];
         let edges = [];
@@ -73,7 +74,10 @@ export function useCode(): IUseCode {
                 y = position.y;
             }
 
-            nodes.push(generateCodeNode(node.type, {nodeId: node.id, code: node.content, position: {x: x, y: y}}));
+            if(loadAsSuggestions)
+                nodes.push(generateCodeNode(node.type, {nodeId: node.id, code: node.content, position: {x: x, y: y}, suggestion: true}));
+            else
+                nodes.push(generateCodeNode(node.type, {nodeId: node.id, code: node.content, position: {x: x, y: y}}));
         }
 
         for(const edge of trill.dataflow.edges){
@@ -86,6 +90,9 @@ export function useCode(): IUseCode {
                 target: edge.target,
                 targetHandle: "in"
             }
+
+            if(loadAsSuggestions)
+                add_edge.suggestion = true;
 
             if(edge.type == "Interaction"){
                 add_edge.markerStart = {type: "arrow"};
