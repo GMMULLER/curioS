@@ -46,6 +46,10 @@ function TableBox({ data, isConnectable }) {
   const { user } = useUserContext();
 
   useEffect(() => {
+    data.output = output;
+  }, [output]);
+
+  useEffect(() => {
     if (data.templateId != undefined) {
       setTemplateData({
         id: data.templateId,

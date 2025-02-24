@@ -61,6 +61,10 @@ function DataPoolBox({ data, isConnectable }) {
     };
 
     useEffect(() => {
+        data.output = output;
+    }, [output]);
+
+    useEffect(() => {
 
         let newInput = data.input;
 

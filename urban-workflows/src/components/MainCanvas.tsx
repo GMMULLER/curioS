@@ -127,7 +127,7 @@ export function MainCanvas() {
     
     const [dashboardOn, setDashboardOn] = useState<boolean>(false); 
 
-    const [explainButton, setExplainButton] = useState<boolean>(false); 
+    const [isComponentsSelected, setIsComponentsSelected] = useState<boolean>(false); 
 
     // Selecting boxes to generate explanation
     const [selectedComponents, setSelectedComponents] = useState<any>({});
@@ -153,7 +153,7 @@ export function MainCanvas() {
         });
     }
 
-    const generateExplanation = async (e: any) => {
+    const generateExplanation = async (_: React.MouseEvent<HTMLButtonElement>) => {
 
         // Take a screenshot for the explanation
         let image_url = await captureScreenshot();
@@ -181,6 +181,36 @@ export function MainCanvas() {
         .catch((error: any) => {
             console.error("Error:", error);
         });
+    }
+
+    const generateDebug = async (_: React.MouseEvent<HTMLButtonElement>) => {
+        // Take a screenshot for the debugging
+        let image_url = await captureScreenshot();
+
+        let trill_spec = TrillGenerator.generateTrill(selectedComponents.nodes, selectedComponents.edges, workflowNameRef.current);
+
+        let text = JSON.stringify(trill_spec) + "\n\n" + "Your task as an assistant is to textually debug, in an high school level, this dataflow. If errors are present help the users explain how they can be fixed (**DO NOT MENTION ANY PATH OR FILE NAME IN YOUR EXPLANATION**). If no errors are present but certain practices might not yield the expected results also cite them. Provide general opportunities for improvements of the dataflow. Analyze the of each node, edges connections, and box types used. Do not include specific information about the trill structure like node or edge numeric ids (that is transparent to the user). **DO NOT PROVIDE EXPLANATIONS FOR THE EXAMPLE DATAFLOW. ALWAYS PRODUCE EXPLANATIONS FOR THE LAST DATAFLOW PROVIDED EVEN IF IT IS EMPTY**"
+
+        openAIRequest("debug_preamble", text).then((response: any) => {
+            console.log("Response:", response);
+
+            setFloatingBoxes((prevFloatingBoxes: any) => {
+                let uniqueId = crypto.randomUUID()+"";
+                
+                return {
+                    ...prevFloatingBoxes,
+                    [uniqueId]: {
+                        title: "Debugging "+workflowNameRef.current,
+                        imageUrl: image_url,
+                        markdownText: response.result
+                    }
+                }
+            });
+        })
+        .catch((error: any) => {
+            console.error("Error:", error);
+        });
+
     }
 
     // Delete a floating box from the list based on the id
@@ -289,9 +319,9 @@ export function MainCanvas() {
                     }
 
                     if(selection.nodes.length + selection.edges.length > 1){ // There is more than one element selected
-                        setExplainButton(true);
+                        setIsComponentsSelected(true);
                     }else{
-                        setExplainButton(false);
+                        setIsComponentsSelected(false);
                     }
                 }}
                 onConnect={onConnect}
@@ -321,25 +351,47 @@ export function MainCanvas() {
                 />
                 <Background />
                 <Controls />
-                <button
-                    id={"explainButton"}
-                    style={{
-                        display: explainButton ? "block" : "none",
-                        bottom: "50px",
-                        left: "50%",
-                        position: "absolute",
-                        zIndex: 10,
-                        padding: "8px 16px",
-                        backgroundColor: "#007bff",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                    }}
-                    onClick={generateExplanation}
-                >
-                    Explain
-                </button>
+                { isComponentsSelected ? (
+                    <button
+                        id={"explainButton"}
+                        style={{
+                            bottom: "50px",
+                            left: "30%",
+                            position: "absolute",
+                            zIndex: 10,
+                            padding: "8px 16px",
+                            backgroundColor: "#007bff",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                        }}
+                        onClick={generateExplanation}
+                    >
+                        Explain
+                    </button>
+                ) : null}
+
+                { isComponentsSelected ? (
+                    <button
+                        style={{
+                            bottom: "50px",
+                            left: "40%",
+                            position: "absolute",
+                            zIndex: 10,
+                            padding: "8px 16px",
+                            backgroundColor: "#007bff",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                        }}
+                        onClick={generateDebug}
+                    >
+                        Debug
+                    </button>
+                ) : null}
+
             </ReactFlow>
 
         </div>

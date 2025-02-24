@@ -38,6 +38,10 @@ function DataExportBox({ data, isConnectable }) {
   }, [code]);
 
   useEffect(() => {
+    data.output = output;
+  }, [output]);
+
+  useEffect(() => {
     if (data.templateId != undefined) {
       setTemplateData({
         id: data.templateId,

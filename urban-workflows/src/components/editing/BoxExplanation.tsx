@@ -32,7 +32,7 @@ export default function BoxExplanation({
             "current_output": current_output
         }
 
-        let text = JSON.stringify(node) + "\n\n" + "Your task as an assistant is to textually explain, in an high school level, what this box is doing. Include a lot of details and focus on explaning the content of the box and its possible role in the dataflow and opportunities to improve it. But do not include specific information about the trill structure like numeric ids. **DO NOT PROVIDE EXPLANATIONS FOR THE EXAMPLE DATAFLOW. ALWAYS PRODUCE EXPLANATIONS FOR THE LAST NODE PROVIDED EVEN IF IT IS EMPTY**"
+        let text = JSON.stringify(node) + "\n\n" + "Your task as an assistant is to textually explain, in an high school level, what this box is doing. Include a lot of details and focus on explaning the content of the box and its possible role in the dataflow and opportunities to improve it. But do not include specific information about the trill structure like numeric ids. If errors are present help the users explain how they can be fixed (**DO NOT MENTION ANY PATH OR FILE NAME IN YOUR EXPLANATION**) **DO NOT PROVIDE EXPLANATIONS FOR THE EXAMPLE DATAFLOW. ALWAYS PRODUCE EXPLANATIONS FOR THE LAST NODE PROVIDED EVEN IF IT IS EMPTY**"
 
         openAIRequest("single_box_explanation_preamble", text).then((response: any) => {
             console.log("Response:", response);

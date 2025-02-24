@@ -22,6 +22,10 @@ function MergeFlowBox({ data, isConnectable }) {
     const { editUserTemplate } = useTemplateContext();
 
     useEffect(() => {
+        data.output = output;
+    }, [output]);
+
+    useEffect(() => {
         if(data.templateId != undefined){
             setTemplateData({
                 id: data.templateId,

@@ -24,6 +24,10 @@ export class TrillGenerator {
                 trill_node.content = node.data.code;
             }
 
+            if(node.data.output != undefined && node.data.output.code != ""){ // Only add if the output is not empty
+                trill_node.output = {...node.data.output};
+            } 
+
             trill.dataflow.nodes.push(trill_node)
         }
 

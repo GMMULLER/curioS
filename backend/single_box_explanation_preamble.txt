@@ -28,6 +28,18 @@ Act like an assistant for users of a system for building visual analytics datafl
                 "y": {
                   "type": "number"
                 },
+                "output": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "content": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["code", "content"]
+                },
                 "metadata": {
                   "type": "object",
                   "properties": {
@@ -83,7 +95,6 @@ Act like an assistant for users of a system for building visual analytics datafl
     },
     "required": ["dataflow"]
   }
-  
 
 Nodes in these dataflows either process data or visualize it. Each type of node has a different role.
 

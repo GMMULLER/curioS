@@ -26,6 +26,18 @@
                 "y": {
                   "type": "number"
                 },
+                "output": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "content": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["code", "content"]
+                },
                 "metadata": {
                   "type": "object",
                   "properties": {
