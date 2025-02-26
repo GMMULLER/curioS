@@ -84,7 +84,7 @@ export const BoxContainer = ({
     disableComments?: boolean;
     styles?: CSS.Properties;
 }) => {
-    const { onNodesChange, setPinForDashboard } = useFlowContext();
+    const { onNodesChange, setPinForDashboard, acceptSuggestion } = useFlowContext();
     const { getTemplates, deleteTemplate } = useTemplateContext();
     const { createCodeNode } = useCode();
     const [showComments, setShowComments] = useState(false);
@@ -243,7 +243,11 @@ export const BoxContainer = ({
     return (
         <>
             <div id={nodeId+"resizer"} className={"resizer nowheel nodrag"}></div>
-            <div id={nodeId+"resizable"} className={"resizable"} style={{...boxContainerStyles, ...styles, width: currentBoxWidth+"px", height: currentBoxHeight+"px", ...(minimized ? {display: "none"} : {})}} onContextMenu={onContextMenu}>
+            {data.suggestionAcceptable ?
+                <button style={buttonAcceptSuggestion} onClick={() => {acceptSuggestion(nodeId)}}>Accept Suggestion</button> :
+                null
+            }
+            <div id={nodeId+"resizable"} className={"resizable"} style={{...boxContainerStyles, ...styles, width: currentBoxWidth+"px", height: currentBoxHeight+"px", ...(minimized ? {display: "none"} : {}), ...(data.suggestion ? {opacity: 0.5, border: "dashed"} : {}), ...(data.suggestionAcceptable ? {borderColor: "orange"} : {})}} onContextMenu={onContextMenu}>
                 {
                     !noContent ? 
                     <Row style={{ width: "95%", marginBottom: "2px", paddingBottom: "2px", marginLeft: "auto", marginRight: "auto", borderBottom: "1px solid rgba(107, 107, 107, 0.3)" }}>
@@ -458,3 +462,14 @@ const buttonStyleAny: CSS.Properties = {
     color: "#545353",
     padding: 0
 }
+
+const buttonAcceptSuggestion: CSS.Properties = {
+    position: "absolute",
+    top: "-50px",
+    padding: "8px 12px",
+    cursor: "pointer",
+    backgroundColor: "#007bff",
+    color: "#fff",
+    border: "none",
+    borderRadius: "4px",
+};

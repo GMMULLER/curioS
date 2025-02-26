@@ -27,10 +27,12 @@ import {
 import { Tooltip, OverlayTrigger } from "react-bootstrap";
 import { Template, useTemplateContext } from "../../providers/TemplateProvider";
 import { useUserContext } from "../../providers/UserProvider";
+import { useFlowContext } from "../../providers/FlowProvider";
 
 export function ToolsMenu() {
     const { createCodeNode } = useCode();
     const { getTemplates, deleteTemplate } = useTemplateContext();
+    const { eraseSuggestions } = useFlowContext();
 
     const { user } = useUserContext();
 

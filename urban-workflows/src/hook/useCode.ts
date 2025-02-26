@@ -91,8 +91,10 @@ export function useCode(): IUseCode {
                 targetHandle: "in"
             }
 
-            if(loadAsSuggestions)
-                add_edge.suggestion = true;
+            if(loadAsSuggestions){
+                add_edge.data = {}
+                add_edge.data.suggestion = true;
+            }
 
             if(edge.type == "Interaction"){
                 add_edge.markerStart = {type: "arrow"};
@@ -104,7 +106,7 @@ export function useCode(): IUseCode {
             edges.push(add_edge);
         }
 
-        loadParsedTrill(trill.dataflow.name, nodes, edges);
+        loadParsedTrill(trill.dataflow.name, nodes, edges, !loadAsSuggestions); // if loading as suggestion deactivate provenance
     }
 
     const generateCodeNode = useCallback((boxType: string, options: CreateCodeNodeOptions = {}) => {
@@ -117,6 +119,7 @@ export function useCode(): IUseCode {
             accessLevel = undefined,
             customTemplate = undefined,
             position = getPosition(),
+            suggestion = false
         } = options;
 
         const node: Node = {
@@ -134,6 +137,7 @@ export function useCode(): IUseCode {
                 hidden: false,
                 nodeType: boxType,
                 customTemplate,
+                suggestion,
                 input: "",
                 outputCallback,
                 interactionsCallback,
