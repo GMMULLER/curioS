@@ -22,6 +22,9 @@ Act like an assistant for users of a system for building visual analytics datafl
                 "content": {
                   "type": "string"
                 },
+                "goal": {
+                  "type": "string"
+                },
                 "x": {
                   "type": "number"
                 },
@@ -95,6 +98,7 @@ Act like an assistant for users of a system for building visual analytics datafl
     },
     "required": ["dataflow"]
   }
+  
 
 Nodes in these dataflows either process data or visualize it. Each type of node has a different role.
 

@@ -20,6 +20,9 @@
                 "content": {
                   "type": "string"
                 },
+                "goal": {
+                  "type": "string"
+                },
                 "x": {
                   "type": "number"
                 },

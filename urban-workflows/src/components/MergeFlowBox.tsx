@@ -82,13 +82,13 @@ function MergeFlowBox({ data, isConnectable }) {
                 type="target"
                 position={Position.Left}
                 id="in"
-                isConnectable={isConnectable}
+                isConnectable={isConnectable && !data.suggestion}
             />
             <Handle
                 type="source"
                 position={Position.Right}
                 id="out"
-                isConnectable={isConnectable}
+                isConnectable={isConnectable && !data.suggestion}
             />
             <BoxContainer nodeId={data.nodeId} data={data} boxHeight={50} boxWidth={100} noContent={true} templateData={templateData} setOutputCallback={setOutput} updateTemplate={updateTemplate} promptDescription={promptDescription}>
                 <DescriptionModal

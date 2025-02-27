@@ -50,6 +50,7 @@ interface FlowContextProps {
     nodes: Node[];
     edges: Edge[];
     workflowNameRef: React.MutableRefObject<string>;
+    suggestionsLeft: number;
     setOutputs: (updateFn: (outputs: IOutput[]) => IOutput[]) => void;
     setInteractions: (updateFn: (interactions: IInteraction[]) => IInteraction[]) => void;
     applyNewPropagation: (propagation: IPropagation) => void;
@@ -66,7 +67,7 @@ interface FlowContextProps {
     updatePositionDashboard: (nodeId:string, position: any) => void;
     applyNewOutput: (output: IOutput) => void;
     setWorkflowName: (name: string) => void;
-    loadParsedTrill: (workflowName: string, node: any, edges: any, provenance?: boolean) => void;
+    loadParsedTrill: (workflowName: string, node: any, edges: any, provenance?: boolean, merge?: boolean) => void;
     eraseSuggestions: () => void;
     acceptSuggestion: (nodeId: string) => void;
 }
@@ -75,6 +76,7 @@ export const FlowContext = createContext<FlowContextProps>({
     nodes: [],
     edges: [],
     workflowNameRef: { current: "" },
+    suggestionsLeft: 0,
     setOutputs: () => { },
     setInteractions: () => {},
     applyNewPropagation: () => {},
@@ -98,6 +100,7 @@ export const FlowContext = createContext<FlowContextProps>({
 
 const FlowProvider = ({ children }: { children: ReactNode }) => {
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
+
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
     
     const [outputs, setOutputs] = useState<IOutput[]>([]);
@@ -105,6 +108,8 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
     const [interactions, setInteractions] = useState<IInteraction[]>([]);
 
     const [dashboardPins, setDashboardPins] = useState<any>({}); // {[nodeId] -> boolean}
+
+    const [suggestionsLeft, setSuggestionsLeft] = useState<number>(0); // Number of suggestions left
 
     const [positionsInDashboard, _setPositionsInDashboard] = useState<any>({}); // [nodeId] -> change
     const positionsInDashboardRef = useRef(positionsInDashboard);
@@ -138,34 +143,56 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
         addWorkflow(workflowNameRef.current);
     }, [])
 
-    const loadParsedTrill = async (workflowName: string, loaded_nodes: any, loaded_edges: any, provenance?: boolean) => {
+    const loadParsedTrill = async (workflowName: string, loaded_nodes: any, loaded_edges: any, provenance?: boolean, merge?: boolean) => {
 
-        setWorkflowName(workflowName);
-        await addWorkflow(workflowName); // reseting provenance with new workflow
-
-        setNodes(prevNodes => []); // Reseting nodes
-
-        for(const node of loaded_nodes){ // adding new nodes one by one
-            addNode(node, workflowName, provenance);
+        if(!merge){
+            setWorkflowName(workflowName);
+            await addWorkflow(workflowName); // reseting provenance with new workflow
+            setNodes(prevNodes => []); // Reseting nodes
         }
 
-        // onEdgesDelete(edges);
-        setEdges(prevEdges => []) // Reseting edges
+        let current_nodes_ids = [];
+
+        for(const node of nodes){
+            current_nodes_ids.push(node.id);
+        }
+
+        for(const node of loaded_nodes){ // adding new nodes one by one
+            if(!current_nodes_ids.includes(node.id)){ // if the node already exist do not include it again
+                addNode(node, workflowName, provenance);
+            }
+        }
+
+        if(!merge){
+            // onEdgesDelete(edges);
+            setEdges(prevEdges => []) // Reseting edges
+        }
+
+        let current_edges_ids = [];
+
+        for(const edge of edges){
+            current_edges_ids.push(edge.id);
+        }
 
         setNodes((prevNodes: any) => { // Guarantee that previous nodes were added
 
             for(const edge of loaded_edges){
-                onConnect(edge, prevNodes, undefined, workflowName, provenance);
+                if(!current_edges_ids.includes(edge.id)){ // if the edge already exist do not include it again
+                    onConnect(edge, prevNodes, undefined, workflowName, provenance);
+                }
             }
     
-            setOutputs([]);
-            setInteractions([]);
-            setDashboardPins({});
-            setPositionsInDashboard({});
-            setPositionsInWorkflow({});
+            if(!merge){
+                setOutputs([]);
+                setInteractions([]);
+                setDashboardPins({});
+                setPositionsInDashboard({});
+                setPositionsInWorkflow({});
+            }
 
             return prevNodes;
         })
+
         // Unset dashboardMode (setDashBoardMode)
     }
 
@@ -173,35 +200,49 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
     const flagAcceptableSuggestions = (nodes: any, edges: any) => {
         
         let dependOn = []; // all nodes that depend on some other node suggested node
-        let suggestedNodes = []; // all ides of suggested nodes
+        let suggestedNodes = []; // all ids of suggested nodes
 
         for(const node of nodes){
-            if(node.data.suggestion)
+            if(node.data.suggestion){
                 suggestedNodes.push(node.id);
+            }
         }
+
+        setSuggestionsLeft(suggestedNodes.length); // Updating number of suggestions left
 
         for(const edge of edges){
             if(suggestedNodes.includes(edge.source)) // The node depends on some other suggested node
                 dependOn.push(edge.target);
         }
 
-        setNodes(prevNodes => {
-            let newNodes = [];
+        let nodesToUpdate = []; // Which nodes need to have their suggestionAcceptable flag flipped
 
-            for(const node of prevNodes){
-                let newNode = {...node};
-
-                if(!dependOn.includes(newNode.id) && newNode.data.suggestion){ // It means that the node can be accepted as a suggestion
-                    newNode.data.suggestionAcceptable = true;
-                }else{
-                    newNode.data.suggestionAcceptable = false;
-                }
-
-                newNodes.push(newNode);
+        for(const node of nodes){
+            if(!dependOn.includes(node.id) && node.data.suggestion){ // It means that the node can be accepted as a suggestion
+                if(!node.data.suggestionAcceptable) // Check if the flag needs to be flipped
+                    nodesToUpdate.push(node.id);
+            }else{
+                if(node.data.suggestionAcceptable) // Check if the flag needs to be flipped
+                    nodesToUpdate.push(node.id);
             }
+        }
 
-            return newNodes;
-        });
+        if(nodesToUpdate.length > 0){
+            setNodes(prevNodes => {
+                let newNodes = [];
+    
+                for(const node of prevNodes){
+                    let newNode = {...node};
+
+                    if(nodesToUpdate.includes(newNode.id))
+                        newNode.data.suggestionAcceptable = !newNode.data.suggestionAcceptable; // flip the flag
+
+                    newNodes.push(newNode);
+                }
+    
+                return newNodes;
+            });
+        }
 
     }
 
@@ -209,6 +250,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
     const acceptSuggestion = (nodeId: string) => {
         setNodes(prevNodes => {
             let newNodes = [];
+            let suggestions = []; // ids of all suggestion nodes
 
             for(const node of prevNodes){
 
@@ -220,13 +262,30 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
                     newBox(workflowNameRef.current, (newNode.type as string) + "-" + newNode.id); // Provenance of the accepted suggestion
                 }
 
+                if(newNode.data.suggestion)
+                    suggestions.push(newNode.id);
+
                 newNodes.push(newNode);
             }
     
+            setEdges(prevEdges => {
+                let newEdges = [];
+
+                for(const edge of prevEdges){
+                    let newEdge = {...edge};
+
+                    if(!suggestions.includes(edge.source) && !suggestions.includes(edge.target)) // if the source and target of an edge is not suggestion, the edge is not suggestion anymore
+                        newEdge.data.suggestion = false;
+
+                    newEdges.push(newEdge);
+                }
+
+                return newEdges;
+            })
+
             return newNodes;
         });
 
-        // TODO: go through all edges and check if beginning and end are suggestions. If they are not, they edge should not be a suggestion anymore
     }
 
     useEffect(() => {
@@ -257,15 +316,17 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
                         let copy_node = {...node};
                         copy_node.data.suggestionAcceptable = false; // The node is not a suggestion. Reseting the flag.
 
-                        newNodes.push({...node});
+                        newNodes.push({...copy_node});
                     }
                 }
     
                 return newNodes;
             });
 
-            return prevEdges
-        }) 
+            return prevEdges;
+        });
+
+        setSuggestionsLeft(0);
     }
 
     const setDashBoardMode = (value: boolean) => {
@@ -905,6 +966,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
                 nodes,
                 edges,
                 workflowNameRef,
+                suggestionsLeft,
                 setOutputs,
                 setInteractions,
                 applyNewPropagation,

@@ -7,9 +7,8 @@ import { useCode } from "../../hook/useCode";
 
 export function WorkflowGoal({ }: { }) {
     const [workflowGoal, setWorkflowGoal] = useState("");
-    const [suggestionsOn, setSuggestionsOn] = useState(false);
     const { openAIRequest } = useLLMContext();
-    const { nodes, edges, workflowNameRef, eraseSuggestions } = useFlowContext();
+    const { nodes, edges, workflowNameRef, suggestionsLeft, eraseSuggestions } = useFlowContext();
     const { loadTrill } = useCode();
 
     const handleNameChange = (e: any) => {
@@ -24,7 +23,11 @@ export function WorkflowGoal({ }: { }) {
 
         try {
 
-            let result = await openAIRequest("workflow_suggestions_preamble", JSON.stringify(trill_spec) + "\n" + "Your task is, based on the dataflow the user built, suggest a set of nodes and connections to accomplish his goal. The user goal is: "+workflowGoal+" **OUPUT A TRILL JSON SPECIFICATION AND NOTHING ELSE. OUTPUT THE NEW NODES AND CONNECTIONS YOU WANT TO ADD, BUT DO NOT REPEAT THE EXISTING NODES AND CONNECTIONS. DO NOT INCLUDE CONTENT FOR THE NODES. FOR EACH NODE OUTPUT A 'goal' FIELD TO SPECIFY WHAT THE NODE SHOULD DO. ALSO INCLUDE 'out' TO INDICATE THE TYPE OF DATA THE NODE SHOULD OUTPUT. DO NOT USE THE EXAMPLE WORKFLOW**");
+            console.log("user trill spec", trill_spec);
+
+            let result = await openAIRequest("workflow_suggestions_preamble", JSON.stringify(trill_spec) + "\n" + "Your task is, based on the dataflow the user built, suggest a set of nodes and connections to accomplish his goal. The user goal is: "+workflowGoal+" **OUPUT A TRILL JSON SPECIFICATION AND NOTHING ELSE. ADD NODES AND EDGES TO THE DATAFLOW OF THE USER. DO NOT CHANGE IDs. MAKE SURE YOU ADD THE 'dataflow' ATTRIBUTE. DO NOT INCLUDE CONTENT FOR THE NODES. FOR EACH NODE OUTPUT A 'goal' FIELD TO SPECIFY WHAT THE NODE SHOULD DO. ALSO INCLUDE 'out' TO INDICATE THE TYPE OF DATA THE NODE SHOULD OUTPUT. DO NOT USE THE EXAMPLE WORKFLOW**");
+
+            console.log("result", result);
 
             let clean_result = result.result.replaceAll("```json", "");
             clean_result = clean_result.replaceAll("```", "");
@@ -33,9 +36,6 @@ export function WorkflowGoal({ }: { }) {
             parsed_result.dataflow.name = workflowNameRef.current;
 
             loadTrill(parsed_result, true);
-
-            setSuggestionsOn(true);
-
         } catch (error) {
             console.error("Error communicating with LLM", error);
             alert("Error communicating with LLM");
@@ -43,7 +43,6 @@ export function WorkflowGoal({ }: { }) {
     }
 
     const cancelSuggestions = () => {
-        setSuggestionsOn(false);
         eraseSuggestions();
     }
 
@@ -60,7 +59,7 @@ export function WorkflowGoal({ }: { }) {
                     placeholder="What is your goal?"
                 />
 
-                {suggestionsOn? 
+                {suggestionsLeft > 0? 
                     <button style={button} onClick={cancelSuggestions}>Cancel suggestions</button> :
                     <button style={button} onClick={generateSuggestion}>Generate suggestions</button>
                 }

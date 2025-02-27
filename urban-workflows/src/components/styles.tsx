@@ -242,12 +242,19 @@ export const BoxContainer = ({
 
     return (
         <>
-            <div id={nodeId+"resizer"} className={"resizer nowheel nodrag"}></div>
+            <div id={nodeId+"resizer"} className={"resizer nowheel nodrag"} style={{...(data.suggestion ? {pointerEvents: "none"} : {})}}></div>
             {data.suggestionAcceptable ?
                 <button style={buttonAcceptSuggestion} onClick={() => {acceptSuggestion(nodeId)}}>Accept Suggestion</button> :
                 null
             }
-            <div id={nodeId+"resizable"} className={"resizable"} style={{...boxContainerStyles, ...styles, width: currentBoxWidth+"px", height: currentBoxHeight+"px", ...(minimized ? {display: "none"} : {}), ...(data.suggestion ? {opacity: 0.5, border: "dashed"} : {}), ...(data.suggestionAcceptable ? {borderColor: "orange"} : {})}} onContextMenu={onContextMenu}>
+
+            <button style={buttonAcceptSuggestion} onClick={() => {acceptSuggestion(nodeId)}}>Accept Suggestion</button> :
+
+            <div>
+                <input type={"text"} placeholder={"What is your goal for this box?"} />
+            </div>
+
+            <div id={nodeId+"resizable"} className={"resizable"} style={{...boxContainerStyles, ...styles, width: currentBoxWidth+"px", height: currentBoxHeight+"px", ...(minimized ? {display: "none"} : {}), ...(data.suggestion ? {opacity: 0.5, borderWidth: "2px", borderStyle: "dashed", pointerEvents: "none"} : {}), ...(data.suggestionAcceptable ? {borderColor: "orange"} : {})}} onContextMenu={onContextMenu}>
                 {
                     !noContent ? 
                     <Row style={{ width: "95%", marginBottom: "2px", paddingBottom: "2px", marginLeft: "auto", marginRight: "auto", borderBottom: "1px solid rgba(107, 107, 107, 0.3)" }}>
@@ -274,7 +281,7 @@ export const BoxContainer = ({
 
                 {children}
 
-                <Row  style={{ width: "30%", marginRight: "auto", marginLeft: "10px", marginTop: "4px"}}>
+                <Row  style={{...{ width: "30%", marginRight: "auto", marginLeft: "10px", marginTop: "4px"}, ...(data.suggestion ? {pointerEvents: "none"} : {})}}>
                     {sendCodeToWidgets != undefined ? <Row>
                         <Col md={2}><FontAwesomeIcon className={"nowheel nodrag"} icon={faCirclePlay} style={{cursor: "pointer", fontSize: "27px", color: "#0d6efd"}} onClick={() => {
                             setOutputCallback({code: "exec", content: ""});
@@ -333,13 +340,18 @@ export const BoxContainer = ({
                 </Row>
 
                 {
-                    pinnedToDashboard ? <FontAwesomeIcon icon={faCircleDot} style={{ color: "red", cursor: "pointer", fontSize: "10px", position: "fixed", top: "12px", left: "10px", zIndex: 11 }} onClick={() => { updatePin(nodeId, pinnedToDashboard) }} /> : <FontAwesomeIcon style={{ color: "888", cursor: "pointer", fontSize: "10px", position: "fixed", top: "12px", left: "10px", zIndex: 11 }} icon={faCircle} onClick={() => { updatePin(nodeId, pinnedToDashboard) }} />
+                    pinnedToDashboard ? <FontAwesomeIcon icon={faCircleDot} style={{...{ color: "red", cursor: "pointer", fontSize: "10px", position: "fixed", top: "12px", left: "10px", zIndex: 11 }, ...(data.suggestion ? {pointerEvents: "none"} : {})}} onClick={() => { updatePin(nodeId, pinnedToDashboard) }} /> : <FontAwesomeIcon style={{...{ color: "888", cursor: "pointer", fontSize: "10px", position: "fixed", top: "12px", left: "10px", zIndex: 11 }, ...(data.suggestion ? {pointerEvents: "none"} : {})}} icon={faCircle} onClick={() => { updatePin(nodeId, pinnedToDashboard) }} />
                 }
-                <RightClickMenu
-                    menuPosition={menuPosition}
-                    showMenu={showMenu}
-                    options={options}
-                />
+
+                {
+                    !data.suggestion ?
+                    <RightClickMenu
+                        menuPosition={menuPosition}
+                        showMenu={showMenu}
+                        options={options}
+                    /> : null
+                }
+                
             </div>
 
             {showComments && (
@@ -353,13 +365,13 @@ export const BoxContainer = ({
 
             {
                 minimized ? 
-                <div style={{width: currentBoxWidth+"px", height: currentBoxHeight+"px", backgroundColor: "white", boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px", borderRadius: "10px", padding: "5px", justifyContent: "center", display: "flex",  alignItems: "center"}}>
+                <div style={{...{width: currentBoxWidth+"px", height: currentBoxHeight+"px", backgroundColor: "white", boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px", borderRadius: "10px", padding: "5px", justifyContent: "center", display: "flex",  alignItems: "center"}, ...(data.suggestion ? {pointerEvents: "none"} : {})}}>
                     <FontAwesomeIcon icon={boxIconTranslation(data.nodeType)} style={{...iconStyle, fontSize: "23px"}} />
                 </div> :
                 null
             }
 
-            <FontAwesomeIcon icon={(!minimized ? faMinus : faUpRightAndDownLeftFromCenter)} style={{...iconStyle, position: "fixed", ...(minimized ?{top: "5px", left: "5px"} : {left: "50px", top: "12px"}), fontSize: "10px", zIndex: 8 }} onClick={() => { 
+            <FontAwesomeIcon icon={(!minimized ? faMinus : faUpRightAndDownLeftFromCenter)} style={{...iconStyle, position: "fixed", ...(minimized ?{top: "5px", left: "5px"} : {left: "50px", top: "12px"}), fontSize: "10px", zIndex: 8, ...(data.suggestion ? {pointerEvents: "none"} : {}) }} onClick={() => { 
                 if(data.nodeType != BoxType.MERGE_FLOW){
                     if(!minimized){
                         setCurrentBoxWidth(70);
@@ -405,17 +417,21 @@ const boxContainerStyles: CSS.Properties = {
     padding: "5px"
 };
 
-export const RightClickMenu = ({
-  showMenu,
-  menuPosition,
-  options,
-}: {
-  showMenu: boolean;
-  menuPosition: { y: number; x: number };
-  options: { name: string; action: () => void }[];
+interface RightClickMenuProps {
+    showMenu: boolean;
+    menuPosition: { x: number; y: number };
+    options: { name: string; action: () => void }[];
+    style?: any;
+}
+
+export const RightClickMenu: React.FC<RightClickMenuProps> = ({
+    showMenu,
+    menuPosition = { x: 0, y: 0 },
+    options,
+    style = {},
 }) => {
   return (
-    <Dropdown show={showMenu} drop="end">
+    <Dropdown show={showMenu} drop="end" style={style}>
       <Dropdown.Menu
         style={{
           position: "fixed",

@@ -74,6 +74,8 @@ export function useCode(): IUseCode {
                 y = position.y;
             }
 
+            if node.goal
+
             if(loadAsSuggestions)
                 nodes.push(generateCodeNode(node.type, {nodeId: node.id, code: node.content, position: {x: x, y: y}, suggestion: true}));
             else
@@ -106,7 +108,7 @@ export function useCode(): IUseCode {
             edges.push(add_edge);
         }
 
-        loadParsedTrill(trill.dataflow.name, nodes, edges, !loadAsSuggestions); // if loading as suggestion deactivate provenance
+        loadParsedTrill(trill.dataflow.name, nodes, edges, !loadAsSuggestions, loadAsSuggestions); // if loading as suggestion deactivate provenance and merge
     }
 
     const generateCodeNode = useCallback((boxType: string, options: CreateCodeNodeOptions = {}) => {

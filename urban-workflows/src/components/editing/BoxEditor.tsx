@@ -34,13 +34,7 @@ type BoxEditorProps = {
     widgets: boolean;
     grammar: boolean;
     setOutputCallback: any;
-    data: {
-        nodeId: string;
-        pythonInterpreter: any;
-        input: string;
-        outputCallback: any;
-        code?: string;
-    };
+    data: any;
     output: { code: string; content: string };
     boxType: BoxType;
     applyGrammar?: any;
@@ -167,12 +161,12 @@ function BoxEditor({
     return (
         <>
             <div
-                style={{
+                style={{...{
                     height: "76%",
                     width: "95%",
                     marginLeft: "auto",
                     marginRight: "auto",
-                }}
+                }, ...(data.suggestion ? {pointerEvents: "none"} : {})}}
             >
                 <Tab.Container activeKey={activeTab} onSelect={handleTabSelect}>
                     <Row style={{ height: "100%"}}>
@@ -383,6 +377,7 @@ function BoxEditor({
                     zIndex: 11,
                     top: "12px",
                     left: "30px",
+                    ...(data.suggestion ? {pointerEvents: "none"} : {})
                 }}
                 onClick={() => {
                     fullscreen != "" && fullscreen != undefined

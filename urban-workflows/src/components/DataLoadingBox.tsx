@@ -91,7 +91,7 @@ function DataLoadingBox({ data, isConnectable }) {
         type="source"
         position={Position.Right}
         id="out"
-        isConnectable={isConnectable}
+        isConnectable={isConnectable && !data.suggestion}
       />
       <BoxContainer
         nodeId={data.nodeId}
