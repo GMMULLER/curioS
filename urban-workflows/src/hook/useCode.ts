@@ -19,7 +19,10 @@ type CreateCodeNodeOptions = {
     accessLevel?: AccessLevelType;
     customTemplate?: boolean;
     position?: { x: number; y: number };
-    suggestion?: boolean
+    suggestion?: boolean;
+    goal?: string;
+    inType?: string;
+    out?: string;
 };
 
 interface IUseCode {
@@ -74,12 +77,26 @@ export function useCode(): IUseCode {
                 y = position.y;
             }
 
-            if node.goal
+            let nodeMeta: any = {
+                nodeId: node.id, 
+                code: node.content, 
+                position: {x: x, y: y}
+            }
+
+            if(node.goal != undefined)
+                nodeMeta.goal = node.goal;
+
+            if(node.in != undefined)
+                nodeMeta.in = node.in;
+
+            if(node.out != undefined)
+                nodeMeta.out = node.out;
 
             if(loadAsSuggestions)
-                nodes.push(generateCodeNode(node.type, {nodeId: node.id, code: node.content, position: {x: x, y: y}, suggestion: true}));
-            else
-                nodes.push(generateCodeNode(node.type, {nodeId: node.id, code: node.content, position: {x: x, y: y}}));
+                nodeMeta.suggestion = true;
+
+            nodes.push(generateCodeNode(node.type, nodeMeta));
+
         }
 
         for(const edge of trill.dataflow.edges){
@@ -121,7 +138,10 @@ export function useCode(): IUseCode {
             accessLevel = undefined,
             customTemplate = undefined,
             position = getPosition(),
-            suggestion = false
+            suggestion = false,
+            goal = "",
+            inType = "DEFAULT",
+            out = "DEFAULT"
         } = options;
 
         const node: Node = {
@@ -140,6 +160,9 @@ export function useCode(): IUseCode {
                 nodeType: boxType,
                 customTemplate,
                 suggestion,
+                goal,
+                in: inType,
+                out,
                 input: "",
                 outputCallback,
                 interactionsCallback,
@@ -153,7 +176,7 @@ export function useCode(): IUseCode {
 
     const createCodeNode = useCallback((boxType: string, options: CreateCodeNodeOptions = {}) => {
         let node = generateCodeNode(boxType, options);
-        addNode(node);
+        addNode(node, undefined, true);
     }, [addNode, outputCallback, getPosition]);
 
     return { createCodeNode, loadTrill };

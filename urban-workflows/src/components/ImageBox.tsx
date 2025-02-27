@@ -268,7 +268,7 @@ function ImageBox({ data, isConnectable }) {
                 id="in/out"
                 isConnectable={isConnectable && !data.suggestion}
             />
-            <BoxContainer nodeId={data.nodeId} data={data} templateData={templateData} setOutputCallback={setOutput} promptDescription={promptDescription} styles={{ paddingLeft: "16px" }}>
+            <BoxContainer nodeId={data.nodeId} handleType={"in/out"} data={data} templateData={templateData} setOutputCallback={setOutput} promptDescription={promptDescription} styles={{ paddingLeft: "16px" }}>
                 <InputIcon type="1" />
                 <DescriptionModal
                     nodeId={data.nodeId}

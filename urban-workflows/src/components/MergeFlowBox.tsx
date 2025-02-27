@@ -90,7 +90,7 @@ function MergeFlowBox({ data, isConnectable }) {
                 id="out"
                 isConnectable={isConnectable && !data.suggestion}
             />
-            <BoxContainer nodeId={data.nodeId} data={data} boxHeight={50} boxWidth={100} noContent={true} templateData={templateData} setOutputCallback={setOutput} updateTemplate={updateTemplate} promptDescription={promptDescription}>
+            <BoxContainer nodeId={data.nodeId} handleType={"in/out"} data={data} boxHeight={50} boxWidth={100} noContent={true} templateData={templateData} setOutputCallback={setOutput} updateTemplate={updateTemplate} promptDescription={promptDescription}>
                 <DescriptionModal
                     nodeId={data.nodeId}
                     boxType={BoxType.MERGE_FLOW}

@@ -105,6 +105,7 @@ function DataExportBox({ data, isConnectable }) {
         templateData={templateData}
         code={code}
         user={user}
+        handleType={"in"}
         sendCodeToWidgets={sendCode}
         setOutputCallback={setOutput}
         promptModal={promptModal}

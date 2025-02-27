@@ -39,7 +39,7 @@ import {
     faCube,
     faChartLine
 } from "@fortawesome/free-solid-svg-icons";
-import { AccessLevelType, BoxType } from "../constants";
+import { AccessLevelType, BoxType, SupportedType } from "../constants";
 import './styles.css';
 import { Template, useTemplateContext } from "../providers/TemplateProvider";
 import { useCode } from "../hook/useCode";
@@ -63,6 +63,7 @@ export const BoxContainer = ({
     noContent,
     setTemplateConfig,
     disableComments = false,
+    handleType,
     styles = {}
 }: {
     data: any
@@ -83,17 +84,77 @@ export const BoxContainer = ({
     setTemplateConfig?: any;
     disableComments?: boolean;
     styles?: CSS.Properties;
+    handleType?: string;
 }) => {
     const { onNodesChange, setPinForDashboard, acceptSuggestion } = useFlowContext();
     const { getTemplates, deleteTemplate } = useTemplateContext();
     const { createCodeNode } = useCode();
     const [showComments, setShowComments] = useState(false);
+    const [goal, setGoal] = useState(data.goal);
+    const [expectedInputType, setExpectedInputType] = useState(data.in);
+    const [expectedOutputType, setExpectedOutputType] = useState(data.out);
     const [comments, setComments] = useState<IComment[]>([]);
     const [pinnedToDashboard, setPinnedToDashboard] = useState<boolean>(false);
     const [currentBoxWidth, setCurrentBoxWidth] = useState<number | undefined>(boxWidth);
     const [currentBoxHeight, setCurrentBoxHeight] = useState<number | undefined>(boxHeight);
     const { showMenu, menuPosition, onContextMenu } = useRightClickMenu();
     const [minimized, setMinimized] = useState(data.nodeType == BoxType.MERGE_FLOW);
+
+    useEffect(() => {
+
+        if(data.output != undefined && data.output.code == 'success'){
+            try {
+                let parsed_output = JSON.parse(data.output.content);
+
+                let dataType = parsed_output.dataType;
+
+                if(dataType == 'int' || dataType == 'str' || dataType == 'float' || dataType == 'bool')
+                    setExpectedOutputType(SupportedType.VALUE)
+                else if(dataType == 'list')
+                    setExpectedOutputType(SupportedType.LIST)
+                else if(dataType == 'dict')
+                    setExpectedOutputType(SupportedType.JSON)
+                else if(dataType == 'dataframe')
+                    setExpectedOutputType(SupportedType.DATAFRAME)
+                else if(dataType == 'geodataframe')
+                    setExpectedOutputType(SupportedType.GEODATAFRAME)
+                else if(dataType == 'raster')
+                    setExpectedOutputType(SupportedType.RASTER)
+                else if(dataType == 'outputs')
+                    setExpectedOutputType("MULTIPLE")
+
+            } catch (error) {
+                console.error("Invalid output type", error);
+            }
+        }
+
+        if(data.input != undefined && data.input != ""){
+            try {
+                let parsed_input = JSON.parse(data.input);
+
+                let dataType = parsed_input.dataType;
+                
+                if(dataType == 'int' || dataType == 'str' || dataType == 'float' || dataType == 'bool')
+                    setExpectedInputType(SupportedType.VALUE)
+                else if(dataType == 'list')
+                    setExpectedInputType(SupportedType.LIST)
+                else if(dataType == 'dict')
+                    setExpectedInputType(SupportedType.JSON)
+                else if(dataType == 'dataframe')
+                    setExpectedInputType(SupportedType.DATAFRAME)
+                else if(dataType == 'geodataframe')
+                    setExpectedInputType(SupportedType.GEODATAFRAME)
+                else if(dataType == 'raster')
+                    setExpectedInputType(SupportedType.RASTER)
+                else if(dataType == 'outputs')
+                    setExpectedInputType("MULTIPLE")
+
+            } catch (error) {
+                console.error("Invalid input type", error);
+            }
+        }
+
+    }, [data.output, data.input])
 
     useEffect(() => {
         if(boxWidth == undefined){
@@ -240,6 +301,14 @@ export const BoxContainer = ({
         }
     }
 
+    const handleChangeExpectedInputType = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        setExpectedInputType(event.target.value as SupportedType);
+    };
+
+    const handleChangeExpectedOutputType = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        setExpectedOutputType(event.target.value as SupportedType);
+    };
+
     return (
         <>
             <div id={nodeId+"resizer"} className={"resizer nowheel nodrag"} style={{...(data.suggestion ? {pointerEvents: "none"} : {})}}></div>
@@ -248,11 +317,41 @@ export const BoxContainer = ({
                 null
             }
 
-            <button style={buttonAcceptSuggestion} onClick={() => {acceptSuggestion(nodeId)}}>Accept Suggestion</button> :
+            {!minimized ?
+                <div style={{...goalInput, ...(data.suggestion ? {opacity: "50%", pointerEvents: "none"} : {})}} className={"nodrag"}>
+                    <label htmlFor={nodeId+"_goal_box_input"}>Goal: </label>
+                    <input id={nodeId+"_goal_box_input"} type={"text"} placeholder={"What is your goal for this box?"} style={{width: "240px"}} value={goal} onChange={(value: any) => {setGoal(value.target.value)}}/>
+                </div> : null
+            }
 
-            <div>
-                <input type={"text"} placeholder={"What is your goal for this box?"} />
-            </div>
+            {!minimized && (handleType == "in/out" || handleType == "in") ?
+                <div style={inputTypeSelect}>
+                    <select id={nodeId+"_expected_box_input_type"} value={expectedInputType} onChange={handleChangeExpectedInputType}>
+                        {Object.values(SupportedType).map((type) => (
+                            <option key={type} value={type}>
+                                {type}
+                            </option>
+                        ))}
+                        <option value="MUTLIPLE">MULTIPLE</option>
+                        <option value="DEFAULT">EXPECTED INPUT</option>
+                    </select>
+                </div> : null
+            }
+
+            {
+                !minimized && (handleType == "in/out" || handleType == "out") ?
+                <div style={outputTypeSelect}>
+                    <select id={nodeId+"_expected_box_output_type"} value={expectedOutputType} onChange={handleChangeExpectedOutputType}>
+                        {Object.values(SupportedType).map((type) => (
+                            <option key={type} value={type}>
+                                {type}
+                            </option>
+                        ))}
+                        <option value="MUTLIPLE">MULTIPLE</option>
+                        <option value="DEFAULT">EXPECTED OUTPUT</option>
+                    </select>
+                </div> : null
+            }
 
             <div id={nodeId+"resizable"} className={"resizable"} style={{...boxContainerStyles, ...styles, width: currentBoxWidth+"px", height: currentBoxHeight+"px", ...(minimized ? {display: "none"} : {}), ...(data.suggestion ? {opacity: 0.5, borderWidth: "2px", borderStyle: "dashed", pointerEvents: "none"} : {}), ...(data.suggestionAcceptable ? {borderColor: "orange"} : {})}} onContextMenu={onContextMenu}>
                 {
@@ -489,3 +588,22 @@ const buttonAcceptSuggestion: CSS.Properties = {
     border: "none",
     borderRadius: "4px",
 };
+
+const goalInput: CSS.Properties = {
+    position: "absolute",
+    bottom: "-50px"
+}
+
+const inputTypeSelect: CSS.Properties = {
+    position: "absolute",
+    left: "-160px",
+    fontSize: "14px",
+    top: "calc(50% - 14px)"
+}
+
+const outputTypeSelect: CSS.Properties = {
+    position: "absolute",
+    right: "-160px",
+    fontSize: "14px",
+    top: "calc(50% - 14px)"
+}

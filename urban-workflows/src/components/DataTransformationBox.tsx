@@ -106,6 +106,7 @@ function DataTransformationBox({ data, isConnectable }) {
         templateData={templateData}
         code={code}
         user={user}
+        handleType={"in/out"}
         sendCodeToWidgets={sendCode}
         setOutputCallback={setOutput}
         promptModal={promptModal}

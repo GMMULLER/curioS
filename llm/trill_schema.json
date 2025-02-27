@@ -29,6 +29,14 @@
                 "y": {
                   "type": "number"
                 },
+                "in": {
+                  "type": "string",
+                  "enum": ["DATAFRAME", "GEODATAFRAME", "RASTER", "VALUE", "LIST", "JSON"]
+                },
+                "out": {
+                  "type": "string",
+                  "enum": ["DATAFRAME", "GEODATAFRAME", "RASTER", "VALUE", "LIST", "JSON"]
+                },
                 "output": {
                   "type": "object",
                   "properties": {

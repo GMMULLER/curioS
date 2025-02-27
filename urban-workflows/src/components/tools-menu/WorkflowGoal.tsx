@@ -23,9 +23,7 @@ export function WorkflowGoal({ }: { }) {
 
         try {
 
-            console.log("user trill spec", trill_spec);
-
-            let result = await openAIRequest("workflow_suggestions_preamble", JSON.stringify(trill_spec) + "\n" + "Your task is, based on the dataflow the user built, suggest a set of nodes and connections to accomplish his goal. The user goal is: "+workflowGoal+" **OUPUT A TRILL JSON SPECIFICATION AND NOTHING ELSE. ADD NODES AND EDGES TO THE DATAFLOW OF THE USER. DO NOT CHANGE IDs. MAKE SURE YOU ADD THE 'dataflow' ATTRIBUTE. DO NOT INCLUDE CONTENT FOR THE NODES. FOR EACH NODE OUTPUT A 'goal' FIELD TO SPECIFY WHAT THE NODE SHOULD DO. ALSO INCLUDE 'out' TO INDICATE THE TYPE OF DATA THE NODE SHOULD OUTPUT. DO NOT USE THE EXAMPLE WORKFLOW**");
+            let result = await openAIRequest("workflow_suggestions_preamble", JSON.stringify(trill_spec) + "\n" + "Your task is, based on the dataflow the user built, suggest a set of nodes and connections to accomplish his goal. The user goal is: "+workflowGoal+" **OUPUT A TRILL JSON SPECIFICATION AND NOTHING ELSE. ADD NODES AND EDGES TO THE DATAFLOW OF THE USER. DO NOT CHANGE IDs. MAKE SURE YOU ADD THE 'dataflow' ATTRIBUTE. DO NOT INCLUDE CONTENT FOR THE NODES. FOR EACH NODE OUTPUT A 'goal' FIELD TO SPECIFY WHAT THE NODE SHOULD DO. ALSO INCLUDE 'out' and 'in' TO INDICATE THE TYPE OF DATA THE NODE SHOULD RECEIVE AND OUTPUT. DO NOT USE THE EXAMPLE WORKFLOW**");
 
             console.log("result", result);
 

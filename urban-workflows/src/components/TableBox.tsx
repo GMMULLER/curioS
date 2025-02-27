@@ -313,6 +313,7 @@ function TableBox({ data, isConnectable }) {
         data={data}
         templateData={templateData}
         setOutputCallback={setOutput}
+        handleType={"in/out"}
         promptDescription={promptDescription}
       >
         <InputIcon type="1" />

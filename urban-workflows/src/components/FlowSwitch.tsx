@@ -61,6 +61,7 @@ function FlowSwitchBox({ data, isConnectable }) {
         templateData={templateData}
         code={code}
         user={user}
+        handleType={"in"}
         sendCodeToWidgets={sendCode}
         setOutputCallback={setOutput}
         promptDescription={promptDescription}

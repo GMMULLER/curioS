@@ -100,6 +100,7 @@ function DataLoadingBox({ data, isConnectable }) {
         templateData={templateData}
         code={code}
         user={user}
+        handleType={"out"}
         sendCodeToWidgets={sendCode}
         setOutputCallback={setOutput}
         promptModal={promptModal}

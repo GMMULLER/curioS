@@ -5,13 +5,8 @@ import geopandas as gpd
 import pandas as pd
 import json
 def userCode(arg):
-	    import pandas as pd
-	
-	    d = {'a': ["A", "B", "C", "D", "E", "F", "G", "H", "I"], 'b': [28, 55, 43, 91, 81, 53, 19, 87, 52]}
-	    df = pd.DataFrame(data=d)
-	
-	    return df
-boxType = 'DATA_LOADING'
+	return [1]
+boxType = 'COMPUTATION_ANALYSIS'
 def dumpsInput(input):
 	if input['dataType'] == 'outputs':
 		for key,elem in enumerate(input['data']):

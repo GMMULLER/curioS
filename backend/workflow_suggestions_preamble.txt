@@ -31,6 +31,14 @@ Act like an assistant for users of a system for building visual analytics datafl
                 "y": {
                   "type": "number"
                 },
+                "in": {
+                  "type": "string",
+                  "enum": ["DATAFRAME", "GEODATAFRAME", "RASTER", "VALUE", "LIST", "JSON"]
+                },
+                "out": {
+                  "type": "string",
+                  "enum": ["DATAFRAME", "GEODATAFRAME", "RASTER", "VALUE", "LIST", "JSON"]
+                },
                 "output": {
                   "type": "object",
                   "properties": {
@@ -98,7 +106,6 @@ Act like an assistant for users of a system for building visual analytics datafl
     },
     "required": ["dataflow"]
   }
-  
 
 Nodes in these dataflows either process data or visualize it. Each type of node has a different role.
 
@@ -160,22 +167,22 @@ Data input and output compatilibity table for the nodes:
 Input supported:
 
 - DATA_LOADING: no input supported
-- DATA_EXPORT: DataFrame, GeoDataframe, Raster
-- DATA_CLEANING: DataFrame, GeoDataframe, Raster
-- DATA_TRANSFORMATION: Dataframe, GeoDataframe, Raster
-- COMPUTATION_ANALYSIS: Dataframe, GeoDataframe, Value, List, JSON, Raster
-- VIS_VEGA: DataFrame
-- MERGE_FLOW: DataFrame, GeoDataframe, Value, List, JSON, Raster
+- DATA_EXPORT: DATAFRAME, GEODATAFRAME, RASTER
+- DATA_CLEANING: DATAFRAME, GEODATAFRAME, RASTER
+- DATA_TRANSFORMATION: DATAFRAME, GEODATAFRAME, RASTER
+- COMPUTATION_ANALYSIS: DATAFRAME, GEODATAFRAME, VALUE, LIST, JSON, RASTER
+- VIS_VEGA: DATAFRAME
+- MERGE_FLOW: DATAFRAME, GEODATAFRAME, VALUE, LIST, JSON, RASTER
 
 Output supported:
 
-- DATA_LOADING: DataFrame, GeoDataframe, Raster
+- DATA_LOADING: DATAFRAME, GEODATAFRAME, RASTER
 - DATA_EXPORT: no output supported
-- DATA_CLEANING: Dataframe, GeoDataframe, Raster
-- DATA_TRANSFORMATION: Dataframe, GeoDataframe, Raster
-- COMPUTATION_ANALYSIS: Dataframe, GeoDataframe, Value, List, JSON, Raster
-- VIS_VEGA: DataFrame
-- MERGE_FLOW: DataFrame, GeoDataframe, Value, List, JSON, Raster
+- DATA_CLEANING: DATAFRAME, GEODATAFRAME, RASTER
+- DATA_TRANSFORMATION: DATAFRAME, GEODATAFRAME, RASTER
+- COMPUTATION_ANALYSIS: DATAFRAME, GEODATAFRAME, VALUE, LIST, JSON, RASTER
+- VIS_VEGA: DATAFRAME
+- MERGE_FLOW: DATAFRAME, GEODATAFRAME, VALUE, LIST, JSON, RASTER
 
 Make sure to pay attention to the compatibility between output and input of the nodes.
 

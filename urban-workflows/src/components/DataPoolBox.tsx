@@ -665,8 +665,8 @@ function DataPoolBox({ data, isConnectable }) {
                 id="in/out"
                 isConnectable={isConnectable && !data.suggestion}
             />
-        
-        <BoxContainer nodeId={data.nodeId} data={data} templateData={templateData} setOutputCallback={setOutput} promptDescription={promptDescription} >
+    
+        <BoxContainer nodeId={data.nodeId} data={data} handleType={"in/out"} templateData={templateData} setOutputCallback={setOutput} promptDescription={promptDescription} >
                 <InputIcon type="1" />
 
                 <DescriptionModal
