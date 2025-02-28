@@ -87,7 +87,7 @@ export function useCode(): IUseCode {
                 nodeMeta.goal = node.goal;
 
             if(node.in != undefined)
-                nodeMeta.in = node.in;
+                nodeMeta.inType = node.in;
 
             if(node.out != undefined)
                 nodeMeta.out = node.out;

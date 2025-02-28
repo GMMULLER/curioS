@@ -28,6 +28,15 @@ export class TrillGenerator {
                 trill_node.output = {...node.data.output};
             } 
 
+            if(node.data.out != undefined)
+                trill_node.out = node.data.out;
+            
+            if(node.data.in != undefined)
+                trill_node.in = node.data.in;
+
+            if(node.data.goal != undefined)
+                trill_node.goal = node.data.goal;
+
             trill.dataflow.nodes.push(trill_node)
         }
 

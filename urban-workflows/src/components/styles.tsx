@@ -43,6 +43,7 @@ import { AccessLevelType, BoxType, SupportedType } from "../constants";
 import './styles.css';
 import { Template, useTemplateContext } from "../providers/TemplateProvider";
 import { useCode } from "../hook/useCode";
+import { ConnectionValidator } from "../ConnectionValidator";
 
 // Box Container
 export const BoxContainer = ({
@@ -309,6 +310,28 @@ export const BoxContainer = ({
         setExpectedOutputType(event.target.value as SupportedType);
     };
 
+    const generateConnectionSuggestions = () => {
+
+        let baseNode: any = {
+            id: nodeId,
+            type: boxNameTranslation(data.nodeType),
+            content: code
+            
+        };
+
+        if(data.goal != undefined)
+            baseNode.goal = data.goal;
+        
+        if(data.in != undefined)
+            baseNode.in = data.in;
+
+        if(data.out != undefined)
+            baseNode.out = data.out;
+
+
+        // Based on this node recommend...
+    }
+
     return (
         <>
             <div id={nodeId+"resizer"} className={"resizer nowheel nodrag"} style={{...(data.suggestion ? {pointerEvents: "none"} : {})}}></div>
@@ -324,14 +347,22 @@ export const BoxContainer = ({
                 </div> : null
             }
 
+            {!minimized && (handleType == "in/out" || handleType == "out") ?
+                <button style={buttonGetConnectionSuggestions} onClick={generateConnectionSuggestions}>+</button> : null
+            }
+
             {!minimized && (handleType == "in/out" || handleType == "in") ?
                 <div style={inputTypeSelect}>
                     <select id={nodeId+"_expected_box_input_type"} value={expectedInputType} onChange={handleChangeExpectedInputType}>
-                        {Object.values(SupportedType).map((type) => (
-                            <option key={type} value={type}>
-                                {type}
-                            </option>
-                        ))}
+                        {Object.values(SupportedType).map((type) => {
+
+                            if(ConnectionValidator._inputTypesSupported[data.nodeType].includes(type))
+                                return <option key={type} value={type}>
+                                    {type}
+                                </option>
+                            else
+                                return null
+                        })}
                         <option value="MUTLIPLE">MULTIPLE</option>
                         <option value="DEFAULT">EXPECTED INPUT</option>
                     </select>
@@ -342,11 +373,15 @@ export const BoxContainer = ({
                 !minimized && (handleType == "in/out" || handleType == "out") ?
                 <div style={outputTypeSelect}>
                     <select id={nodeId+"_expected_box_output_type"} value={expectedOutputType} onChange={handleChangeExpectedOutputType}>
-                        {Object.values(SupportedType).map((type) => (
-                            <option key={type} value={type}>
-                                {type}
-                            </option>
-                        ))}
+                        {Object.values(SupportedType).map((type) => {
+
+                            if(ConnectionValidator._outputTypesSupported[data.nodeType].includes(type))
+                                return <option key={type} value={type}>
+                                    {type}
+                                </option>
+                            else
+                                return null
+                        })}
                         <option value="MUTLIPLE">MULTIPLE</option>
                         <option value="DEFAULT">EXPECTED OUTPUT</option>
                     </select>
@@ -583,6 +618,17 @@ const buttonAcceptSuggestion: CSS.Properties = {
     top: "-50px",
     padding: "8px 12px",
     cursor: "pointer",
+    backgroundColor: "#007bff",
+    color: "#fff",
+    border: "none",
+    borderRadius: "4px",
+};
+
+const buttonGetConnectionSuggestions: CSS.Properties = {
+    position: "absolute",
+    top: "calc(50% - 14px)",
+    right: "-50px",
+    fontSize: "14px",
     backgroundColor: "#007bff",
     color: "#fff",
     border: "none",
