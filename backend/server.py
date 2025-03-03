@@ -15,6 +15,8 @@ port = 5002
 api_address = 'http://localhost'
 api_port = 2000
 
+conversation = []
+
 # initialize database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///urban_workflow.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -1078,14 +1080,22 @@ def evl_llm():
 
 @app.route('/openAI', methods=['POST'])
 def llm_openaAI():
+    global conversation
 
     data = request.get_json()
 
     preamble_file = data.get("preamble", None)
     text = data.get("text", None)
+    conversationMode = data.get("chatOn", None)
+
+    if conversationMode is None: # It is not conversation mode so reset it
+        conversation = []
 
     prompt_preamble_file = open(preamble_file+".txt")
     prompt_preamble = prompt_preamble_file.read()
+
+    if len(conversation) == 0: # Adding the prompt to the conversation
+        conversation.append({"role": "system", "content": prompt_preamble})
 
     api_file = open("api.env")
     api_key = api_file.read()
@@ -1094,15 +1104,17 @@ def llm_openaAI():
         api_key=api_key
     )
     
-    content = prompt_preamble+"\n\n"+text
+    conversation.append({"role": "user", "content": text})
 
     completion = client.chat.completions.create(
         model="gpt-4o-mini",
         store=True,
-        messages=[
-            {"role": "user", "content": content}
-        ]
+        messages=conversation
     )
+
+    assistant_reply = completion.choices[0].message.content
+
+    conversation.append({"role": "assistant", "content": assistant_reply})
 
     return jsonify({"result": completion.choices[0].message.content})
 

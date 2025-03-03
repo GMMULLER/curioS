@@ -12,7 +12,7 @@ import ReactFlow, {
 } from "reactflow";
 
 import { useFlowContext } from "../providers/FlowProvider";
-import { ToolsMenu, LLMCommunication, UpMenu } from "./tools-menu";
+import { ToolsMenu, UpMenu } from "./tools-menu";
 import ComputationAnalysisBox from "./ComputationAnalysisBox";
 import DataTransformationBox from "./DataTransformationBox";
 import { BoxType, EdgeType } from "../constants";
@@ -43,6 +43,7 @@ import html2canvas from "html2canvas";
 import './MainCanvas.css';
 import FloatingBox from "./FloatingBox";
 import { WorkflowGoal } from "./tools-menu/WorkflowGoal";
+import LLMChat from "./LLMChat";
 
 export function MainCanvas() {
     const {
@@ -334,8 +335,8 @@ export function MainCanvas() {
             >
                 <WorkflowGoal />
                 <UserMenu />
+                <LLMChat />
                 <ToolsMenu />
-                <LLMCommunication />
                 <UpMenu 
                     setDashBoardMode={setDashBoardMode}
                     setDashboardOn={setDashboardOn}

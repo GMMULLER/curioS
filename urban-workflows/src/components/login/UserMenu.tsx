@@ -32,7 +32,7 @@ export const UserMenu = () => {
           setDialog(<ProviderSignIn />);
         }}
       >
-        Logar
+        Login
       </button>
     );
 
@@ -105,7 +105,7 @@ export const UserMenu = () => {
 const buttonStyle: CSS.Properties = {
   position: "fixed",
   top: "40px",
-  right: "150px",
+  right: "20%",
   backgroundColor: "transparent",
   border: "1px solid black",
   padding: "10px",
@@ -116,7 +116,7 @@ const buttonStyle: CSS.Properties = {
 const containerStyle: CSS.Properties = {
   position: "fixed",
   top: "40px",
-  right: "150px",
+  right: "20%",
   display: "flex",
   cursor: "pointer",
   zIndex: 100,

@@ -1,0 +1,129 @@
+import React, { useState } from "react";
+import { useLLMContext } from "../providers/LLMProvider";
+import CSS from "csstype";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+    faAnglesUp
+} from "@fortawesome/free-solid-svg-icons";
+
+const ChatComponent = () => {
+    const { openAIRequest } = useLLMContext();
+    const [messages, setMessages] = useState<{ role: string; text: string }[]>([]);
+    const [input, setInput] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
+
+    const handleSendMessage = async () => {
+        if (!input.trim()) return;
+
+        const userMessage = { role: "user", text: input };
+        setMessages((prev) => [...prev, userMessage]);
+        setInput("");
+        setLoading(true);
+
+        try {
+            const response = await openAIRequest("chat_preamble", input, true);
+            const aiMessage = { role: "ai", text: response.result };
+            setMessages((prev) => [...prev, aiMessage]);
+        } catch (error) {
+            console.error("Error fetching response:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div>
+            {/* Toggle Button */}
+            <button style={{...toggleButton, ...(isOpen ? openButton : {})}} onClick={() => setIsOpen(!isOpen)}>
+                LLM <FontAwesomeIcon icon={faAnglesUp} style={{...(isOpen ? {transform: "rotate(90deg)"} : {transform: "rotate(270deg)"})}} />
+            </button>
+            {/* Sidebar */}
+            <div style={{...sidebar, ...(isOpen ? openSidebar : {})}}>
+                <div style={{overflowY: "auto"}}>
+                    {messages.map((msg, index) => (
+                        <div key={index} className={`mb-2 p-2 rounded ${msg.role === "user" ? "bg-blue-100 text-right" : "bg-gray-200"}`}>
+                            <span>{msg.text}</span>
+                        </div>
+                    ))}
+                </div>
+                <div style={inputDiv}>
+                    <input
+                        type="text"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        placeholder="Type your message..."
+                        disabled={loading}
+                        style={inputStyle}
+                    />
+                    <button
+                        onClick={handleSendMessage}
+                        disabled={loading}
+                        style={sendButtonStyle}
+                    >
+                        {loading ? "..." : "Send"}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const inputDiv: CSS.Properties =  {
+    display: "flex",
+    justifyContent: "center",
+    marginBottom: "10px"
+}
+
+const inputStyle: CSS.Properties =  {
+    padding: "5px"
+}
+
+const sendButtonStyle: CSS.Properties =  {
+    border: "none",
+    marginLeft: "5px",
+    backgroundColor: "rgb(0, 123, 255)",
+    color: "white",
+    fontWeight: "bold",
+    borderRadius: "4px"
+}
+
+const sidebar: CSS.Properties =  {
+    position: "fixed",
+    top: 0,
+    right: "-350px",
+    width: "350px",
+    height: "100vh",
+    zIndex: 200,
+    backgroundColor: "white",
+    border: "1px solid black",
+    transition: "right 0.3s ease-in-out",
+    paddingTop: "60px",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between"
+}
+  
+const openSidebar: CSS.Properties = {
+    right: 0
+}
+
+const openButton: CSS.Properties = {
+    right: "350px"
+}
+  
+const toggleButton: CSS.Properties = {
+    position: "fixed",
+    top: "0",
+    right: 0,
+    padding: "10px 20px",
+    zIndex: 200,
+    background: "rgb(0, 123, 255)",
+    color: "white",
+    fontWeight: "bold",
+    border: "none",
+    cursor: "pointer",
+    transition: "right 0.3s ease-in-out"
+}
+
+export default ChatComponent;
