@@ -68,6 +68,12 @@ Act like an assistant for users of a system for building visual analytics datafl
                         },
                         "required": ["note", "author"]
                       }
+                    },
+                    "keywords": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      }
                     }
                   }
                 }
@@ -92,6 +98,17 @@ Act like an assistant for users of a system for building visual analytics datafl
                 "type": {
                   "type": "string",
                   "enum": ["Interaction", "Data"]
+                },
+                "metadata": {
+                  "type": "object",
+                  "properties": {
+                    "keywords": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      }
+                    }
+                  }
                 }
               },
               "required": ["source", "target", "id"]
@@ -106,7 +123,6 @@ Act like an assistant for users of a system for building visual analytics datafl
     },
     "required": ["dataflow"]
   }
-  
   
   
 

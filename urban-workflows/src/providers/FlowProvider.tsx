@@ -109,7 +109,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
     const [interactions, setInteractions] = useState<IInteraction[]>([]);
     const [dashboardPins, setDashboardPins] = useState<any>({}); // {[nodeId] -> boolean}
     const [suggestionsLeft, setSuggestionsLeft] = useState<number>(0); // Number of suggestions left
-    const [workflowGoal, setWorkflowGoal] = useState("");
+    const [workflowGoal, setWorkflowGoal] = useState("Load 311 request data from a CSV file, analyze trends in the number of requests over time, categorize requests by type to identify common issues, and visualize the findings using a line chart for trends, a bar chart for request types, and a geographic map for request locations.");
 
     const [positionsInDashboard, _setPositionsInDashboard] = useState<any>({}); // [nodeId] -> change
     const positionsInDashboardRef = useRef(positionsInDashboard);

@@ -23,6 +23,7 @@ type CreateCodeNodeOptions = {
     goal?: string;
     inType?: string;
     out?: string;
+    keywords?: number[];
 };
 
 interface IUseCode {
@@ -31,7 +32,7 @@ interface IUseCode {
 }
 
 export function useCode(): IUseCode {
-    const { addNode, setOutputs, setInteractions, applyNewPropagation, applyNewOutput, loadParsedTrill, workflowNameRef } = useFlowContext();
+    const { addNode, setOutputs, setInteractions, applyNewPropagation, applyNewOutput, loadParsedTrill } = useFlowContext();
     const { getPosition } = usePosition();
 
     const outputCallback = useCallback(
@@ -92,6 +93,9 @@ export function useCode(): IUseCode {
             if(node.out != undefined)
                 nodeMeta.out = node.out;
 
+            if(node.metadata != undefined && node.metadata.keywords != undefined)
+                nodeMeta.keywords = node.metadata.keywords;
+
             if(loadAsSuggestions)
                 nodeMeta.suggestion = true;
 
@@ -141,7 +145,8 @@ export function useCode(): IUseCode {
             suggestion = false,
             goal = "",
             inType = "DEFAULT",
-            out = "DEFAULT"
+            out = "DEFAULT",
+            keywords = []
         } = options;
 
         const node: Node = {
@@ -164,6 +169,7 @@ export function useCode(): IUseCode {
                 in: inType,
                 out,
                 input: "",
+                keywords,
                 outputCallback,
                 interactionsCallback,
                 propagationCallback: applyNewPropagation,

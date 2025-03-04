@@ -7,14 +7,24 @@ import { useCode } from "../../hook/useCode";
 
 export function WorkflowGoal({ }: { }) {
     const { openAIRequest } = useLLMContext();
-    const { nodes, edges, workflowNameRef, suggestionsLeft, workflowGoal, eraseSuggestions, setWorkflowGoal } = useFlowContext();
+    const { nodes, edges, workflowNameRef, suggestionsLeft, workflowGoal, eraseSuggestions } = useFlowContext();
     const { loadTrill } = useCode();
+    const [segments, setSegments] = useState<any>([]);
+    const [highlights, setHighlights] = useState<any>({});
+    const [tooltip, setTooltip] = useState({ visible: false, text: "", x: 0, y: 0, color: "" });
 
-    // const handleNameChange = (e: any) => {
-    //     setWorkflowGoal(e.target.value);
-    // };
+    const typeColors: any = {
+        Action: "#e6b1b1",
+        Dataset: "#b1b5e6",
+        Where: "#b1e6c0",
+        About: "#e6e6b1",
+        Interaction: "#d7b1e6",
+        Source: "#e6cdb1",
+        Connection: "#e6b1d3",
+        Content: "#dedede"
+    };
 
-    const generateSuggestion = async () => {
+    const generateSuggestion = async (highlights: any) => {
 
         eraseSuggestions();
 
@@ -22,7 +32,9 @@ export function WorkflowGoal({ }: { }) {
 
         try {
 
-            let result = await openAIRequest("workflow_suggestions_preamble", JSON.stringify(trill_spec) + "\n" + "Your task is, based on the dataflow the user built, suggest a set of nodes and connections to accomplish his goal. The user goal is: "+workflowGoal+" **OUPUT A TRILL JSON SPECIFICATION AND NOTHING ELSE. ADD NODES AND EDGES TO THE DATAFLOW OF THE USER. DO NOT CHANGE IDs. CONSIDER EXPECTED 'in' AND 'out' INFORMATION IN EACH NODE. MAKE SURE YOU ADD THE 'dataflow' ATTRIBUTE. DO NOT INCLUDE CONTENT FOR THE NODES. FOR EACH NODE OUTPUT A 'goal' FIELD TO SPECIFY WHAT THE NODE SHOULD DO. ALSO INCLUDE 'out' and 'in' TO INDICATE THE TYPE OF DATA THE NODE SHOULD RECEIVE AND OUTPUT. DO NOT USE THE EXAMPLE WORKFLOW**");
+            let highlights_copy = {...highlights};
+
+            let result = await openAIRequest("workflow_suggestions_preamble", "Target dataflow: " + JSON.stringify(trill_spec) + "\n" + " Highlighted keywords: " + JSON.stringify(highlights_copy) + "\n" + "The user goal is: "+workflowGoal+" ");
 
             console.log("result", result);
 
@@ -43,6 +55,35 @@ export function WorkflowGoal({ }: { }) {
         eraseSuggestions();
     }
 
+    const parseKeywords = async (goal: string) => {
+        try {
+
+            if(goal == "")
+                return
+
+            let result = await openAIRequest("syntax_analysis_preamble", goal);
+
+            console.log("result", result);
+
+            let highlights = JSON.parse(result.result);
+
+            const regex = new RegExp(`(${Object.keys(highlights).join("|")})`, "gi");
+            const parts = goal.split(regex);
+
+            setHighlights(highlights);
+            setSegments(parts);
+
+        } catch (error) {
+            console.error("Error communicating with LLM", error);
+            alert("Error communicating with LLM");
+        }
+    }
+
+    // Every time the goal changes Keywords need to be parsed again
+    useEffect(() => {
+        parseKeywords(workflowGoal);
+    }, [workflowGoal])
+
     return (
         <>
             {/* Editable Workflow Goal */}
@@ -50,15 +91,59 @@ export function WorkflowGoal({ }: { }) {
                 
                 <div style={{border: "1px solid #ccc", borderRadius: "4px", width: "600px", overflowY: "auto", height: "150px", padding: "5px", display: "flex", justifyContent: "center", alignItems: "center"}}>
                     {workflowGoal == "" ?
-                        <p style={{marginBottom: "0px", opacity: 0.7, fontSize: "20px"}}>Interact with the LLM to define your goal</p> : <p style={goalStyle}>{workflowGoal}</p>
+                        <p style={{marginBottom: "0px", opacity: 0.7, fontSize: "20px"}}>Interact with the LLM to define your goal</p> : 
+                        <p style={goalStyle}>
+                            {/* {segments.map((item: any, index: any) => (
+                                item
+                            ))} */}
+                            {segments.map((part: any, index: any) =>
+                                highlights[part] ? (
+                                    <span key={index+"_span_text_goal"} style={{ backgroundColor: typeColors[highlights[part]], fontWeight: "bold", padding: "2px", marginRight: "4px", borderRadius: "5px", cursor: "default"}}
+                                        onMouseEnter={(e) => {
+                                            setTooltip({
+                                                visible: true,
+                                                text: highlights[part],
+                                                x: e.clientX + 10,
+                                                y: e.clientY + 10,
+                                                color: typeColors[highlights[part]]
+                                            });
+                                        }}
+                                        onMouseMove={(e) => {
+                                            setTooltip(prev => ({ ...prev, x: e.clientX + 10, y: e.clientY + 10, color: typeColors[highlights[part]]}));
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            setTooltip({ visible: false, text: "", x: 0, y: 0, color: "" });
+                                        }}
+                                    >
+                                        {part}
+                                        
+                                    </span>
+                                ) : (
+                                part
+                                )
+                            )}
+                        </p>
                     }   
                 </div>
                 {workflowGoal != "" ?
                     suggestionsLeft > 0 ? 
                         <button style={button} onClick={cancelSuggestions}>Cancel suggestions</button> :
-                        <button style={button} onClick={generateSuggestion}>Generate suggestions</button>
+                        <button style={button} onClick={() => {generateSuggestion(highlights)}}>Generate suggestions</button>
                     : null
                 }
+
+                {tooltip.visible && (
+                    <div style={{...{
+                        position: "relative",
+                        padding: "5px",
+                        border: "1px solid #ccc",
+                        borderRadius: "4px",
+                        boxShadow: "0px 0px 5px rgba(0,0,0,0.2)",
+                        zIndex: 1000
+                    }, ...(tooltip.color != "" ? {backgroundColor: tooltip.color} : {})}}>
+                        {tooltip.text}
+                    </div>
+                )}
 
                 
             </div>
@@ -85,6 +170,7 @@ const goalStyle: CSS.Properties = {
     textAlign: "center",
     borderRadius: "4px",
     padding: "5px",
+    lineHeight: "1.9"
 };
 
 const button: CSS.Properties = {

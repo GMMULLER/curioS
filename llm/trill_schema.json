@@ -66,6 +66,12 @@
                         },
                         "required": ["note", "author"]
                       }
+                    },
+                    "keywords": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      }
                     }
                   }
                 }
@@ -90,6 +96,17 @@
                 "type": {
                   "type": "string",
                   "enum": ["Interaction", "Data"]
+                },
+                "metadata": {
+                  "type": "object",
+                  "properties": {
+                    "keywords": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      }
+                    }
+                  }
                 }
               },
               "required": ["source", "target", "id"]
