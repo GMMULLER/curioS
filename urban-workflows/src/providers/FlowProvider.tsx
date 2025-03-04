@@ -51,6 +51,8 @@ interface FlowContextProps {
     edges: Edge[];
     workflowNameRef: React.MutableRefObject<string>;
     suggestionsLeft: number;
+    workflowGoal: string;
+    setWorkflowGoal: (goal: string) => void;
     setOutputs: (updateFn: (outputs: IOutput[]) => IOutput[]) => void;
     setInteractions: (updateFn: (interactions: IInteraction[]) => IInteraction[]) => void;
     applyNewPropagation: (propagation: IPropagation) => void;
@@ -77,6 +79,8 @@ export const FlowContext = createContext<FlowContextProps>({
     edges: [],
     workflowNameRef: { current: "" },
     suggestionsLeft: 0,
+    workflowGoal: "",
+    setWorkflowGoal: () => {},
     setOutputs: () => { },
     setInteractions: () => {},
     applyNewPropagation: () => {},
@@ -100,16 +104,12 @@ export const FlowContext = createContext<FlowContextProps>({
 
 const FlowProvider = ({ children }: { children: ReactNode }) => {
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
-
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-    
     const [outputs, setOutputs] = useState<IOutput[]>([]);
-
     const [interactions, setInteractions] = useState<IInteraction[]>([]);
-
     const [dashboardPins, setDashboardPins] = useState<any>({}); // {[nodeId] -> boolean}
-
     const [suggestionsLeft, setSuggestionsLeft] = useState<number>(0); // Number of suggestions left
+    const [workflowGoal, setWorkflowGoal] = useState("");
 
     const [positionsInDashboard, _setPositionsInDashboard] = useState<any>({}); // [nodeId] -> change
     const positionsInDashboardRef = useRef(positionsInDashboard);
@@ -967,6 +967,8 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
                 edges,
                 workflowNameRef,
                 suggestionsLeft,
+                workflowGoal,
+                setWorkflowGoal,
                 setOutputs,
                 setInteractions,
                 applyNewPropagation,

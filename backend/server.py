@@ -1118,6 +1118,14 @@ def llm_openaAI():
 
     return jsonify({"result": completion.choices[0].message.content})
 
+@app.route('/cleanOpenAIChat', methods=['GET'])
+def clean_openai_chat():
+    global conversation
+
+    conversation = []
+
+    return jsonify({"message": "Success"}), 200
+
 if __name__ == '__main__':
     app.run(host=address, port=port, threaded=False)
 

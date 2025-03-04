@@ -1,17 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLLMContext } from "../providers/LLMProvider";
+import { useFlowContext } from "../providers/FlowProvider";
 import CSS from "csstype";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-    faAnglesUp
+    faAnglesUp,
+    faBroom
 } from "@fortawesome/free-solid-svg-icons";
+import ReactMarkdown from "react-markdown";
 
 const ChatComponent = () => {
     const { openAIRequest } = useLLMContext();
+    const { setWorkflowGoal } = useFlowContext();
     const [messages, setMessages] = useState<{ role: string; text: string }[]>([]);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(true);
 
     const handleSendMessage = async () => {
         if (!input.trim()) return;
@@ -32,6 +36,35 @@ const ChatComponent = () => {
         }
     };
 
+    // Check if the goal was already output by the LLM. Return undefined if goal is not there or the goal itself.
+    const checkForGoal = (message: string) => {
+        const regex = /\*\*(.*?)\*\*/g;
+
+        if(message.toLowerCase().includes("goal")){
+            const matches = [...message.matchAll(regex)].map(match => match[1]);
+
+            if(matches.length > 0)
+                return matches [0]
+
+            return null;
+        }
+
+        return null;
+    }
+
+    const cleanOpenAIChat = () => {
+        setLoading(false);
+        setMessages([]);
+            
+        fetch(process.env.BACKEND_URL+"/cleanOpenAIChat", {
+            method: "GET"
+        });
+    }
+
+    useEffect(() => {
+        cleanOpenAIChat();
+    }, []);
+
     return (
         <div>
             {/* Toggle Button */}
@@ -40,10 +73,17 @@ const ChatComponent = () => {
             </button>
             {/* Sidebar */}
             <div style={{...sidebar, ...(isOpen ? openSidebar : {})}}>
-                <div style={{overflowY: "auto"}}>
+                <div style={{display: "flex", width: "100%", height: "50px", justifyContent: "center", alignItems: "center", borderBottom: "1px solid black", flexDirection: "row"}}>
+                    <p style={{margin: 0, fontWeight: "bold", marginRight: "15px"}}>LLM Assistant</p>
+                    <FontAwesomeIcon icon={faBroom} style={{cursor: "pointer"}} title={"Clean chat"} onClick={cleanOpenAIChat} />
+                </div>
+                <div style={{overflowY: "auto", height: "100%", paddingTop: "10px", paddingBottom: "10px"}}>
                     {messages.map((msg, index) => (
-                        <div key={index} className={`mb-2 p-2 rounded ${msg.role === "user" ? "bg-blue-100 text-right" : "bg-gray-200"}`}>
-                            <span>{msg.text}</span>
+                        <div key={index} style={{...messagesBackground, ...(msg.role === "user" ? {backgroundColor: "rgb(0, 123, 255)"} : {backgroundColor: "#424242"})}} className={`mb-2 p-2 rounded ${msg.role === "user" ? "bg-blue-100 text-right" : "bg-gray-200"}`}>
+                            <ReactMarkdown>{msg.text}</ReactMarkdown>
+                            {msg.role != "user" && checkForGoal(msg.text)?
+                                <button style={applyGoalStyle} onClick={() => {setWorkflowGoal(checkForGoal(msg.text) as string)}}>Apply goal</button> : null
+                            }
                         </div>
                     ))}
                 </div>
@@ -52,6 +92,10 @@ const ChatComponent = () => {
                         type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={(e) => {
+                            if(e.key === "Enter"){
+                                handleSendMessage()
+                            }}}
                         placeholder="Type your message..."
                         disabled={loading}
                         style={inputStyle}
@@ -88,6 +132,17 @@ const sendButtonStyle: CSS.Properties =  {
     borderRadius: "4px"
 }
 
+const applyGoalStyle: CSS.Properties =  {
+    border: "none",
+    marginLeft: "5px",
+    marginTop: "3px",
+    marginBottom: "5px",
+    backgroundColor: "rgb(0, 123, 255)",
+    color: "white",
+    fontWeight: "bold",
+    borderRadius: "4px"
+}
+
 const sidebar: CSS.Properties =  {
     position: "fixed",
     top: 0,
@@ -95,10 +150,10 @@ const sidebar: CSS.Properties =  {
     width: "350px",
     height: "100vh",
     zIndex: 200,
+    padding: "5px",
     backgroundColor: "white",
     border: "1px solid black",
     transition: "right 0.3s ease-in-out",
-    paddingTop: "60px",
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between"
@@ -124,6 +179,12 @@ const toggleButton: CSS.Properties = {
     border: "none",
     cursor: "pointer",
     transition: "right 0.3s ease-in-out"
+}
+
+const messagesBackground: CSS.Properties = {
+    borderRadius: "4px",
+    padding: "5px",
+    color: "white"
 }
 
 export default ChatComponent;

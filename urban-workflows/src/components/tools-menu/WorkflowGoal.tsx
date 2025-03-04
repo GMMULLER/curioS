@@ -6,14 +6,13 @@ import { TrillGenerator } from "../../TrillGenerator";
 import { useCode } from "../../hook/useCode";
 
 export function WorkflowGoal({ }: { }) {
-    const [workflowGoal, setWorkflowGoal] = useState("");
     const { openAIRequest } = useLLMContext();
-    const { nodes, edges, workflowNameRef, suggestionsLeft, eraseSuggestions } = useFlowContext();
+    const { nodes, edges, workflowNameRef, suggestionsLeft, workflowGoal, eraseSuggestions, setWorkflowGoal } = useFlowContext();
     const { loadTrill } = useCode();
 
-    const handleNameChange = (e: any) => {
-        setWorkflowGoal(e.target.value);
-    };
+    // const handleNameChange = (e: any) => {
+    //     setWorkflowGoal(e.target.value);
+    // };
 
     const generateSuggestion = async () => {
 
@@ -48,18 +47,17 @@ export function WorkflowGoal({ }: { }) {
         <>
             {/* Editable Workflow Goal */}
             <div style={workflowGoalContainer}>
-                <input
-                    type="text"
-                    value={workflowGoal}
-                    onChange={handleNameChange}
-                    autoFocus
-                    style={input}
-                    placeholder="What is your goal?"
-                />
-
-                {suggestionsLeft > 0? 
-                    <button style={button} onClick={cancelSuggestions}>Cancel suggestions</button> :
-                    <button style={button} onClick={generateSuggestion}>Generate suggestions</button>
+                
+                <div style={{border: "1px solid #ccc", borderRadius: "4px", width: "600px", overflowY: "auto", height: "150px", padding: "5px", display: "flex", justifyContent: "center", alignItems: "center"}}>
+                    {workflowGoal == "" ?
+                        <p style={{marginBottom: "0px", opacity: 0.7, fontSize: "20px"}}>Interact with the LLM to define your goal</p> : <p style={goalStyle}>{workflowGoal}</p>
+                    }   
+                </div>
+                {workflowGoal != "" ?
+                    suggestionsLeft > 0 ? 
+                        <button style={button} onClick={cancelSuggestions}>Cancel suggestions</button> :
+                        <button style={button} onClick={generateSuggestion}>Generate suggestions</button>
+                    : null
                 }
 
                 
@@ -73,19 +71,18 @@ const workflowGoalContainer: CSS.Properties = {
     marginTop: "20px",
     textAlign: "center",
     zIndex: 100,
-    left: "calc(50% - 175px)",  
-    textAnchor: "middle",
+    left: "50%",
+    transform: "translateX(-50%)",
     position: "fixed",
     display: "flex",
     flexDirection: "column"
 };
 
-const input: CSS.Properties = {
-    fontSize: "20px",
-    marginBottom: "10px",
-    width: "350px",
+const goalStyle: CSS.Properties = {
+    fontSize: "16px",
+    marginBottom: "0",
+    fontWeight: "bold",
     textAlign: "center",
-    border: "1px solid #ccc",
     borderRadius: "4px",
     padding: "5px",
 };
