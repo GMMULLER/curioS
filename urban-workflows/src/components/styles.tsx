@@ -350,8 +350,8 @@ export const BoxContainer = ({
 
             {!minimized ?
                 <div style={{...goalInput, ...(data.suggestion ? {opacity: "50%", pointerEvents: "none"} : {})}} className={"nodrag"}>
-                    <label htmlFor={nodeId+"_goal_box_input"}>Goal: </label>
-                    <input id={nodeId+"_goal_box_input"} type={"text"} placeholder={"What is your goal for this box?"} style={{width: "240px"}} value={goal} onBlur={() => {updateDataGoal(goal)}} onChange={(value: any) => {setGoal(value.target.value)}}/>
+                    <label htmlFor={nodeId+"_goal_box_input"}>Subtask: </label>
+                    <input id={nodeId+"_goal_box_input"} type={"text"} placeholder={"Describe the subtask"} style={{width: "240px"}} value={goal} onBlur={() => {updateDataGoal(goal)}} onChange={(value: any) => {setGoal(value.target.value)}}/>
                 </div> : null
             }
 

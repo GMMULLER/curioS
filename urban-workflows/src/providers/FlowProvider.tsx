@@ -74,6 +74,7 @@ interface FlowContextProps {
     acceptSuggestion: (nodeId: string) => void;
     flagBasedOnKeyword: (keywordIndex?: number) => void;
     updateDataNode: (nodeId: string, newData: any) => void;
+    cleanCanvas: () => void;
 }
 
 export const FlowContext = createContext<FlowContextProps>({
@@ -103,7 +104,8 @@ export const FlowContext = createContext<FlowContextProps>({
     eraseSuggestions: () => {},
     acceptSuggestion: () => {},
     flagBasedOnKeyword: () => {},
-    updateDataNode: () => {}
+    updateDataNode: () => {},
+    cleanCanvas: () => {}
 });
 
 const FlowProvider = ({ children }: { children: ReactNode }) => {
@@ -218,6 +220,37 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
         })
 
         // TODO: Unset dashboardMode (setDashBoardMode)
+    }
+
+    const cleanCanvas = () => {
+
+        let edgesWithProvenance = [];
+
+        for(const edge of edges){
+            if((edge.data && !edge.data.suggestion) || !edge.data)
+                edgesWithProvenance.push(edge);
+        }
+
+        onEdgesDelete(edgesWithProvenance); // deleting provenance of non-suggestions
+
+        setEdges(prevNodes => []);
+
+        for(const node of nodes){
+            if((node.data && !node.data.suggestion) || !node.data) // not a suggestion have to erase provenance
+                deleteNode(node.id);
+
+        }
+
+        setNodes(prevNodes => []);
+
+        setOutputs([]);
+        setInteractions([]);
+        setDashboardPins({});
+        setPositionsInDashboard({});
+        setPositionsInWorkflow({});
+ 
+        setSuggestionsLeft(0);
+
     }
 
     // Go through all suggestions and flag the nodes that do not dependent on any other node
@@ -658,6 +691,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
 
     }, [setNodes]);
 
+    // Considering provenance
     const deleteNode = (nodeId: string) => {
         const change: NodeRemoveChange = {
             id: nodeId,
@@ -1053,7 +1087,8 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
                 eraseSuggestions,
                 acceptSuggestion,
                 flagBasedOnKeyword,
-                updateDataNode
+                updateDataNode,
+                cleanCanvas
             }}
         >
             {children}

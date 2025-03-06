@@ -23,6 +23,12 @@
                 "goal": {
                   "type": "string"
                 },
+                "warnings": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
                 "x": {
                   "type": "number"
                 },

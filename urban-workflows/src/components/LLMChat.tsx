@@ -26,7 +26,8 @@ const ChatComponent = () => {
         setLoading(true);
 
         try {
-            const response = await openAIRequest("chat_preamble", input, true);
+
+            const response = await openAIRequest("chat_preamble", input, "ChatComponent");
             const aiMessage = { role: "ai", text: response.result };
             setMessages((prev) => [...prev, aiMessage]);
         } catch (error) {
@@ -40,7 +41,7 @@ const ChatComponent = () => {
     const checkForGoal = (message: string) => {
         const regex = /\*\*(.*?)\*\*/g;
 
-        if(message.toLowerCase().includes("goal")){
+        if(message.toLowerCase().includes("task")){
             const matches = [...message.matchAll(regex)].map(match => match[1]);
 
             if(matches.length > 0)
@@ -56,9 +57,13 @@ const ChatComponent = () => {
         setLoading(false);
         setMessages([]);
             
-        fetch(process.env.BACKEND_URL+"/cleanOpenAIChat", {
+        fetch(process.env.BACKEND_URL+"/cleanOpenAIChat?chatId=ChatComponent", {
             method: "GET"
         });
+    }
+
+    const applyGoal = (task: string) => {
+        setWorkflowGoal(checkForGoal(task) as string);
     }
 
     useEffect(() => {
@@ -82,7 +87,7 @@ const ChatComponent = () => {
                         <div key={index} style={{...messagesBackground, ...(msg.role === "user" ? {backgroundColor: "rgb(0, 123, 255)"} : {backgroundColor: "#424242"})}} className={`mb-2 p-2 rounded ${msg.role === "user" ? "bg-blue-100 text-right" : "bg-gray-200"}`}>
                             <ReactMarkdown>{msg.text}</ReactMarkdown>
                             {msg.role != "user" && checkForGoal(msg.text)?
-                                <button style={applyGoalStyle} onClick={() => {setWorkflowGoal(checkForGoal(msg.text) as string)}}>Apply goal</button> : null
+                                <button style={applyGoalStyle} onClick={() => {applyGoal(msg.text)}}>Apply goal</button> : null
                             }
                         </div>
                     ))}

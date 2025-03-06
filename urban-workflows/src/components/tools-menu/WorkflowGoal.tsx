@@ -7,7 +7,7 @@ import { useCode } from "../../hook/useCode";
 
 export function WorkflowGoal({ }: { }) {
     const { openAIRequest } = useLLMContext();
-    const { nodes, edges, workflowNameRef, suggestionsLeft, workflowGoal, setWorkflowGoal, eraseSuggestions, flagBasedOnKeyword } = useFlowContext();
+    const { nodes, edges, workflowNameRef, suggestionsLeft, workflowGoal, setWorkflowGoal, eraseSuggestions, flagBasedOnKeyword, cleanCanvas } = useFlowContext();
     const { loadTrill } = useCode();
     const [segments, setSegments] = useState<any>([]);
     const [highlights, setHighlights] = useState<any>({});
@@ -26,26 +26,30 @@ export function WorkflowGoal({ }: { }) {
 
     const generateSuggestion = async (highlights: any) => {
 
-        eraseSuggestions();
+        const isConfirmed = window.confirm("Are you sure you want to proceed? This will clear you entire board.");
+        
+        if (isConfirmed) {
+            cleanCanvas();
 
-        let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowNameRef.current);
-
-        try {
-
-            let result = await openAIRequest("workflow_suggestions_preamble", "Target dataflow: " + JSON.stringify(trill_spec) + "\n" + " Highlighted keywords: " + JSON.stringify(highlights) + "\n" + "The user goal is: "+workflowGoal+" ");
-
-            console.log("result", result);
-
-            let clean_result = result.result.replaceAll("```json", "");
-            clean_result = clean_result.replaceAll("```", "");
-
-            let parsed_result = JSON.parse(clean_result);
-            parsed_result.dataflow.name = workflowNameRef.current;
-
-            loadTrill(parsed_result, true);
-        } catch (error) {
-            console.error("Error communicating with LLM", error);
-            alert("Error communicating with LLM");
+            let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowNameRef.current);
+    
+            try {
+    
+                let result = await openAIRequest("workflow_suggestions_preamble", "Target dataflow: " + JSON.stringify(trill_spec) + "\n" + " Highlighted keywords: " + JSON.stringify(highlights) + "\n" + "The user goal is: "+workflowGoal+" ");
+    
+                console.log("result", result);
+    
+                let clean_result = result.result.replaceAll("```json", "");
+                clean_result = clean_result.replaceAll("```", "");
+    
+                let parsed_result = JSON.parse(clean_result);
+                parsed_result.dataflow.name = workflowNameRef.current;
+    
+                loadTrill(parsed_result, true);
+            } catch (error) {
+                console.error("Error communicating with LLM", error);
+                alert("Error communicating with LLM");
+            }
         }
     }
 

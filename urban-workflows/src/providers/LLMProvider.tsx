@@ -5,7 +5,7 @@ import React, {
 } from "react";
 
 interface LLMContextProps {
-    openAIRequest: (preamble_file: string, text: string, chatOn?: boolean) => any;
+    openAIRequest: (preamble_file: string, text: string, chatOn?: string) => any;
 }
 
 export const LLMContext = createContext<LLMContextProps>({
@@ -14,13 +14,12 @@ export const LLMContext = createContext<LLMContextProps>({
 
 const LLMProvider = ({ children }: { children: ReactNode }) => {
 
-    const openAIRequest = async (preamble_file: string, text: string, chatOn?: boolean) => {
+    const openAIRequest = async (preamble_file: string, text: string, chatId?: string) => {
 
         let message: any = {preamble: preamble_file, text: text};
 
-        if(chatOn){
-            message.chatOn = true;
-        }
+        if(chatId)
+            message.chatId = chatId;
 
         const response = await fetch(`${process.env.BACKEND_URL}/openAI`, {
             method: "POST",

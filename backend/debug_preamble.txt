@@ -25,6 +25,12 @@ Act like an assistant for users of a system for building visual analytics datafl
                 "goal": {
                   "type": "string"
                 },
+                "warnings": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
                 "x": {
                   "type": "number"
                 },

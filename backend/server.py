@@ -15,7 +15,7 @@ port = 5002
 api_address = 'http://localhost'
 api_port = 2000
 
-conversation = []
+conversation = {}
 
 # initialize database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///urban_workflow.db'
@@ -1086,16 +1086,18 @@ def llm_openaAI():
 
     preamble_file = data.get("preamble", None)
     text = data.get("text", None)
-    conversationMode = data.get("chatOn", None)
+    chatId = data.get("chatId", None)
 
-    if conversationMode is None: # It is not conversation mode so reset it
-        conversation = []
+    past_conversation = []
+
+    if chatId != None and chatId in conversation:
+        past_conversation = conversation[chatId]
 
     prompt_preamble_file = open(preamble_file+".txt")
     prompt_preamble = prompt_preamble_file.read()
 
-    if len(conversation) == 0: # Adding the prompt to the conversation
-        conversation.append({"role": "system", "content": prompt_preamble})
+    if len(past_conversation) == 0: # Adding the prompt to the conversation
+        past_conversation.append({"role": "system", "content": prompt_preamble})
 
     api_file = open("api.env")
     api_key = api_file.read()
@@ -1104,17 +1106,20 @@ def llm_openaAI():
         api_key=api_key
     )
     
-    conversation.append({"role": "user", "content": text})
+    past_conversation.append({"role": "user", "content": text})
 
     completion = client.chat.completions.create(
         model="gpt-4o-mini",
         store=True,
-        messages=conversation
+        messages=past_conversation
     )
 
     assistant_reply = completion.choices[0].message.content
 
-    conversation.append({"role": "assistant", "content": assistant_reply})
+    past_conversation.append({"role": "assistant", "content": assistant_reply})
+
+    if chatId != None: # User want to save chat
+        conversation[chatId] = past_conversation
 
     return jsonify({"result": completion.choices[0].message.content})
 
@@ -1122,7 +1127,12 @@ def llm_openaAI():
 def clean_openai_chat():
     global conversation
 
-    conversation = []
+    chatId = request.args.get('chatId', None)
+
+    if chatId == None:
+        return jsonify({"message": "You need to specify which chatId is being cleaned"}), 400
+
+    conversation[chatId] = []
 
     return jsonify({"message": "Success"}), 200
 
