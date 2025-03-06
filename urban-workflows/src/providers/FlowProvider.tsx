@@ -72,6 +72,8 @@ interface FlowContextProps {
     loadParsedTrill: (workflowName: string, node: any, edges: any, provenance?: boolean, merge?: boolean) => void;
     eraseSuggestions: () => void;
     acceptSuggestion: (nodeId: string) => void;
+    flagBasedOnKeyword: (keywordIndex?: number) => void;
+    updateDataNode: (nodeId: string, newData: any) => void;
 }
 
 export const FlowContext = createContext<FlowContextProps>({
@@ -99,7 +101,9 @@ export const FlowContext = createContext<FlowContextProps>({
     setWorkflowName: () => {},
     loadParsedTrill: async () => {},
     eraseSuggestions: () => {},
-    acceptSuggestion: () => {}
+    acceptSuggestion: () => {},
+    flagBasedOnKeyword: () => {},
+    updateDataNode: () => {}
 });
 
 const FlowProvider = ({ children }: { children: ReactNode }) => {
@@ -142,6 +146,26 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         addWorkflow(workflowNameRef.current);
     }, [])
+
+    const updateDataNode = (nodeId: string, newData: any) => {
+        let copy_newData = {...newData};
+
+        setNodes(prevNodes => {
+
+            let newNodes = [];
+
+            for(const node of prevNodes){
+                let newNode = {...node};
+
+                if(newNode.id == nodeId)
+                    newNode.data = copy_newData;
+            
+                newNodes.push(newNode);
+            }
+
+            return newNodes;
+        });
+    }
 
     const loadParsedTrill = async (workflowName: string, loaded_nodes: any, loaded_edges: any, provenance?: boolean, merge?: boolean) => {
 
@@ -193,7 +217,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
             return prevNodes;
         })
 
-        // Unset dashboardMode (setDashBoardMode)
+        // TODO: Unset dashboardMode (setDashBoardMode)
     }
 
     // Go through all suggestions and flag the nodes that do not dependent on any other node
@@ -285,6 +309,40 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
 
             return newNodes;
         });
+
+    }
+
+    // If keywordIndex is undefied all components are unflagged
+    const flagBasedOnKeyword = (keywordIndex?: number) => {
+        setNodes(prevNodes => {
+            let newNodes = [];
+
+            for(const node of prevNodes){
+                let newNode = {...node};
+
+                if(newNode.data.keywords != undefined && keywordIndex != undefined && newNode.data.keywords.includes(keywordIndex))
+                    newNode.data.keywordHighlighted = true;
+                else
+                    newNode.data.keywordHighlighted = false;
+
+                newNodes.push(newNode);
+            }
+
+            return newNodes;
+        });
+    
+        setEdges(prevEdges =>
+            prevEdges.map(edge => ({
+              ...edge,
+              data: {
+                ...edge.data,
+                keywordHighlighted:
+                  edge.data.keywords !== undefined &&
+                  keywordIndex !== undefined &&
+                  edge.data.keywords.includes(keywordIndex),
+              },
+            }))
+          );
 
     }
 
@@ -708,10 +766,16 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
                             markerEnd: {type: MarkerType.Arrow}
                         };
 
+                        if(customConnection.data == undefined)
+                            customConnection.data = {};
+
                         if(connection.sourceHandle == "in/out" && connection.targetHandle == "in/out"){
                             customConnection.markerStart = {type: MarkerType.Arrow};
                             customConnection.type = EdgeType.BIDIRECTIONAL_EDGE;
                         }else{ // only do provenance for in and out connections
+
+                            customConnection.type = EdgeType.UNIDIRECTIONAL_EDGE;
+
                             if(provenance)  
                                 newConnection((custom_workflow ? custom_workflow : workflowNameRef.current), customConnection.source, outBox as BoxType, customConnection.target, inBox as BoxType);
                         }
@@ -987,7 +1051,9 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
                 setWorkflowName,
                 loadParsedTrill,
                 eraseSuggestions,
-                acceptSuggestion
+                acceptSuggestion,
+                flagBasedOnKeyword,
+                updateDataNode
             }}
         >
             {children}

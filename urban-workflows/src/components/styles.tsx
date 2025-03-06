@@ -87,7 +87,7 @@ export const BoxContainer = ({
     styles?: CSS.Properties;
     handleType?: string;
 }) => {
-    const { onNodesChange, setPinForDashboard, acceptSuggestion } = useFlowContext();
+    const { onNodesChange, setPinForDashboard, acceptSuggestion, updateDataNode } = useFlowContext();
     const { getTemplates, deleteTemplate } = useTemplateContext();
     const { createCodeNode } = useCode();
     const [showComments, setShowComments] = useState(false);
@@ -329,7 +329,15 @@ export const BoxContainer = ({
             baseNode.out = data.out;
 
 
-        // Based on this node recommend...
+        // TODO: Based on this node recommend...
+    }
+
+    const updateDataGoal = (goal: string) => {
+        if(data.goal != goal){
+            let newData = {...data}; 
+            newData.goal = goal; 
+            updateDataNode(nodeId, newData);
+        }
     }
 
     return (
@@ -343,7 +351,7 @@ export const BoxContainer = ({
             {!minimized ?
                 <div style={{...goalInput, ...(data.suggestion ? {opacity: "50%", pointerEvents: "none"} : {})}} className={"nodrag"}>
                     <label htmlFor={nodeId+"_goal_box_input"}>Goal: </label>
-                    <input id={nodeId+"_goal_box_input"} type={"text"} placeholder={"What is your goal for this box?"} style={{width: "240px"}} value={goal} onChange={(value: any) => {setGoal(value.target.value)}}/>
+                    <input id={nodeId+"_goal_box_input"} type={"text"} placeholder={"What is your goal for this box?"} style={{width: "240px"}} value={goal} onBlur={() => {updateDataGoal(goal)}} onChange={(value: any) => {setGoal(value.target.value)}}/>
                 </div> : null
             }
 
@@ -388,23 +396,23 @@ export const BoxContainer = ({
                 </div> : null
             }
 
-            <div id={nodeId+"resizable"} className={"resizable"} style={{...boxContainerStyles, ...styles, width: currentBoxWidth+"px", height: currentBoxHeight+"px", ...(minimized ? {display: "none"} : {}), ...(data.suggestion ? {opacity: 0.5, borderWidth: "2px", borderStyle: "dashed", pointerEvents: "none"} : {}), ...(data.suggestionAcceptable ? {borderColor: "orange"} : {})}} onContextMenu={onContextMenu}>
+            <div id={nodeId+"resizable"} className={"resizable"} style={{...boxContainerStyles, ...styles, width: currentBoxWidth+"px", height: currentBoxHeight+"px", ...(minimized ? {display: "none"} : {}), ...(data.suggestion ? {opacity: 0.5, borderWidth: "2px", borderStyle: "dashed", pointerEvents: "none"} : {}), ...(data.suggestionAcceptable ? {borderColor: "orange"} : {}), ...(data.keywordHighlighted ? {backgroundColor: "#373737"} : {})}} onContextMenu={onContextMenu}>
                 {
                     !noContent ? 
                     <Row style={{ width: "95%", marginBottom: "2px", paddingBottom: "2px", marginLeft: "auto", marginRight: "auto", borderBottom: "1px solid rgba(107, 107, 107, 0.3)" }}>
-                        <p style={{ textAlign: "center", marginBottom: 0, fontSize: "12px", fontWeight: "bold", position:"fixed", top: "10px", left: 0, color: "#888787" }}>{boxNameTranslation(data.nodeType)}{templateData.name != undefined ? " - " + templateData.name : null}</p>
+                        <p style={{...{ textAlign: "center", marginBottom: 0, fontSize: "12px", fontWeight: "bold", position:"fixed", top: "10px", left: 0 }, ...(data.keywordHighlighted ? {color: "white"} : {color: "#888787"})}}>{boxNameTranslation(data.nodeType)}{templateData.name != undefined ? " - " + templateData.name : null}</p>
 
                         <ul style={{listStyle: "none", padding: 0, display: "flex", margin: 0, justifyContent: "flex-end", zIndex: 5}}>
-                            {promptModal != undefined && user != undefined && templateData.id != undefined && templateData.custom && user != null && user.type == "programmer" ? <li style={{marginLeft: "10px"}}><FontAwesomeIcon onClick={() => { promptModal() }} icon={faGear} style={iconStyle} /></li> : null}
-                            <li style={{marginLeft: "10px"}}><FontAwesomeIcon onClick={() => { promptDescription() }} icon={faCircleInfo} style={iconStyle} /></li>
+                            {promptModal != undefined && user != undefined && templateData.id != undefined && templateData.custom && user != null && user.type == "programmer" ? <li style={{marginLeft: "10px"}}><FontAwesomeIcon onClick={() => { promptModal() }} icon={faGear} style={{...iconStyle, ...(data.keywordHighlighted ? {color: "white"} : {color: "#888787"})}} /></li> : null}
+                            <li style={{marginLeft: "10px"}}><FontAwesomeIcon onClick={() => { promptDescription() }} icon={faCircleInfo} style={{...iconStyle, ...(data.keywordHighlighted ? {color: "white"} : {color: "#888787"})}} /></li>
                             <li style={{marginLeft: "10px"}}><FontAwesomeIcon
                                     icon={faComments}
-                                    style={iconStyle}
+                                    style={{...iconStyle, ...(data.keywordHighlighted ? {color: "white"} : {color: "#888787"})}}
                                     onClick={() => setShowComments(!showComments)}
                                 /></li>
                             {updateTemplate != undefined && user != undefined && code != undefined && templateData.id != undefined && templateData.custom && code != templateData.code && user != null && user.type == "programmer" ? 
                             <li style={{marginLeft: "10px"}}>
-                                <FontAwesomeIcon icon={faFloppyDisk} style={iconStyle} onClick={() => { updateTemplate({ ...templateData, code: code }) }} />
+                                <FontAwesomeIcon icon={faFloppyDisk} style={{...iconStyle, ...(data.keywordHighlighted ? {color: "white"} : {color: "#888787"})}} onClick={() => { updateTemplate({ ...templateData, code: code }) }} />
                             </li> : null}
 
                         </ul>
@@ -474,7 +482,7 @@ export const BoxContainer = ({
                 </Row>
 
                 {
-                    pinnedToDashboard ? <FontAwesomeIcon icon={faCircleDot} style={{...{ color: "red", cursor: "pointer", fontSize: "10px", position: "fixed", top: "12px", left: "10px", zIndex: 11 }, ...(data.suggestion ? {pointerEvents: "none"} : {})}} onClick={() => { updatePin(nodeId, pinnedToDashboard) }} /> : <FontAwesomeIcon style={{...{ color: "888", cursor: "pointer", fontSize: "10px", position: "fixed", top: "12px", left: "10px", zIndex: 11 }, ...(data.suggestion ? {pointerEvents: "none"} : {})}} icon={faCircle} onClick={() => { updatePin(nodeId, pinnedToDashboard) }} />
+                    pinnedToDashboard ? <FontAwesomeIcon icon={faCircleDot} style={{...{ color: "red", cursor: "pointer", fontSize: "10px", position: "fixed", top: "12px", left: "10px", zIndex: 11 }, ...(data.suggestion ? {pointerEvents: "none"} : {})}} onClick={() => { updatePin(nodeId, pinnedToDashboard) }} /> : <FontAwesomeIcon style={{...(data.keywordHighlighted ? {color: "white"} : {color: "888"}), ...{ cursor: "pointer", fontSize: "10px", position: "fixed", top: "12px", left: "10px", zIndex: 11 }, ...(data.suggestion ? {pointerEvents: "none"} : {})}} icon={faCircle} onClick={() => { updatePin(nodeId, pinnedToDashboard) }} />
                 }
 
                 {
@@ -505,7 +513,7 @@ export const BoxContainer = ({
                 null
             }
 
-            <FontAwesomeIcon icon={(!minimized ? faMinus : faUpRightAndDownLeftFromCenter)} style={{...iconStyle, position: "fixed", ...(minimized ?{top: "5px", left: "5px"} : {left: "50px", top: "12px"}), fontSize: "10px", zIndex: 8, ...(data.suggestion ? {pointerEvents: "none"} : {}) }} onClick={() => { 
+            <FontAwesomeIcon icon={(!minimized ? faMinus : faUpRightAndDownLeftFromCenter)} style={{...(data.keywordHighlighted ? {color: "white"} : {color: "#888787"}), ...iconStyle, position: "fixed", ...(minimized ?{top: "5px", left: "5px"} : {left: "50px", top: "12px"}), fontSize: "10px", zIndex: 8, ...(data.suggestion ? {pointerEvents: "none"} : {}) }} onClick={() => { 
                 if(data.nodeType != BoxType.MERGE_FLOW){
                     if(!minimized){
                         setCurrentBoxWidth(70);
@@ -539,8 +547,7 @@ export const BoxContainer = ({
 
 export const iconStyle: CSS.Properties = {
     cursor: "pointer",
-    fontSize: "14px",
-    color: "#888787",
+    fontSize: "14px"
 };
 
 const boxContainerStyles: CSS.Properties = {

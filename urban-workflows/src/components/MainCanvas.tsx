@@ -44,6 +44,7 @@ import './MainCanvas.css';
 import FloatingBox from "./FloatingBox";
 import { WorkflowGoal } from "./tools-menu/WorkflowGoal";
 import LLMChat from "./LLMChat";
+import UniDirectionalEdge from "./edges/UniDirectionalEdge";
 
 export function MainCanvas() {
     const {
@@ -119,6 +120,7 @@ export function MainCanvas() {
 
     let objectEdgeTypes: any = {};
     objectEdgeTypes[EdgeType.BIDIRECTIONAL_EDGE] = BiDirectionalEdge;
+    objectEdgeTypes[EdgeType.UNIDIRECTIONAL_EDGE] = UniDirectionalEdge;
 
     const edgeTypes = useMemo(() => objectEdgeTypes, []);
 

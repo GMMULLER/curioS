@@ -6,7 +6,7 @@ import { IInteraction, IOutput, useFlowContext } from "../providers/FlowProvider
 import { PythonInterpreter } from "../PythonInterpreter";
 import { usePosition } from "./usePosition";
 import { Template } from "../providers/TemplateProvider";
-import { AccessLevelType, BoxType } from "../constants";
+import { AccessLevelType, BoxType, EdgeType } from "../constants";
 
 const pythonInterpreter = new PythonInterpreter();
 
@@ -107,6 +107,7 @@ export function useCode(): IUseCode {
 
             let add_edge: any = {
                 id: edge.id,
+                type: EdgeType.UNIDIRECTIONAL_EDGE,
                 markerEnd: {type: "arrow"},
                 source: edge.source,
                 sourceHandle: "out",
@@ -114,16 +115,20 @@ export function useCode(): IUseCode {
                 targetHandle: "in"
             }
 
-            if(loadAsSuggestions){
-                add_edge.data = {}
+            add_edge.data = {}
+
+            if(loadAsSuggestions)
                 add_edge.data.suggestion = true;
-            }
+            
+
+            if(edge.metadata != undefined && edge.metadata.keywords != undefined)
+                add_edge.data.keywords = edge.metadata.keywords;
 
             if(edge.type == "Interaction"){
                 add_edge.markerStart = {type: "arrow"};
                 add_edge.sourceHandle = "in/out";
                 add_edge.targetHandle = "in/out";
-                add_edge.type = "BIDIRECTIONAL_EDGE";
+                add_edge.type = EdgeType.BIDIRECTIONAL_EDGE;
             }
 
             edges.push(add_edge);

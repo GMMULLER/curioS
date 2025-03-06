@@ -7,7 +7,7 @@ import { useCode } from "../../hook/useCode";
 
 export function WorkflowGoal({ }: { }) {
     const { openAIRequest } = useLLMContext();
-    const { nodes, edges, workflowNameRef, suggestionsLeft, workflowGoal, eraseSuggestions } = useFlowContext();
+    const { nodes, edges, workflowNameRef, suggestionsLeft, workflowGoal, setWorkflowGoal, eraseSuggestions, flagBasedOnKeyword } = useFlowContext();
     const { loadTrill } = useCode();
     const [segments, setSegments] = useState<any>([]);
     const [highlights, setHighlights] = useState<any>({});
@@ -32,9 +32,7 @@ export function WorkflowGoal({ }: { }) {
 
         try {
 
-            let highlights_copy = {...highlights};
-
-            let result = await openAIRequest("workflow_suggestions_preamble", "Target dataflow: " + JSON.stringify(trill_spec) + "\n" + " Highlighted keywords: " + JSON.stringify(highlights_copy) + "\n" + "The user goal is: "+workflowGoal+" ");
+            let result = await openAIRequest("workflow_suggestions_preamble", "Target dataflow: " + JSON.stringify(trill_spec) + "\n" + " Highlighted keywords: " + JSON.stringify(highlights) + "\n" + "The user goal is: "+workflowGoal+" ");
 
             console.log("result", result);
 
@@ -70,7 +68,18 @@ export function WorkflowGoal({ }: { }) {
             const regex = new RegExp(`(${Object.keys(highlights).join("|")})`, "gi");
             const parts = goal.split(regex);
 
-            setHighlights(highlights);
+            let highlights_with_index: any = {};
+
+            let keywords = Object.keys(highlights);
+
+            for(let i = 0; i < keywords.length; i++){
+                highlights_with_index[keywords[i]] = {
+                    type: highlights[keywords[i]],
+                    index: i
+                };
+            }
+
+            setHighlights(highlights_with_index);
             setSegments(parts);
 
         } catch (error) {
@@ -79,7 +88,26 @@ export function WorkflowGoal({ }: { }) {
         }
     }
 
-    // Every time the goal changes Keywords need to be parsed again
+    // Based on the current state of the workflow generates a new task that better reflects what is being done by the user
+    const refreshTask = async (current_task: string, current_keywords: any) => {
+
+        try {
+            let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowNameRef.current);
+
+            let result = await openAIRequest("task_refresh_preamble", "Current Task: " + current_task + "\n" + " Current keywords: " + JSON.stringify(current_keywords) + "\n" + "Trill specification: " + JSON.stringify(trill_spec));
+
+            console.log("result", result);
+
+            setWorkflowGoal(result.result);
+
+        } catch (error) {
+            console.error("Error communicating with LLM", error);
+            alert("Error communicating with LLM");
+        }
+
+    }
+
+    // Every time the task changes keywords need to be parsed again
     useEffect(() => {
         parseKeywords(workflowGoal);
     }, [workflowGoal])
@@ -98,21 +126,25 @@ export function WorkflowGoal({ }: { }) {
                             ))} */}
                             {segments.map((part: any, index: any) =>
                                 highlights[part] ? (
-                                    <span key={index+"_span_text_goal"} style={{ backgroundColor: typeColors[highlights[part]], fontWeight: "bold", padding: "2px", marginRight: "4px", borderRadius: "5px", cursor: "default"}}
+                                    <span key={index+"_span_text_goal"} style={{ backgroundColor: typeColors[highlights[part]["type"]], fontWeight: "bold", padding: "2px", marginRight: "4px", borderRadius: "5px", cursor: "default"}}
                                         onMouseEnter={(e) => {
                                             setTooltip({
                                                 visible: true,
-                                                text: highlights[part],
+                                                text: highlights[part]["type"],
                                                 x: e.clientX + 10,
                                                 y: e.clientY + 10,
-                                                color: typeColors[highlights[part]]
+                                                color: typeColors[highlights[part]["type"]]
                                             });
+
+                                            flagBasedOnKeyword(highlights[part]["index"]);
                                         }}
                                         onMouseMove={(e) => {
-                                            setTooltip(prev => ({ ...prev, x: e.clientX + 10, y: e.clientY + 10, color: typeColors[highlights[part]]}));
+                                            setTooltip(prev => ({ ...prev, x: e.clientX + 10, y: e.clientY + 10, color: typeColors[highlights[part]["type"]]}));
                                         }}
                                         onMouseLeave={(e) => {
                                             setTooltip({ visible: false, text: "", x: 0, y: 0, color: "" });
+                                        
+                                            flagBasedOnKeyword();
                                         }}
                                     >
                                         {part}
@@ -131,6 +163,8 @@ export function WorkflowGoal({ }: { }) {
                         <button style={button} onClick={() => {generateSuggestion(highlights)}}>Generate suggestions</button>
                     : null
                 }
+
+                <button onClick={() => {refreshTask(workflowGoal, highlights)}}>Refresh task</button>
 
                 {tooltip.visible && (
                     <div style={{...{

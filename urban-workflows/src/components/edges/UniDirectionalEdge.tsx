@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   BaseEdge,
   EdgeProps,
@@ -8,7 +8,7 @@ import {
   getSmoothStepPath 
 } from 'reactflow';
 
-export default function BiDirectionalEdge({
+export default function UniDirectionalEdge({
   sourceX,
   sourceY,
   targetX,
@@ -16,17 +16,16 @@ export default function BiDirectionalEdge({
   sourcePosition,
   targetPosition,
   markerEnd,
-  markerStart,
   data
 }: EdgeProps) {
-  // const [edgePath, labelX, labelY] = getBezierPath({
-  //   sourceX,
-  //   sourceY,
-  //   sourcePosition,
-  //   targetX,
-  //   targetY,
-  //   targetPosition,
-  // });
+  const [edgePath, labelX, labelY] = getBezierPath({
+    sourceX,
+    sourceY,
+    sourcePosition,
+    targetX,
+    targetY,
+    targetPosition,
+  });
 
   // const [edgePath, labelX, labelY] = getStraightPath({
   //   sourceX,
@@ -44,16 +43,16 @@ export default function BiDirectionalEdge({
   //   targetPosition,
   // });
 
-  const [edgePath, labelX, labelY] = getSmoothStepPath({
-    sourceX,
-    sourceY,
-    sourcePosition,
-    targetX,
-    targetY,
-    targetPosition,
-  });
+//   const [edgePath, labelX, labelY] = getSmoothStepPath({
+//     sourceX,
+//     sourceY,
+//     sourcePosition,
+//     targetX,
+//     targetY,
+//     targetPosition,
+//   });
 
   return (
-    <BaseEdge path={edgePath} markerEnd={markerEnd} markerStart={markerStart} style={{stroke: data.keywordHighlighted ? 'blue' : 'red'}} />
+    <BaseEdge path={edgePath} markerEnd={markerEnd} style={{stroke: data.keywordHighlighted ? 'blue' : 'grey'}} />
   );
 }

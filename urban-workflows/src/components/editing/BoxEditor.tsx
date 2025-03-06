@@ -145,8 +145,7 @@ function BoxEditor({
 
     const iconStyle: CSS.Properties = {
         cursor: "pointer",
-        fontSize: "14px",
-        color: "#888787",
+        fontSize: "14px"
     };
 
     const navItemStyle: CSS.Properties = {
@@ -377,7 +376,8 @@ function BoxEditor({
                     zIndex: 11,
                     top: "12px",
                     left: "30px",
-                    ...(data.suggestion ? {pointerEvents: "none"} : {})
+                    ...(data.suggestion ? {pointerEvents: "none"} : {}),
+                    ...(data.keywordHighlighted ? {color: "white"} : {color: "#888787"})
                 }}
                 onClick={() => {
                     fullscreen != "" && fullscreen != undefined
