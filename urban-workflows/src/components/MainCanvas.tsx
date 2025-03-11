@@ -125,7 +125,7 @@ export function MainCanvas() {
     const edgeTypes = useMemo(() => objectEdgeTypes, []);
 
     const reactFlow = useReactFlow();
-    const { setDashBoardMode, updatePositionWorkflow, updatePositionDashboard, workflowNameRef } = useFlowContext();
+    const { setDashBoardMode, updatePositionWorkflow, updatePositionDashboard, setTriggerTaskRefresh, workflowNameRef } = useFlowContext();
 
     const [selectedEdgeId, setSelectedEdgeId] = useState<string>(""); // can only remove selected edges
     
@@ -258,6 +258,9 @@ export function MainCanvas() {
                                     break
                                 }
                             }
+
+                            if(allowed)
+                                setTriggerTaskRefresh(true);
                         }
 
                         if(change.type == "position" && change.position != undefined && change.position.x != undefined){

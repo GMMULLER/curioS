@@ -17,9 +17,10 @@ import { useUserContext } from "../providers/UserProvider";
 import { OutputIcon } from "./edges/OutputIcon";
 
 function ConstantBox({ data, isConnectable }) {
-  const [output, setOutput] = useState<{ code: string; content: string }>({
+  const [output, setOutput] = useState<{ code: string; content: string, outputType: string }>({
     code: "",
     content: "",
+    outputType: ""
   }); // stores the output produced by the last execution of this box
   const [code, setCode] = useState<string>("");
   const [sendCode, setSendCode] = useState();

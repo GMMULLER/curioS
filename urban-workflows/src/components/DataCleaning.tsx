@@ -18,9 +18,10 @@ import { OutputIcon } from "./edges/OutputIcon";
 import { InputIcon } from "./edges/InputIcon";
 
 function DataCleaningBox({ data, isConnectable }) {
-  const [output, setOutput] = useState<{ code: string; content: string }>({
+  const [output, setOutput] = useState<{ code: string; content: string, outputType: string }>({
     code: "",
     content: "",
+    outputType: ""
   }); // stores the output produced by the last execution of this box
   const [code, setCode] = useState<string>("");
   const [sendCode, setSendCode] = useState();

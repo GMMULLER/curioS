@@ -324,66 +324,8 @@ An example of a dataflow:
     }
 }
 
-You will receive a dataflow as the target to make suggestions, the user goal as a written paragraph, and keywords of the paragraph highlighted. About the keywords these are the types available:
+To create his dataflow the user defined a set of subtasks that are put together to form a bigger task that describe the purpose of the dataflow. The user can edit the subtasks. Therefore, you job is, given the new task and the defined subtasks and how they are attached to components of the dataflow (in the Trill specification they will appear as "goal" on nodes) modify the subtasks to reflect the changes on the task. If a node does not have a subtask ("goal" field), does not add a new one, only modify existing ones. The subtask define what that particular node should do.
 
-- Action: can usually be mapped to a specific node or part of the dataflow. Are commonly denoted by verbs. Examples: "Load", "Visualize", "Filter", "Clean".
-- Dataset: semantic references to datasets. Can be a single word or a set of words that describe the dataset. Examples: "311 requests", "Sidewalk", "Crime", "Temperature".
-- Where: a geographical location of interest. Examples: "New York City", "Brazil", "Illinois", "Chicago".
-- When: related to time. Examples: "over time", "on 1999", "12/06/2000", "between June and September".
-- About: related to the organization of the workflow. Examples: "two scenarios", "the second part of the dataflow", "the first half of the dataflow".
-- Interaction: denote interactions between nodes, with a node or with the data. Examples: "brushing", "click", "higlight", "widgets".
-- Source: source of the dataset. Examples: "API", "local file", "simulation".
-- Connection: describe how nodes or parts of the workflow are connected to each other. They can be explicit references to connection or implicit. Examples: "then", "after that", "second step", "connected".
-- Content: references to the content of a node or part of the workflow. They can make references to a column of a dataset, machine learning models, type of visualization and so on. Examples: "column", "model".
-- Metadata: information about the data like its format, number of columns, type. Examples: "2D", "3D", "JSON", "CSV".
-- None: all keywords that are not of any other type.
+You will receive the current task and the Trill specification of the current dataflow with the subtasks ("goal" field).
 
-You will receive the keywords in this format:
-
-{
-    "keyword0": {
-      "type": "keyword1_type",
-      "index": 0
-    },
-    "keyword1": {
-      "type": "keyword1_type",
-      "index": 1
-    }
-    ...
-}
-
-Your task is, based on the dataflow the user built, suggest a set of nodes and connections to accomplish his goal. For each node and edge list out the related keywords based on their index. For example:
-
-{
-    "dataflow": {
-        "nodes": [
-            {
-              "id": "node1",
-              "type": "Computation Analysis",
-              "metadata": {
-                "keywords": [0,3]
-              }
-            },
-            {
-                "id": "node2",
-                "type": "Vega-Lite",
-                "metadata": {
-                  "keywords": [1,2]
-                }
-            }
-        ],
-        "edges": [
-            {
-                "id": "reactflow__node1_node2_1",
-                "source": "node1",
-                "target": "node2",
-                "metadata": {
-                  "keywords": [0]
-                }
-            }
-        ]
-    }
-}
-
-**OUPUT A TRILL JSON SPECIFICATION AND NOTHING ELSE. ADD NODES AND EDGES TO THE DATAFLOW OF THE USER. REPEAT EXISTING IDs AND GENERATE AN ID IF THE NODE OR EDGE DOES NOT HAVE ONE. CONSIDER EXPECTED 'in' AND 'out' INFORMATION IN EACH NODE. MAKE SURE YOU ADD THE 'dataflow' ATTRIBUTE. DO NOT INCLUDE CONTENT FOR THE NODES. FOR EACH NODE OUTPUT A 'goal' FIELD TO SPECIFY WHAT THE NODE SHOULD DO. MAKE SURE YOU CAN RECONSTRUCT THE ORIGINAL GOAL PARAGRAPH WORD BY WORD BY COMBINING ALL THE CONTENT OF THE 'goal' PROPERTIES IN EACH NODE. ALSO INCLUDE 'out' and 'in' TO INDICATE THE TYPE OF DATA THE NODE SHOULD RECEIVE AND OUTPUT. DO NOT FORGET TO LINK THE KEYWORDS TO THE NODES AND EDGES. DO NOT USE THE EXAMPLE WORKFLOW**
-
+**ONLY OUTPUT THE DATAFLOW IN TRILL WITH THE "goal" FIELD OF THE APPROPRIATE NODES MODIFIED. DO NOT OUTPUT ANY OTHER TEXT.**

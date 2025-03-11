@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 // Bootstrap
 import Button from "react-bootstrap/Button";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { BoxType } from "../../constants";
+import { BoxType, SupportedType } from "../../constants";
 
 // Editor
 import Editor from "@monaco-editor/react";
@@ -54,16 +54,42 @@ function CodeEditor({ setOutputCallback, data, output, boxType, replacedCode, se
         
         let outputContent = result.output;
 
+        let outputType = "";
+
+        try {
+
+            let parsed_output = JSON.parse(outputContent);
+
+            let dataType = parsed_output.dataType;
+
+            if(dataType == 'int' || dataType == 'str' || dataType == 'float' || dataType == 'bool')
+                outputType = SupportedType.VALUE;
+            else if(dataType == 'list')
+                outputType = SupportedType.LIST;
+            else if(dataType == 'dict')
+                outputType = SupportedType.JSON;
+            else if(dataType == 'dataframe')
+                outputType = SupportedType.DATAFRAME;
+            else if(dataType == 'geodataframe')
+                outputType = SupportedType.GEODATAFRAME;
+            else if(dataType == 'raster')
+                outputType = SupportedType.RASTER;
+            else if(dataType == 'outputs')
+                outputType = "MULTIPLE";
+        } catch (error) {
+            console.error("Invalid output type", error);
+        }
+
         if(outputContent.length > 100){
             outputContent = outputContent.slice(0,100)+"...";
         }
 
-        setOutputCallback({code: "success", content: outputContent});
+        setOutputCallback({code: "success", content: outputContent, outputType: outputType});
 
         if (result.stderr == "") { // No error in the execution
             data.outputCallback(data.nodeId, result.output);
         } else {
-            setOutputCallback({code: "error", content: result.stderr});
+            setOutputCallback({code: "error", content: result.stderr, outputType: outputType});
         }
     };
 

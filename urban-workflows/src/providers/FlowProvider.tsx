@@ -52,6 +52,8 @@ interface FlowContextProps {
     workflowNameRef: React.MutableRefObject<string>;
     suggestionsLeft: number;
     workflowGoal: string;
+    triggerSuggestionsGeneration: boolean;
+    triggerTaskRefresh: boolean;
     setWorkflowGoal: (goal: string) => void;
     setOutputs: (updateFn: (outputs: IOutput[]) => IOutput[]) => void;
     setInteractions: (updateFn: (interactions: IInteraction[]) => IInteraction[]) => void;
@@ -75,6 +77,10 @@ interface FlowContextProps {
     flagBasedOnKeyword: (keywordIndex?: number) => void;
     updateDataNode: (nodeId: string, newData: any) => void;
     cleanCanvas: () => void;
+    setTriggerSuggestionsGeneration: (value: boolean) => void;
+    setTriggerTaskRefresh: (value: boolean) => void;
+    updateSubtasks: (trill: any) => void;
+    updateKeywords: (trill: any) => void;
 }
 
 export const FlowContext = createContext<FlowContextProps>({
@@ -83,6 +89,8 @@ export const FlowContext = createContext<FlowContextProps>({
     workflowNameRef: { current: "" },
     suggestionsLeft: 0,
     workflowGoal: "",
+    triggerSuggestionsGeneration: false,
+    triggerTaskRefresh: false,
     setWorkflowGoal: () => {},
     setOutputs: () => { },
     setInteractions: () => {},
@@ -105,7 +113,11 @@ export const FlowContext = createContext<FlowContextProps>({
     acceptSuggestion: () => {},
     flagBasedOnKeyword: () => {},
     updateDataNode: () => {},
-    cleanCanvas: () => {}
+    cleanCanvas: () => {},
+    setTriggerSuggestionsGeneration: () => {},
+    setTriggerTaskRefresh: () => {},
+    updateSubtasks: () => {},
+    updateKeywords: () => {}
 });
 
 const FlowProvider = ({ children }: { children: ReactNode }) => {
@@ -116,6 +128,8 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
     const [dashboardPins, setDashboardPins] = useState<any>({}); // {[nodeId] -> boolean}
     const [suggestionsLeft, setSuggestionsLeft] = useState<number>(0); // Number of suggestions left
     const [workflowGoal, setWorkflowGoal] = useState("Load 311 request data from a CSV file, analyze trends in the number of requests over time, categorize requests by type to identify common issues, and visualize the findings using a line chart for trends, a bar chart for request types, and a geographic map for request locations.");
+    const [triggerSuggestionsGeneration, setTriggerSuggestionsGeneration] = useState(false);
+    const [triggerTaskRefresh, setTriggerTaskRefresh] = useState(false);
 
     const [positionsInDashboard, _setPositionsInDashboard] = useState<any>({}); // [nodeId] -> change
     const positionsInDashboardRef = useRef(positionsInDashboard);
@@ -200,6 +214,8 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
             current_edges_ids.push(edge.id);
         }
 
+        setTriggerTaskRefresh(true);
+
         setNodes((prevNodes: any) => { // Guarantee that previous nodes were added
 
             for(const edge of loaded_edges){
@@ -220,6 +236,89 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
         })
 
         // TODO: Unset dashboardMode (setDashBoardMode)
+    }
+
+    const updateKeywords = (trill_spec: any) => { // Given a trill specification with nodes and edges with the same IDs as the current nodes and edges attach the keywords.
+
+        let node_to_keywords: any = {};
+        let edge_to_keywords: any = {};
+
+        if(trill_spec.dataflow != undefined){
+            for(const node of trill_spec.dataflow.nodes){
+                if(node.metadata != undefined && node.metadata.keywords != undefined){
+                    node_to_keywords[node.id] = [...node.metadata.keywords];
+                }
+            }
+
+            for(const edge of trill_spec.dataflow.edges){
+                if(edge.metadata != undefined && edge.metadata.keywords != undefined){
+                    edge_to_keywords[edge.id] = [...edge.metadata.keywords];
+                } 
+            }
+        }
+
+        setNodes(prevNodes => {
+
+            let newNodes = [];
+
+            for(const node of prevNodes){
+                let newNode = {...node};
+
+                if(node_to_keywords[newNode.id] != undefined)
+                    newNode.data.keywords = node_to_keywords[newNode.id]
+
+                newNodes.push(newNode);
+            }
+
+            return newNodes;
+        });
+
+        setEdges(prevEdges => {
+
+            let newEdges = [];
+
+            for(const edge of prevEdges){
+                let newEdge = {...edge};
+
+                if(edge_to_keywords[newEdge.id] != undefined)
+                    newEdge.data.keywords = edge_to_keywords[newEdge.id]
+
+                newEdges.push(newEdge);
+            }
+
+            return newEdges;
+        });
+
+    }
+
+    const updateSubtasks = (trill_spec: any) => { // Given a trill specification update the nodes subtasks
+       
+        let node_to_goal: any = {};
+
+        if(trill_spec.dataflow != undefined){
+            for(const node of trill_spec.dataflow.nodes){
+                if(node.goal != undefined){
+                    node_to_goal[node.id] = node.goal;
+                }
+            }
+        }
+
+        setNodes(prevNodes => {
+
+            let newNodes = [];
+
+            for(const node of prevNodes){
+                let newNode = {...node};
+
+                if(node_to_goal[newNode.id] != undefined)
+                    newNode.data.goal = node_to_goal[newNode.id]
+
+                newNodes.push(newNode);
+            }
+
+            return newNodes;
+        });
+
     }
 
     const cleanCanvas = () => {
@@ -1066,6 +1165,8 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
                 workflowNameRef,
                 suggestionsLeft,
                 workflowGoal,
+                triggerSuggestionsGeneration,
+                triggerTaskRefresh,
                 setWorkflowGoal,
                 setOutputs,
                 setInteractions,
@@ -1088,7 +1189,11 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
                 acceptSuggestion,
                 flagBasedOnKeyword,
                 updateDataNode,
-                cleanCanvas
+                cleanCanvas,
+                setTriggerSuggestionsGeneration,
+                setTriggerTaskRefresh,
+                updateSubtasks,
+                updateKeywords
             }}
         >
             {children}

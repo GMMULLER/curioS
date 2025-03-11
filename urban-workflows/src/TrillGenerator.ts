@@ -37,6 +37,13 @@ export class TrillGenerator {
             if(node.data.goal != undefined)
                 trill_node.goal = node.data.goal;
 
+            if(node.data.keywords != undefined){
+                if(trill_node.metadata == undefined)
+                    trill_node.metadata = {};
+
+                trill_node.metadata.keywords = node.data.keywords;
+            }
+
             trill.dataflow.nodes.push(trill_node)
         }
 
@@ -50,6 +57,13 @@ export class TrillGenerator {
             trill_edge.id = edge.id;
             trill_edge.source = edge.source;
             trill_edge.target = edge.target;
+
+            if(edge.data != undefined && edge.data.keywords != undefined){
+                if(trill_edge.metadata == undefined)
+                    trill_edge.metadata = {};
+
+                trill_edge.metadata.keywords = edge.data.keywords;
+            }
 
             trill.dataflow.edges.push(trill_edge);
         }

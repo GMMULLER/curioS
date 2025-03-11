@@ -11,7 +11,7 @@ import ReactMarkdown from "react-markdown";
 
 const ChatComponent = () => {
     const { openAIRequest } = useLLMContext();
-    const { setWorkflowGoal } = useFlowContext();
+    const { setWorkflowGoal, cleanCanvas, setTriggerSuggestionsGeneration } = useFlowContext();
     const [messages, setMessages] = useState<{ role: string; text: string }[]>([]);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
@@ -63,7 +63,15 @@ const ChatComponent = () => {
     }
 
     const applyGoal = (task: string) => {
-        setWorkflowGoal(checkForGoal(task) as string);
+
+        const isConfirmed = window.confirm("Are you sure you want to proceed? This will clear your entire board.");
+
+        if (isConfirmed) {
+            cleanCanvas();
+            setTriggerSuggestionsGeneration(true); // Generate suggestions automatically
+            setWorkflowGoal(checkForGoal(task) as string);
+        }
+
     }
 
     useEffect(() => {
@@ -87,7 +95,7 @@ const ChatComponent = () => {
                         <div key={index} style={{...messagesBackground, ...(msg.role === "user" ? {backgroundColor: "rgb(0, 123, 255)"} : {backgroundColor: "#424242"})}} className={`mb-2 p-2 rounded ${msg.role === "user" ? "bg-blue-100 text-right" : "bg-gray-200"}`}>
                             <ReactMarkdown>{msg.text}</ReactMarkdown>
                             {msg.role != "user" && checkForGoal(msg.text)?
-                                <button style={applyGoalStyle} onClick={() => {applyGoal(msg.text)}}>Apply goal</button> : null
+                                <button style={applyGoalStyle} onClick={() => {applyGoal(msg.text)}}>Apply task</button> : null
                             }
                         </div>
                     ))}

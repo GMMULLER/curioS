@@ -36,7 +36,11 @@ import { InputIcon } from "./edges/InputIcon";
 
 function DataPoolBox({ data, isConnectable }) {
     const [templateData, setTemplateData] = useState<Template | any>({});
-    const [output, setOutput] = useState<{code: string, content: string}>({code: "", content: ""}); // stores the output produced by the last update of this box
+    const [output, setOutput] = useState<{ code: string; content: string, outputType: string }>({
+        code: "",
+        content: "",
+        outputType: ""
+    }); // stores the output produced by the last execution of this box
     const [outputTable, setOutputTable] = useState<any[]>([]); // stores the output in a format used by the table
     const [resolutionMode, setResolutionMode] = useState<string>(ResolutionType.OVERWRITE) // how interaction conflicts between plots are resolved
     const [plotResolutionMode, setPlotResolutionMode] = useState<string>(ResolutionType.OVERWRITE) // how interaction conflicts are solved in the context of one plot

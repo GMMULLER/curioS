@@ -25,9 +25,10 @@ const vega = require("vega");
 const lite = require("vega-lite");
 
 function VegaBox({ data, isConnectable }) {
-  const [output, setOutput] = useState<{ code: string; content: string }>({
-    code: "",
-    content: "",
+  const [output, setOutput] = useState<{ code: string; content: string, outputType: string }>({
+      code: "",
+      content: "",
+      outputType: ""
   }); // stores the output produced by the last execution of this box
   const [interactions, _setInteractions] = useState<any>({}); // {signal: {type: point/interval, data: }} // if type point data contains list of object ids. If type is interval data is an object where each key is an attribute with intervals or lists
 

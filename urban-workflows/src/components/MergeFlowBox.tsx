@@ -15,7 +15,13 @@ import {
 import { useUserContext } from "../providers/UserProvider";
 
 function MergeFlowBox({ data, isConnectable }) {
-    const [output, setOutput] = useState<{code: string, content: string}>({code: "", content: JSON.stringify({ data: [], dataType: "outputs" })});
+
+    const [output, setOutput] = useState<{ code: string; content: string, outputType: string }>({
+        code: "",
+        content: JSON.stringify({ data: [], dataType: "outputs" }),
+        outputType: ""
+    }); // stores the output produced by the last execution of this box
+
     const [templateData, setTemplateData] = useState<Template | any>({});
     const [showDescriptionModal, setDescriptionModal] = useState(false);
 

@@ -11,6 +11,7 @@ import { useRightClickMenu } from "../hook/useRightClickMenu";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faComments, faCircle, faCircleDot } from "@fortawesome/free-solid-svg-icons";
 import { useUserContext } from "../providers/UserProvider";
+import { useLLMContext } from "../providers/LLMProvider";
 
 import Col from 'react-bootstrap/Col';
 import Nav from 'react-bootstrap/Nav';
@@ -87,7 +88,8 @@ export const BoxContainer = ({
     styles?: CSS.Properties;
     handleType?: string;
 }) => {
-    const { onNodesChange, setPinForDashboard, acceptSuggestion, updateDataNode } = useFlowContext();
+    const { openAIRequest } = useLLMContext();
+    const { onNodesChange, setPinForDashboard, acceptSuggestion, updateDataNode, setTriggerTaskRefresh, workflowGoal } = useFlowContext();
     const { getTemplates, deleteTemplate } = useTemplateContext();
     const { createCodeNode } = useCode();
     const [showComments, setShowComments] = useState(false);
@@ -101,32 +103,30 @@ export const BoxContainer = ({
     const { showMenu, menuPosition, onContextMenu } = useRightClickMenu();
     const [minimized, setMinimized] = useState(data.nodeType == BoxType.MERGE_FLOW);
 
+    const generateSubtaskFromExec = async (node_content: string, node_type: BoxType, current_task: string) => {
+        try {
+            let result = await openAIRequest("new_subtask_from_exec_preamble", " Node content: " + node_content + "\n" + "Node type: " + node_type + " Task: " + current_task);
+            
+            console.log("generateSubtaskFromExec result", result);
+
+            let new_subtask = result.result;
+
+            setGoal(new_subtask);
+            updateDataGoal(new_subtask);
+        } catch (error) {
+            console.error("Error communicating with LLM", error);
+            alert("Error communicating with LLM");
+        }
+    }
+
     useEffect(() => {
 
         if(data.output != undefined && data.output.code == 'success'){
-            try {
-                let parsed_output = JSON.parse(data.output.content);
 
-                let dataType = parsed_output.dataType;
+            if(goal == "") // If subtask is empty generate it based on the content of the node after execution
+                generateSubtaskFromExec((code ? code : ""), data.nodeType, workflowGoal);
 
-                if(dataType == 'int' || dataType == 'str' || dataType == 'float' || dataType == 'bool')
-                    setExpectedOutputType(SupportedType.VALUE)
-                else if(dataType == 'list')
-                    setExpectedOutputType(SupportedType.LIST)
-                else if(dataType == 'dict')
-                    setExpectedOutputType(SupportedType.JSON)
-                else if(dataType == 'dataframe')
-                    setExpectedOutputType(SupportedType.DATAFRAME)
-                else if(dataType == 'geodataframe')
-                    setExpectedOutputType(SupportedType.GEODATAFRAME)
-                else if(dataType == 'raster')
-                    setExpectedOutputType(SupportedType.RASTER)
-                else if(dataType == 'outputs')
-                    setExpectedOutputType("MULTIPLE")
-
-            } catch (error) {
-                console.error("Invalid output type", error);
-            }
+            setExpectedOutputType(data.output.outputType);
         }
 
         if(data.input != undefined && data.input != ""){
@@ -337,6 +337,7 @@ export const BoxContainer = ({
             let newData = {...data}; 
             newData.goal = goal; 
             updateDataNode(nodeId, newData);
+            setTriggerTaskRefresh(true); // When the subtask is update the task should be updated
         }
     }
 

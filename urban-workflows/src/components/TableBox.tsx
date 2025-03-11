@@ -28,9 +28,10 @@ import { OutputIcon } from "./edges/OutputIcon";
 import { InputIcon } from "./edges/InputIcon";
 
 function TableBox({ data, isConnectable }) {
-  const [output, setOutput] = useState<{ code: string; content: string }>({
-    code: "",
-    content: "",
+  const [output, setOutput] = useState<{ code: string; content: string, outputType: string }>({
+      code: "",
+      content: "",
+      outputType: ""
   }); // stores the output produced by the last execution of this box
   const [code, setCode] = useState<string>("");
   const [templateData, setTemplateData] = useState<Template | any>({});
