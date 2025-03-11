@@ -45,6 +45,7 @@ import './styles.css';
 import { Template, useTemplateContext } from "../providers/TemplateProvider";
 import { useCode } from "../hook/useCode";
 import { ConnectionValidator } from "../ConnectionValidator";
+import { TrillGenerator } from "../TrillGenerator";
 
 // Box Container
 export const BoxContainer = ({
@@ -89,7 +90,7 @@ export const BoxContainer = ({
     handleType?: string;
 }) => {
     const { openAIRequest } = useLLMContext();
-    const { onNodesChange, setPinForDashboard, acceptSuggestion, updateDataNode, setTriggerTaskRefresh, workflowGoal } = useFlowContext();
+    const { nodes, edges, workflowNameRef, updateDefaultCode, onNodesChange, setPinForDashboard, acceptSuggestion, updateDataNode, setTriggerTaskRefresh, workflowGoal } = useFlowContext();
     const { getTemplates, deleteTemplate } = useTemplateContext();
     const { createCodeNode } = useCode();
     const [showComments, setShowComments] = useState(false);
@@ -332,6 +333,33 @@ export const BoxContainer = ({
         // TODO: Based on this node recommend...
     }
 
+    const generateContentNode = async (nodes: any, edges: any, workflowNameRef: any, goal: string, workflowGoal: string) => {
+
+        const isConfirmed = window.confirm("Are you sure you want to proceed? This will overwrite the node's content.");
+    
+        if(isConfirmed){
+
+            let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowNameRef.current);
+
+            try {
+    
+                let result = await openAIRequest("new_content_preamble", "Current Trill: " + JSON.stringify(trill_spec) + "\n" + " Node ID: " + nodeId + "\n" + "Subtask: "+goal+" Task: " + "\n" + workflowGoal);
+    
+                let clean_result = result.result.replaceAll("```json", "").replaceAll("```python", "");;
+                clean_result = clean_result.replaceAll("```", "");
+
+                console.log("generateContentNode result", clean_result);
+    
+                updateDefaultCode(nodeId, clean_result);
+
+            } catch (error) {
+                console.error("Error communicating with LLM", error);
+                alert("Error communicating with LLM");
+            }
+        }
+
+    }
+
     const updateDataGoal = (goal: string) => {
         if(data.goal != goal){
             let newData = {...data}; 
@@ -353,6 +381,7 @@ export const BoxContainer = ({
                 <div style={{...goalInput, ...(data.suggestion ? {opacity: "50%", pointerEvents: "none"} : {})}} className={"nodrag"}>
                     <label htmlFor={nodeId+"_goal_box_input"}>Subtask: </label>
                     <input id={nodeId+"_goal_box_input"} type={"text"} placeholder={"Describe the subtask"} style={{width: "240px"}} value={goal} onBlur={() => {updateDataGoal(goal)}} onChange={(value: any) => {setGoal(value.target.value)}}/>
+                    <button style={buttonStyle} onClick={() => {generateContentNode(nodes, edges, workflowNameRef, goal, workflowGoal)}} >Generate code</button>
                 </div> : null
             }
 

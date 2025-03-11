@@ -81,6 +81,7 @@ interface FlowContextProps {
     setTriggerTaskRefresh: (value: boolean) => void;
     updateSubtasks: (trill: any) => void;
     updateKeywords: (trill: any) => void;
+    updateDefaultCode: (nodeId: string, content: string) => void;
 }
 
 export const FlowContext = createContext<FlowContextProps>({
@@ -117,7 +118,8 @@ export const FlowContext = createContext<FlowContextProps>({
     setTriggerSuggestionsGeneration: () => {},
     setTriggerTaskRefresh: () => {},
     updateSubtasks: () => {},
-    updateKeywords: () => {}
+    updateKeywords: () => {},
+    updateDefaultCode: () => {}
 });
 
 const FlowProvider = ({ children }: { children: ReactNode }) => {
@@ -179,7 +181,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
                 newNodes.push(newNode);
             }
 
-            return newNodes;
+            return [...newNodes];
         });
     }
 
@@ -236,6 +238,25 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
         })
 
         // TODO: Unset dashboardMode (setDashBoardMode)
+    }
+
+    const updateDefaultCode = (nodeId: string, content: string) => {
+        setNodes(prevNodes => {
+
+            let newNodes = [];
+
+            for(const node of prevNodes){
+                let newNode = {...node};
+
+                if(node.id == nodeId){
+                    node.data.defaultCode = content;
+                }
+
+                newNodes.push(newNode);
+            }
+
+            return newNodes;
+        });
     }
 
     const updateKeywords = (trill_spec: any) => { // Given a trill specification with nodes and edges with the same IDs as the current nodes and edges attach the keywords.
@@ -1193,7 +1214,8 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
                 setTriggerSuggestionsGeneration,
                 setTriggerTaskRefresh,
                 updateSubtasks,
-                updateKeywords
+                updateKeywords,
+                updateDefaultCode
             }}
         >
             {children}
