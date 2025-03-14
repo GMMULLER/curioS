@@ -7,10 +7,19 @@ import json
 def userCode(arg):
 	
 	import pandas as pd
-	data = pd.read_csv('311_requests.csv')
-	return data
 	
-boxType = 'DATA_LOADING'
+	# Assuming 'arg' contains the DataFrame from previous nodes
+	df = arg
+	
+	# Group by neighborhood and calculate total response time and counts
+	grouped_data = df.groupby('neighborhood').agg(
+	    total_response_time=('response_time', 'sum'),
+	    count=('response_time', 'count')
+	).reset_index()
+	
+	return grouped_data
+	
+boxType = 'DATA_TRANSFORMATION'
 def dumpsInput(input):
 	if input['dataType'] == 'outputs':
 		for key,elem in enumerate(input['data']):
@@ -18,7 +27,8 @@ def dumpsInput(input):
 		return json.dumps(input)
 	else:
 		return json.dumps(input)
-input = ''
+input = {"data": "{\"neighborhood\": {\"0\": \"Neighborhood 0\", \"1\": \"Neighborhood 1\", \"2\": \"Neighborhood 10\", \"3\": \"Neighborhood 11\", \"4\": \"Neighborhood 12\", \"5\": \"Neighborhood 13\", \"6\": \"Neighborhood 14\", \"7\": \"Neighborhood 15\", \"8\": \"Neighborhood 16\", \"9\": \"Neighborhood 17\", \"10\": \"Neighborhood 18\", \"11\": \"Neighborhood 19\", \"12\": \"Neighborhood 2\", \"13\": \"Neighborhood 3\", \"14\": \"Neighborhood 4\", \"15\": \"Neighborhood 5\", \"16\": \"Neighborhood 6\", \"17\": \"Neighborhood 7\", \"18\": \"Neighborhood 8\", \"19\": \"Neighborhood 9\"}, \"response_time\": {\"0\": 3.0, \"1\": 37.0, \"2\": 62.0, \"3\": 2.0, \"4\": 73.0, \"5\": 97.0, \"6\": 54.0, \"7\": 77.0, \"8\": 27.0, \"9\": 50.0, \"10\": 64.0, \"11\": 99.0, \"12\": 50.0, \"13\": 5.0, \"14\": 82.0, \"15\": 35.0, \"16\": 52.0, \"17\": 100.0, \"18\": 24.0, \"19\": 39.0}}", "dataType": "dataframe"}
+input = dumpsInput(input)
 def parseInput(input):
     parsedInput = None
     parsedJson = json.loads(input)

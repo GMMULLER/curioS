@@ -19,8 +19,9 @@ type CreateCodeNodeOptions = {
     accessLevel?: AccessLevelType;
     customTemplate?: boolean;
     position?: { x: number; y: number };
-    suggestion?: boolean;
+    suggestionType?: boolean;
     goal?: string;
+    warnings?: string[];
     inType?: string;
     out?: string;
     keywords?: number[];
@@ -28,7 +29,7 @@ type CreateCodeNodeOptions = {
 
 interface IUseCode {
     createCodeNode: (boxType: string, options?: CreateCodeNodeOptions) => void;
-    loadTrill: (trill: any, loadAsSuggestions?: boolean) => void;
+    loadTrill: (trill: any, suggestionType?: string) => void;
 }
 
 export function useCode(): IUseCode {
@@ -63,7 +64,8 @@ export function useCode(): IUseCode {
         })
     }, [setInteractions]);
 
-    const loadTrill = (trill: any, loadAsSuggestions?: boolean) => {
+    // suggestionType: "workflow" | "connection" | "none"
+    const loadTrill = (trill: any, suggestionType?: string) => {
 
         let nodes = [];
         let edges = [];
@@ -93,11 +95,14 @@ export function useCode(): IUseCode {
             if(node.out != undefined)
                 nodeMeta.out = node.out;
 
+            if(node.warnings != undefined)
+                nodeMeta.warnings = node.warnings;
+
             if(node.metadata != undefined && node.metadata.keywords != undefined)
                 nodeMeta.keywords = node.metadata.keywords;
 
-            if(loadAsSuggestions)
-                nodeMeta.suggestion = true;
+            if(suggestionType != undefined)
+                nodeMeta.suggestionType = suggestionType;
 
             nodes.push(generateCodeNode(node.type, nodeMeta));
 
@@ -117,9 +122,8 @@ export function useCode(): IUseCode {
 
             add_edge.data = {}
 
-            if(loadAsSuggestions)
-                add_edge.data.suggestion = true;
-            
+            if(suggestionType != undefined)
+                add_edge.data.suggestionType = suggestionType;
 
             if(edge.metadata != undefined && edge.metadata.keywords != undefined)
                 add_edge.data.keywords = edge.metadata.keywords;
@@ -134,7 +138,13 @@ export function useCode(): IUseCode {
             edges.push(add_edge);
         }
 
-        loadParsedTrill(trill.dataflow.name, nodes, edges, !loadAsSuggestions, loadAsSuggestions); // if loading as suggestion deactivate provenance and merge
+        if(suggestionType == undefined)
+            loadParsedTrill(trill.dataflow.name, nodes, edges, true, false); 
+        else if(suggestionType == "workflow")
+            loadParsedTrill(trill.dataflow.name, nodes, edges, false, true); // if loading as suggestion deactivate provenance and merge
+        else
+            loadParsedTrill(trill.dataflow.name, nodes, edges, false, true, false); // connection suggestions should not refresh the task
+
     }
 
     const generateCodeNode = useCallback((boxType: string, options: CreateCodeNodeOptions = {}) => {
@@ -147,7 +157,8 @@ export function useCode(): IUseCode {
             accessLevel = undefined,
             customTemplate = undefined,
             position = getPosition(),
-            suggestion = false,
+            suggestionType = "none",
+            warnings = [],
             goal = "",
             inType = "DEFAULT",
             out = "DEFAULT",
@@ -166,10 +177,11 @@ export function useCode(): IUseCode {
                 templateId,
                 templateName,
                 accessLevel,
+                warnings,
                 hidden: false,
                 nodeType: boxType,
                 customTemplate,
-                suggestion,
+                suggestionType,
                 goal,
                 in: inType,
                 out,

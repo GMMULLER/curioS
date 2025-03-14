@@ -77,7 +77,7 @@ function MergeFlowBox({ data, isConnectable }) {
                 }
             }
 
-            setOutput({code: "success", content: JSON.stringify(newOutput)});
+            setOutput({code: "success", content: JSON.stringify(newOutput), outputType: "MULTIPLE"});
             data.outputCallback(data.nodeId, JSON.stringify(newOutput));
         }
     }, [data.input]);
@@ -88,13 +88,13 @@ function MergeFlowBox({ data, isConnectable }) {
                 type="target"
                 position={Position.Left}
                 id="in"
-                isConnectable={isConnectable && !data.suggestion}
+                isConnectable={isConnectable && (data.suggestionType == undefined || data.suggestionType == "none")}
             />
             <Handle
                 type="source"
                 position={Position.Right}
                 id="out"
-                isConnectable={isConnectable && !data.suggestion}
+                isConnectable={isConnectable && (data.suggestionType == undefined || data.suggestionType == "none")}
             />
             <BoxContainer nodeId={data.nodeId} handleType={"in/out"} data={data} boxHeight={50} boxWidth={100} noContent={true} templateData={templateData} setOutputCallback={setOutput} updateTemplate={updateTemplate} promptDescription={promptDescription}>
                 <DescriptionModal

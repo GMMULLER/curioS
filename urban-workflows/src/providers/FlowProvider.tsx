@@ -71,8 +71,8 @@ interface FlowContextProps {
     updatePositionDashboard: (nodeId:string, position: any) => void;
     applyNewOutput: (output: IOutput) => void;
     setWorkflowName: (name: string) => void;
-    loadParsedTrill: (workflowName: string, node: any, edges: any, provenance?: boolean, merge?: boolean) => void;
-    eraseSuggestions: () => void;
+    loadParsedTrill: (workflowName: string, node: any, edges: any, provenance?: boolean, merge?: boolean, refreshTask?: boolean) => void;
+    eraseWorkflowSuggestions: () => void;
     acceptSuggestion: (nodeId: string) => void;
     flagBasedOnKeyword: (keywordIndex?: number) => void;
     updateDataNode: (nodeId: string, newData: any) => void;
@@ -82,6 +82,7 @@ interface FlowContextProps {
     updateSubtasks: (trill: any) => void;
     updateKeywords: (trill: any) => void;
     updateDefaultCode: (nodeId: string, content: string) => void;
+    updateWarnings: (trill_spec: any) => void;
 }
 
 export const FlowContext = createContext<FlowContextProps>({
@@ -110,7 +111,7 @@ export const FlowContext = createContext<FlowContextProps>({
     applyNewOutput: () => {},
     setWorkflowName: () => {},
     loadParsedTrill: async () => {},
-    eraseSuggestions: () => {},
+    eraseWorkflowSuggestions: () => {},
     acceptSuggestion: () => {},
     flagBasedOnKeyword: () => {},
     updateDataNode: () => {},
@@ -119,7 +120,8 @@ export const FlowContext = createContext<FlowContextProps>({
     setTriggerTaskRefresh: () => {},
     updateSubtasks: () => {},
     updateKeywords: () => {},
-    updateDefaultCode: () => {}
+    updateDefaultCode: () => {},
+    updateWarnings: () => {}
 });
 
 const FlowProvider = ({ children }: { children: ReactNode }) => {
@@ -185,7 +187,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
         });
     }
 
-    const loadParsedTrill = async (workflowName: string, loaded_nodes: any, loaded_edges: any, provenance?: boolean, merge?: boolean) => {
+    const loadParsedTrill = async (workflowName: string, loaded_nodes: any, loaded_edges: any, provenance?: boolean, merge?: boolean, refreshTask?: boolean) => {
 
         if(!merge){
             setWorkflowName(workflowName);
@@ -216,10 +218,11 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
             current_edges_ids.push(edge.id);
         }
 
-        setTriggerTaskRefresh(true);
+        if(refreshTask || refreshTask == undefined)
+            setTriggerTaskRefresh(true);
 
         setNodes((prevNodes: any) => { // Guarantee that previous nodes were added
-
+            
             for(const edge of loaded_edges){
                 if(!current_edges_ids.includes(edge.id)){ // if the edge already exist do not include it again
                     onConnect(edge, prevNodes, undefined, workflowName, provenance);
@@ -342,12 +345,42 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
 
     }
 
+    const updateWarnings = (trill_spec: any) => { // Given a trill specification update the nodes warnings
+
+        let node_to_warning: any = {};
+
+        if(trill_spec.dataflow != undefined){
+            for(const node of trill_spec.dataflow.nodes){
+                if(node.warnings != undefined){
+                    node_to_warning[node.id] = node.warnings;
+                }
+            }
+        }
+
+        setNodes(prevNodes => {
+
+            let newNodes = [];
+
+            for(const node of prevNodes){
+                let newNode = {...node};
+
+                if(node_to_warning[newNode.id] != undefined)
+                    newNode.data.warnings = node_to_warning[newNode.id]
+
+                newNodes.push(newNode);
+            }
+
+            return newNodes;
+        });
+
+    }
+
     const cleanCanvas = () => {
 
         let edgesWithProvenance = [];
 
         for(const edge of edges){
-            if((edge.data && !edge.data.suggestion) || !edge.data)
+            if((edge.data && !(edge.data.suggestionType != "none" && edge.data.suggestionType != undefined)) || !edge.data)
                 edgesWithProvenance.push(edge);
         }
 
@@ -356,7 +389,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
         setEdges(prevNodes => []);
 
         for(const node of nodes){
-            if((node.data && !node.data.suggestion) || !node.data) // not a suggestion have to erase provenance
+            if((node.data && !(node.data.suggestionType != "none" && node.data.suggestionType != undefined)) || !node.data) // not a suggestion have to erase provenance
                 deleteNode(node.id);
 
         }
@@ -373,14 +406,14 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
 
     }
 
-    // Go through all suggestions and flag the nodes that do not dependent on any other node
+    // Go through all suggestions and flag the nodes that do not dependent on any other node in workflow suggestions
     const flagAcceptableSuggestions = (nodes: any, edges: any) => {
         
         let dependOn = []; // all nodes that depend on some other node suggested node
         let suggestedNodes = []; // all ids of suggested nodes
 
         for(const node of nodes){
-            if(node.data.suggestion){
+            if(node.data.suggestionType == "workflow"){
                 suggestedNodes.push(node.id);
             }
         }
@@ -395,7 +428,10 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
         let nodesToUpdate = []; // Which nodes need to have their suggestionAcceptable flag flipped
 
         for(const node of nodes){
-            if(!dependOn.includes(node.id) && node.data.suggestion){ // It means that the node can be accepted as a suggestion
+            if(!dependOn.includes(node.id) && node.data.suggestionType == "workflow"){ // It means that the node can be accepted as a suggestion
+                if(!node.data.suggestionAcceptable) // Check if the flag needs to be flipped
+                    nodesToUpdate.push(node.id);
+            }else if(node.data.suggestionType == "connection"){ // Connection suggestions does not care about dependencies
                 if(!node.data.suggestionAcceptable) // Check if the flag needs to be flipped
                     nodesToUpdate.push(node.id);
             }else{
@@ -425,9 +461,14 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
 
     // Accept the suggestion for adding a specific node
     const acceptSuggestion = (nodeId: string) => {
+
+        setTriggerTaskRefresh(true);
+
         setNodes(prevNodes => {
             let newNodes = [];
             let suggestions = []; // ids of all suggestion nodes
+            let acceptedConnectionSuggestion = false; // if a connection suggestion is accepted all others are canceled
+            let acceptedConnectionSuggestionId = "";
 
             for(const node of prevNodes){
 
@@ -435,32 +476,48 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
 
                 if(newNode.id == nodeId){
                     newNode.data.suggestionAcceptable = false;
-                    newNode.data.suggestion = false;
+
+                    if(newNode.data.suggestionType == "connection"){
+                        acceptedConnectionSuggestion = true;
+                        acceptedConnectionSuggestionId = newNode.id;
+                    }
+
+                    newNode.data.suggestionType = "none";
+
                     newBox(workflowNameRef.current, (newNode.type as string) + "-" + newNode.id); // Provenance of the accepted suggestion
                 }
-
-                if(newNode.data.suggestion)
-                    suggestions.push(newNode.id);
 
                 newNodes.push(newNode);
             }
     
+            let filteredNewNodes = newNodes.filter((node) => { // if acceptedConnectionSuggestion remove the other connection suggestions
+                return !(node.data.suggestionType == "connection" && acceptedConnectionSuggestion)
+            }); 
+
+            for(const node of filteredNewNodes){
+                if(node.data.suggestionType != "none" && node.data.suggestionType != undefined) // it is a suggestion
+                    suggestions.push(node.id);
+            }
+
             setEdges(prevEdges => {
                 let newEdges = [];
 
                 for(const edge of prevEdges){
                     let newEdge = {...edge};
 
-                    if(!suggestions.includes(edge.source) && !suggestions.includes(edge.target)) // if the source and target of an edge is not suggestion, the edge is not suggestion anymore
-                        newEdge.data.suggestion = false;
+                    if(!(acceptedConnectionSuggestion && newEdge.data.suggestionType == "connection") || (acceptedConnectionSuggestionId == newEdge.source || acceptedConnectionSuggestionId == newEdge.target)){ // if a connection suggestion was accepted only maintain the edge that connects the suggestion
+                        if(!suggestions.includes(edge.source) && !suggestions.includes(edge.target)) // if the source and target of an edge is not suggestion, the edge is not suggestion anymore
+                            newEdge.data.suggestionType = "none";
+    
+                        newEdges.push(newEdge);
+                    }
 
-                    newEdges.push(newEdge);
                 }
 
                 return newEdges;
             })
 
-            return newNodes;
+            return filteredNewNodes;
         });
 
     }
@@ -504,13 +561,13 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
     }, [nodes, edges]);
 
     // Erase all nodes and edges that are suggestions if the use added a node or an edge
-    const eraseSuggestions = () => {
+    const eraseWorkflowSuggestions = () => {
         
         setEdges(prevEdges => {
             let newEdges = [];
 
             for(const edge of prevEdges){
-                if(!edge.data.suggestion){
+                if(edge.data.suggestionType != "workflow"){
                     newEdges.push({...edge});
                 }
             }
@@ -523,7 +580,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
                 let newNodes = [];
     
                 for(const node of prevNodes){
-                    if(!node.data.suggestion){
+                    if(node.data.suggestionType != "workflow"){
                         let copy_node = {...node};
                         copy_node.data.suggestionAcceptable = false; // The node is not a suggestion. Reseting the flag.
 
@@ -758,6 +815,8 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
     }
 
     const onEdgesDelete = useCallback((connections: Edge[]) => {
+
+        console.log("connections to delete", [...connections]);
 
         for(const connection of connections){
 
@@ -1206,7 +1265,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
                 applyNewOutput,
                 setWorkflowName,
                 loadParsedTrill,
-                eraseSuggestions,
+                eraseWorkflowSuggestions,
                 acceptSuggestion,
                 flagBasedOnKeyword,
                 updateDataNode,
@@ -1215,6 +1274,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
                 setTriggerTaskRefresh,
                 updateSubtasks,
                 updateKeywords,
+                updateWarnings,
                 updateDefaultCode
             }}
         >

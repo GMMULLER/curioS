@@ -165,7 +165,7 @@ function BoxEditor({
                     width: "95%",
                     marginLeft: "auto",
                     marginRight: "auto",
-                }, ...(data.suggestion ? {pointerEvents: "none"} : {})}}
+                }, ...((data.suggestionType != "none" && data.suggestionType != undefined) ? {pointerEvents: "none"} : {})}}
             >
                 <Tab.Container activeKey={activeTab} onSelect={handleTabSelect}>
                     <Row style={{ height: "100%"}}>
@@ -376,7 +376,7 @@ function BoxEditor({
                     zIndex: 11,
                     top: "12px",
                     left: "30px",
-                    ...(data.suggestion ? {pointerEvents: "none"} : {}),
+                    ...((data.suggestionType != "none" && data.suggestionType != undefined) ? {pointerEvents: "none"} : {}),
                     ...(data.keywordHighlighted ? {color: "white"} : {color: "#888787"})
                 }}
                 onClick={() => {

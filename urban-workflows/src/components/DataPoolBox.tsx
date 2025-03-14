@@ -653,21 +653,21 @@ function DataPoolBox({ data, isConnectable }) {
                 type="target"
                 position={Position.Left}
                 id="in"
-                isConnectable={isConnectable && !data.suggestion}
+                isConnectable={isConnectable && (data.suggestionType == undefined || data.suggestionType == "none")}
             />
             {/* Data going to the next node (replication of incoming data) */}
             <Handle
                 type="source"
                 position={Position.Right}
                 id="out"
-                isConnectable={isConnectable && !data.suggestion}
+                isConnectable={isConnectable && (data.suggestionType == undefined || data.suggestionType == "none")}
             />
             {/* Used to connect visualizations. Data flows in both ways */}
             <Handle
                 type="source"
                 position={Position.Top}
                 id="in/out"
-                isConnectable={isConnectable && !data.suggestion}
+                isConnectable={isConnectable && (data.suggestionType == undefined || data.suggestionType == "none")}
             />
     
         <BoxContainer nodeId={data.nodeId} data={data} handleType={"in/out"} templateData={templateData} setOutputCallback={setOutput} promptDescription={promptDescription} >

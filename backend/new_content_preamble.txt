@@ -162,12 +162,18 @@ To pass data forward from a node controllable through python code it is necessar
     return variable1
 ```
 
-To use incoming data in a node controllable through python code you need to access it via a variable called arg, which is a list (or a single value) where each position contains the output of one of the connected nodes:
+To use incoming data in a node controllable through python code you need to access it via a variable called 'arg'. If the previous node is a merge node or the previous box outputs a tuple, 'arg' will be a list that can be indexed like: 
 
 ```python
     combining_previous_inputs = arg[0] + arg[1]
 
     return combining_previous_inputs
+```
+
+But if the previous node outputs a single data like, but not limited to, a dataframe or number or text, 'arg' will contain that value not a indexable list.
+
+```python
+    return arg
 ```
 
 Every data recieved from a node controllable through grammar is automatically passed foward to its output connection. 
@@ -182,6 +188,17 @@ To use incoming data in a node controllable through grammar the node has to rece
 
     return df
 ```
+
+When generating the grammar for Vega-Lite do not include the data field. It will be populated automatically based on the dataframe of the previous node. For example we can connect the previous dataframe into this Vega-Lite grammar:
+
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "mark": "bar",
+  "encoding": {
+    "x": {"field": "a", "type": "nominal", "axis": {"labelAngle": 0}},
+    "y": {"field": "b", "type": "quantitative"}
+  }
+}
 
 Visualization nodes 
 

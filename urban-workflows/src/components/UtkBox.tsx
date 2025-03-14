@@ -762,20 +762,20 @@ function UtkBox({ data, isConnectable }) {
         type="target"
         position={Position.Left}
         id="in"
-        isConnectable={isConnectable && !data.suggestion}
+        isConnectable={isConnectable && !(data.suggestionType != "none" && data.suggestionType != undefined)}
       />
       <Handle
         type="source"
         position={Position.Right}
         id="out"
-        isConnectable={isConnectable && !data.suggestion}
+        isConnectable={isConnectable && !(data.suggestionType != "none" && data.suggestionType != undefined)}
       />
       {/* Data flows in both ways */}
       <Handle
         type="source"
         position={Position.Top}
         id="in/out"
-        isConnectable={isConnectable && !data.suggestion}
+        isConnectable={isConnectable && !(data.suggestionType != "none" && data.suggestionType != undefined)}
       />
       <BoxContainer
         nodeId={data.nodeId}

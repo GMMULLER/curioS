@@ -7,7 +7,7 @@ import { useCode } from "../../hook/useCode";
 
 export function WorkflowGoal({ }: { }) {
     const { openAIRequest } = useLLMContext();
-    const { nodes, edges, workflowNameRef, suggestionsLeft, workflowGoal, triggerTaskRefresh, updateSubtasks, setTriggerTaskRefresh, setWorkflowGoal, eraseSuggestions, flagBasedOnKeyword, cleanCanvas, triggerSuggestionsGeneration, updateKeywords, setTriggerSuggestionsGeneration } = useFlowContext();
+    const { nodes, edges, workflowNameRef, suggestionsLeft, workflowGoal, triggerTaskRefresh, updateWarnings, updateSubtasks, setTriggerTaskRefresh, setWorkflowGoal, eraseWorkflowSuggestions, flagBasedOnKeyword, cleanCanvas, triggerSuggestionsGeneration, updateKeywords, setTriggerSuggestionsGeneration } = useFlowContext();
     const { loadTrill } = useCode();
     const [isEditing, setIsEditing] = useState(false);
     const [segments, setSegments] = useState<any>([]);
@@ -53,7 +53,7 @@ export function WorkflowGoal({ }: { }) {
                 let parsed_result = JSON.parse(clean_result);
                 parsed_result.dataflow.name = workflowNameRef.current;
     
-                loadTrill(parsed_result, true);
+                loadTrill(parsed_result, "workflow");
             } catch (error) {
                 console.error("Error communicating with LLM", error);
                 alert("Error communicating with LLM");
@@ -117,7 +117,7 @@ export function WorkflowGoal({ }: { }) {
     }, [highlights]) 
 
     const cancelSuggestions = () => {
-        eraseSuggestions();
+        eraseWorkflowSuggestions();
     }
 
     const parseKeywords = async (goal: string) => {
@@ -128,7 +128,7 @@ export function WorkflowGoal({ }: { }) {
 
             let result = await openAIRequest("syntax_analysis_preamble", goal);
 
-            console.log("result", result);
+            console.log("parseKeywords result", result);
 
             let highlights = JSON.parse(result.result);
 
@@ -158,14 +158,12 @@ export function WorkflowGoal({ }: { }) {
     // Based on the current state of the workflow generates a new task that better reflects what is being done by the user
     const refreshTask = async (current_task: string, current_keywords: any) => {
 
-        console.log("refreshTask", current_task, current_keywords);
-
         try {
             let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowNameRef.current);
 
             let result = await openAIRequest("task_refresh_preamble", "Current Task: " + current_task + "\n" + " Current keywords: " + JSON.stringify(current_keywords) + "\n" + "Trill specification: " + JSON.stringify(trill_spec));
 
-            console.log("result", result);
+            console.log("refreshTask result", result);
 
             setWorkflowGoal(result.result);
 
@@ -215,10 +213,35 @@ export function WorkflowGoal({ }: { }) {
         parseKeywords(workflowGoal);
     }, [workflowGoal])
 
+    const generateWarnings = async (goal: string, nodes: any, edges: any, workflowNameRef: any) => {
+        try{
+
+            let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowNameRef.current);
+
+            console.log("trill_spec", trill_spec);
+
+            let result_warnings = await openAIRequest("evaluate_coherence_subtasks_preamble", "Task: " + goal + " \n Current Trill: " + JSON.stringify(trill_spec));
+
+            console.log("warnings result", result_warnings);
+
+            let clean_result_warnings = result_warnings.result.replaceAll("```json", "").replaceAll("```python", "");
+            clean_result_warnings = clean_result_warnings.replaceAll("```", "");
+
+            let parsed_result_warnings = JSON.parse(clean_result_warnings);
+
+            updateWarnings(parsed_result_warnings);
+
+        }catch(error){
+            console.error("Error communicating with LLM", error);
+            alert("Error communicating with LLM");
+        }
+    }
+
     useEffect(() => { // If nodes changed it might mean that their subtask changed and we need to refresh the task
         if(triggerTaskRefresh){
             setTriggerTaskRefresh(false);
             refreshTask(workflowGoal, highlights);
+            generateWarnings(workflowGoal, nodes, edges, workflowNameRef);
         }
     }, [nodes]);
 

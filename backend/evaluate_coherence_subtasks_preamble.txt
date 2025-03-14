@@ -162,12 +162,18 @@ To pass data forward from a node controllable through python code it is necessar
     return variable1
 ```
 
-To use incoming data in a node controllable through python code you need to access it via a variable called arg, which is a list (or a single value) where each position contains the output of one of the connected nodes:
+To use incoming data in a node controllable through python code you need to access it via a variable called 'arg'. If the previous node is a merge node or the previous box outputs a tuple, 'arg' will be a list that can be indexed like: 
 
 ```python
     combining_previous_inputs = arg[0] + arg[1]
 
     return combining_previous_inputs
+```
+
+But if the previous node outputs a single data like, but not limited to, a dataframe or number or text, 'arg' will contain that value not a indexable list.
+
+```python
+    return arg
 ```
 
 Every data recieved from a node controllable through grammar is automatically passed foward to its output connection. 
@@ -182,6 +188,17 @@ To use incoming data in a node controllable through grammar the node has to rece
 
     return df
 ```
+
+When generating the grammar for Vega-Lite do not include the data field. It will be populated automatically based on the dataframe of the previous node. For example we can connect the previous dataframe into this Vega-Lite grammar:
+
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "mark": "bar",
+  "encoding": {
+    "x": {"field": "a", "type": "nominal", "axis": {"labelAngle": 0}},
+    "y": {"field": "b", "type": "quantitative"}
+  }
+}
 
 Visualization nodes 
 
@@ -324,7 +341,7 @@ An example of a dataflow:
     }
 }
 
-To create his dataflow the user defined a set of subtasks that are put together to form a bigger task that describe the purpose of the dataflow. Your job is, given the defined subtasks and how they are attached to components of the dataflow (in the Trill specification they will appear as "goal" on nodes) generate, if needed, warnings that should be attached to the Trill specification in a "warnings" field on the nodes. For example:
+To create his dataflow the user defined a set of subtasks that are put together to form a bigger task that describe the purpose of the dataflow. Your job is, given the task and defined subtasks and how they are attached to components of the dataflow (in the Trill specification they will appear as 'goal' on nodes) generate, if needed, warnings that should be attached to the Trill specification in a 'warnings' field on the nodes. Each warning should have maximum of 50 characters. Feel free to word it in a way that is tailored to the user dataflow. For example:
 
 {
     "dataflow": {
@@ -447,4 +464,4 @@ Your warnings should contribute to a more coherent dataflow. Keep your warnings 
 - Lack of supporting nodes. A subtask that does is not correctly supported by previous boxes. For example: trying to do analysis on data that was not loaded.
 - Underspecified subtask. Not enough details to implement it.
 
-**ONLY OUTPUT THE DATAFLOW IN TRILL WITH THE WARNINGS LISTED AS ARRAYS IN EACH NODE. DO NOT OUTPUT ANY OTHER TEXT.**
+**ONLY OUTPUT THE DATAFLOW IN TRILL WITH THE WARNINGS LISTED AS ARRAYS IN EACH NODE. DO NOT OUTPUT ANY OTHER TEXT. DO NOT OUTPUT THE EXAMPLE. IF YOU RECEIVE AN EMPTY TRILL JUST OUTPUT AN EMPTY TRILL. THIS IS CRUCIAL: DO NOT GENERATE NODES OR EDGES THAT WERE NOT PRESENT IN THE TRILL YOU RECEIVED. DO NOT GENERATE NEW NODES OR EDGES BASED ON THE TASK. THE ONLY FIELD YOU ARE ALLOWED TO CHANGE IS THE 'warning' **

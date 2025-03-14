@@ -97,7 +97,7 @@ function DataExportBox({ data, isConnectable }) {
         type="target"
         position={Position.Left}
         id="in"
-        isConnectable={isConnectable && !data.suggestion}
+        isConnectable={isConnectable && (data.suggestionType == undefined || data.suggestionType == "none")}
       />
       <BoxContainer
         nodeId={data.nodeId}

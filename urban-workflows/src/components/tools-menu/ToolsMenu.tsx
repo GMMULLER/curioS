@@ -32,7 +32,7 @@ import { useFlowContext } from "../../providers/FlowProvider";
 export function ToolsMenu() {
     const { createCodeNode } = useCode();
     const { getTemplates, deleteTemplate } = useTemplateContext();
-    const { eraseSuggestions } = useFlowContext();
+    const { eraseWorkflowSuggestions } = useFlowContext();
 
     const { user } = useUserContext();
 
