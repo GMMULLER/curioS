@@ -1,14 +1,89 @@
-import { BoxType } from "./constants";
 
 export class TrillGenerator {
 
-    static generateTrill(nodes: any, edges: any, name: string){
+    static provenanceJSON: any = {
+        id: "",
+        nodes: [],
+        edges: []
+    };
+
+    static latestTrill: string = "";
+
+    static list_of_trills: any = {}; // [workflowName_timestamp] -> trill_spec
+
+    static intializeProvenance(trill_spec: any){
+        // TODO: look for a provenance JSON for the workflow. If it does not exist initialize it. If it exists load the meta and trill versions to memory (ideally they should be on the database)
+        // TODO: for now assuming that the user is never loading a trill or provenanceJSON.
+
+        let workflowName = trill_spec.dataflow.name;
+
+        let now_timestamp = Date.now();
+
+        trill_spec.dataflow.name = workflowName+"_"+now_timestamp;
+        this.latestTrill = workflowName+"_"+now_timestamp; // TODO: this should change if loading external trill or provenanceJSON.
+        this.list_of_trills[workflowName+"_"+now_timestamp] = trill_spec; // TODO: this should change if loading external trill or provenanceJSON.
+
+        this.provenanceJSON.id = "meta_"+workflowName;
+        this.provenanceJSON.nodes.push({
+            id: workflowName+"_"+now_timestamp,
+            label: workflowName+"_"+now_timestamp,
+            timestamp: now_timestamp
+        });
+    }
+
+    static addNewVersionProvenance(nodes: any, edges: any, name: string, task: string, change: string){
+
+        let new_trill = this.generateTrill(nodes, edges, name, task);
+        
+        let now_timestamp = Date.now();
+        new_trill.dataflow.name = name+"_"+now_timestamp;
+
+        this.provenanceJSON.nodes.push({
+            id: name+"_"+now_timestamp,
+            label: name+"_"+now_timestamp,
+            timestamp: now_timestamp
+        });        
+
+        this.list_of_trills[name+"_"+now_timestamp] = new_trill;
+
+        if(this.latestTrill){ // If there is a previous trill from which this one was derived add an edge connecting both
+            this.provenanceJSON.edges.push({        
+                id: this.latestTrill+"_to_"+name+"_"+now_timestamp,
+                source: this.latestTrill,
+                target: name+"_"+now_timestamp,
+                change: change
+            })
+        }
+
+        this.latestTrill = name+"_"+now_timestamp;
+
+    }
+
+    static switchProvenanceTrill(name: string, loadTrillFunction: any){
+
+        try{
+
+            if(this.list_of_trills[name] == undefined)
+                throw new Error("Non existant trill: "+name);
+
+            this.latestTrill = name;
+            loadTrillFunction(this.list_of_trills[name]);
+
+        }catch(error){
+            console.error("Error switching provenance:", error);
+        }
+
+
+    }
+
+    static generateTrill(nodes: any, edges: any, name: string, task: string){
     
         let trill = {
             dataflow: {
                 nodes: [] as any,
                 edges: [] as any,
-                name: name
+                name: name,
+                task
             }
         }
 

@@ -122,13 +122,17 @@ Act like an assistant for users of a system for building visual analytics datafl
           },
           "name": {
             "type": "string"
+          },
+          "task": {
+            "type": "string"
           }
         },
-        "required": ["nodes", "edges", "name"]
+        "required": ["nodes", "edges", "name", "task"]
       }
     },
     "required": ["dataflow"]
   }
+  
 
 Nodes in these dataflows either process data or visualize it. Each type of node has a different role.
 

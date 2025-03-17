@@ -125,7 +125,7 @@ export function MainCanvas() {
     const edgeTypes = useMemo(() => objectEdgeTypes, []);
 
     const reactFlow = useReactFlow();
-    const { setDashBoardMode, updatePositionWorkflow, updatePositionDashboard, setTriggerTaskRefresh, workflowNameRef } = useFlowContext();
+    const { setDashBoardMode, updatePositionWorkflow, updatePositionDashboard, setTriggerTaskRefresh, workflowNameRef, workflowGoal } = useFlowContext();
 
     const [selectedEdgeId, setSelectedEdgeId] = useState<string>(""); // can only remove selected edges
     
@@ -162,7 +162,7 @@ export function MainCanvas() {
         // Take a screenshot for the explanation
         let image_url = await captureScreenshot();
 
-        let trill_spec = TrillGenerator.generateTrill(selectedComponents.nodes, selectedComponents.edges, workflowNameRef.current);
+        let trill_spec = TrillGenerator.generateTrill(selectedComponents.nodes, selectedComponents.edges, workflowNameRef.current, workflowGoal);
 
         let text = JSON.stringify(trill_spec) + "\n\n" + "Your task as an assistant is to textually explain, in an high school level, what this dataflow is doing. Include a lot of details and separate the explanation by node and explaining the flow of the data between nodes. Explain what the code in each node does, what is being visualized, what is the purpose of each node and what is the format of the data that is being passed forward. But do not include specific information about the trill structure like node or edge numeric ids. **DO NOT PROVIDE EXPLANATIONS FOR THE EXAMPLE DATAFLOW. ALWAYS PRODUCE EXPLANATIONS FOR THE LAST DATAFLOW PROVIDED EVEN IF IT IS EMPTY**"
 
@@ -191,7 +191,7 @@ export function MainCanvas() {
         // Take a screenshot for the debugging
         let image_url = await captureScreenshot();
 
-        let trill_spec = TrillGenerator.generateTrill(selectedComponents.nodes, selectedComponents.edges, workflowNameRef.current);
+        let trill_spec = TrillGenerator.generateTrill(selectedComponents.nodes, selectedComponents.edges, workflowNameRef.current, workflowGoal);
 
         let text = JSON.stringify(trill_spec) + "\n\n" + "Your task as an assistant is to textually debug, in an high school level, this dataflow. If errors are present help the users explain how they can be fixed (**DO NOT MENTION ANY PATH OR FILE NAME IN YOUR EXPLANATION**). If no errors are present but certain practices might not yield the expected results also cite them. Provide general opportunities for improvements of the dataflow. Analyze the of each node, edges connections, and box types used. Do not include specific information about the trill structure like node or edge numeric ids (that is transparent to the user). **DO NOT PROVIDE EXPLANATIONS FOR THE EXAMPLE DATAFLOW. ALWAYS PRODUCE EXPLANATIONS FOR THE LAST DATAFLOW PROVIDED EVEN IF IT IS EMPTY**"
 

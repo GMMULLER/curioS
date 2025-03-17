@@ -120,9 +120,12 @@
           },
           "name": {
             "type": "string"
+          },
+          "task": {
+            "type": "string"
           }
         },
-        "required": ["nodes", "edges", "name"]
+        "required": ["nodes", "edges", "name", "task"]
       }
     },
     "required": ["dataflow"]

@@ -5,13 +5,24 @@ import './UpMenu.css';
 import { TrillGenerator } from "../../TrillGenerator";
 import { useFlowContext } from "../../providers/FlowProvider";
 import { useCode } from "../../hook/useCode";
+import TrillProvenanceWindow from "./TrillProvenanceWindow";
 
 export function UpMenu({ setDashBoardMode, setDashboardOn, dashboardOn }: { setDashBoardMode: (mode: boolean) => void; setDashboardOn: (mode: boolean) => void; dashboardOn: boolean }) {
     const [isEditing, setIsEditing] = useState(false);
     const [fileMenuOpen, setFileMenuOpen] = useState(false);
-    const { nodes, edges, workflowNameRef, setWorkflowName } = useFlowContext();
+    const [trillProvenanceOpen, setTrillProvenanceOpen] = useState(false);
+
+    const { nodes, edges, workflowNameRef, setWorkflowName, workflowGoal } = useFlowContext();
     const { loadTrill } = useCode();
 
+    const closeTrillProvenanceModal = () => {
+        setTrillProvenanceOpen(false);
+    }
+
+    const openTrillProvenanceModal = () => {
+        setTrillProvenanceOpen(true);
+    }
+    
     const handleNameChange = (e: any) => {
         setWorkflowName(e.target.value);
     };
@@ -27,7 +38,7 @@ export function UpMenu({ setDashBoardMode, setDashboardOn, dashboardOn }: { setD
     };
 
     const exportTrill = (e:any) => {
-        let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowNameRef.current);
+        let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowNameRef.current, workflowGoal);
         
         const jsonString = JSON.stringify(trill_spec, null, 2);
 
@@ -102,6 +113,7 @@ export function UpMenu({ setDashBoardMode, setDashboardOn, dashboardOn }: { setD
                 </div>
                 <FileUpload style={button} />
                 <button style={{...button, ...(dashboardOn ? {boxShadow: "0px 0px 5px 0px red"} : {boxShadow: "0px 0px 5px 0px black"})}} onClick={() => {setDashBoardMode(!dashboardOn); setDashboardOn(!dashboardOn);}}>Dashboard Mode</button>
+                <button style={{...button}} onClick={openTrillProvenanceModal}>Trill Provenance</button>
             </div>
             {/* Editable Workflow Name */}
             <div style={workflowNameContainer}>
@@ -124,7 +136,12 @@ export function UpMenu({ setDashBoardMode, setDashboardOn, dashboardOn }: { setD
                     </h1>
                 )}
             </div>
-
+            {/* Trill Provenance Modal */}
+            <TrillProvenanceWindow 
+                open={trillProvenanceOpen}
+                closeModal={closeTrillProvenanceModal}
+                workflowName={workflowNameRef.current}
+            />
         </>
 
     );

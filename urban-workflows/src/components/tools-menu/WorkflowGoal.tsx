@@ -39,7 +39,7 @@ export function WorkflowGoal({ }: { }) {
 
             cleanCanvas();
 
-            let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowNameRef.current);
+            let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowNameRef.current, workflowGoal);
     
             try {
     
@@ -63,8 +63,8 @@ export function WorkflowGoal({ }: { }) {
         }
     }
 
-    const getNewHighlightsBinding = async (nodes: any, edges:any, workflowName: string, current_keywords: any) => {
-        let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowName);
+    const getNewHighlightsBinding = async (nodes: any, edges:any, workflowName: string, workflowGoal: string, current_keywords: any) => {
+        let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowName, workflowGoal);
 
         let copy_trill = {...trill_spec};
 
@@ -87,7 +87,7 @@ export function WorkflowGoal({ }: { }) {
         try {
             let result = await openAIRequest("keywords_binding_preamble", " Current keywords: " + JSON.stringify(current_keywords) + "\n" + "Trill specification: " + JSON.stringify(trill_spec));
 
-            console.log("getNewHighlightsBinding result", result);
+            console.log("getNewHighlightsBinding result", result, workflowGoal);
 
             let clean_result = result.result.replaceAll("```json", "");
             clean_result = clean_result.replaceAll("```", "");
@@ -111,7 +111,7 @@ export function WorkflowGoal({ }: { }) {
             generateSuggestion(highlights, true); // Also update keywords on the nodes and edges
             setTriggerSuggestionsGeneration(false);
         }else{
-            getNewHighlightsBinding(nodes, edges, workflowNameRef.current, highlights)
+            getNewHighlightsBinding(nodes, edges, workflowNameRef.current, highlights, workflowGoal)
         }
 
     }, [highlights]) 
@@ -159,13 +159,15 @@ export function WorkflowGoal({ }: { }) {
     const refreshTask = async (current_task: string, current_keywords: any) => {
 
         try {
-            let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowNameRef.current);
+            let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowNameRef.current, workflowGoal);
 
             let result = await openAIRequest("task_refresh_preamble", "Current Task: " + current_task + "\n" + " Current keywords: " + JSON.stringify(current_keywords) + "\n" + "Trill specification: " + JSON.stringify(trill_spec));
 
             console.log("refreshTask result", result);
 
             setWorkflowGoal(result.result);
+
+            TrillGenerator.addNewVersionProvenance(nodes, edges, workflowNameRef.current, result.result, "Subtask modification resulted in a new Task");
 
         } catch (error) {
             console.error("Error communicating with LLM", error);
@@ -189,16 +191,18 @@ export function WorkflowGoal({ }: { }) {
 
     const getNewSubtasks = async (current_task: string) => { // Based on the changes that the user made on the task reflect it to the subtasks
 
-        console.log("current_task", current_task);
-
         try {
-            let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowNameRef.current);
+            let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowNameRef.current, workflowGoal);
 
             let result = await openAIRequest("new_subtasks_preamble", "Current Task: " + current_task + "\n" + "Trill specification: " + JSON.stringify(trill_spec));
 
             console.log("result", result);
 
-            updateSubtasks(trill_spec);
+            const generateNewVersionTrillProvenance = (newNodes: any) => {
+                TrillGenerator.addNewVersionProvenance(newNodes, edges, workflowNameRef.current, workflowGoal, "Directly editing Task");
+            }
+
+            updateSubtasks(trill_spec, generateNewVersionTrillProvenance);
 
         } catch (error) {
             console.error("Error communicating with LLM", error);
@@ -216,7 +220,7 @@ export function WorkflowGoal({ }: { }) {
     const generateWarnings = async (goal: string, nodes: any, edges: any, workflowNameRef: any) => {
         try{
 
-            let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowNameRef.current);
+            let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowNameRef.current, workflowGoal);
 
             console.log("trill_spec", trill_spec);
 

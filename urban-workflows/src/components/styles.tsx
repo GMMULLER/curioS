@@ -316,7 +316,7 @@ export const BoxContainer = ({
 
     const generateConnectionSuggestions = async (nodes: any, edges: any, workflowNameRef: any, workflowGoal: string, inOrOut: string) => {
 
-        let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowNameRef.current);
+        let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowNameRef.current, workflowGoal);
 
         try {
     
@@ -362,7 +362,7 @@ export const BoxContainer = ({
     
         if(isConfirmed){
 
-            let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowNameRef.current);
+            let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowNameRef.current, workflowGoal);
 
             try {
 
@@ -379,7 +379,11 @@ export const BoxContainer = ({
 
                 console.log("generateContentNode result", clean_result);
     
-                updateDefaultCode(nodeId, clean_result);
+                const updateTrillProvenance = (newNodes: any) => {
+                    TrillGenerator.addNewVersionProvenance(newNodes, edges, workflowNameRef.current, workflowGoal, "LLM generated content for node "+nodeId)
+                }
+
+                updateDefaultCode(nodeId, clean_result, updateTrillProvenance);
 
             } catch (error) {
                 console.error("Error communicating with LLM", error);

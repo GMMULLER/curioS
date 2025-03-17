@@ -26,6 +26,7 @@ import { ConnectionValidator } from "../ConnectionValidator";
 import { BoxType, EdgeType, VisInteractionType } from "../constants";
 import { useProvenanceContext } from "./ProvenanceProvider";
 import { useCode } from "../hook/useCode";
+import { TrillGenerator } from "../TrillGenerator";
 
 export interface IOutput {
     nodeId: string;
@@ -79,9 +80,9 @@ interface FlowContextProps {
     cleanCanvas: () => void;
     setTriggerSuggestionsGeneration: (value: boolean) => void;
     setTriggerTaskRefresh: (value: boolean) => void;
-    updateSubtasks: (trill: any) => void;
+    updateSubtasks: (trill: any, callback?: any) => void;
     updateKeywords: (trill: any) => void;
-    updateDefaultCode: (nodeId: string, content: string) => void;
+    updateDefaultCode: (nodeId: string, content: string, callback?: any) => void;
     updateWarnings: (trill_spec: any) => void;
 }
 
@@ -161,10 +162,10 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
         _setWorkflowName(data);
     };
 
-    // const { createCodeNode } = useCode();
-
     useEffect(() => {
         addWorkflow(workflowNameRef.current);
+        let empty_trill = TrillGenerator.generateTrill([], [], workflowNameRef.current, workflowGoal);
+        TrillGenerator.intializeProvenance(empty_trill);
     }, [])
 
     const updateDataNode = (nodeId: string, newData: any) => {
@@ -243,7 +244,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
         // TODO: Unset dashboardMode (setDashBoardMode)
     }
 
-    const updateDefaultCode = (nodeId: string, content: string) => {
+    const updateDefaultCode = (nodeId: string, content: string, callback?: any) => {
         setNodes(prevNodes => {
 
             let newNodes = [];
@@ -257,6 +258,9 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
 
                 newNodes.push(newNode);
             }
+
+            if(callback != undefined)
+                callback(newNodes);
 
             return newNodes;
         });
@@ -315,7 +319,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
 
     }
 
-    const updateSubtasks = (trill_spec: any) => { // Given a trill specification update the nodes subtasks
+    const updateSubtasks = (trill_spec: any, callback?: any) => { // Given a trill specification update the nodes subtasks
        
         let node_to_goal: any = {};
 
@@ -339,6 +343,9 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
 
                 newNodes.push(newNode);
             }
+
+            if(callback)
+                callback(newNodes);
 
             return newNodes;
         });

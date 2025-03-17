@@ -122,13 +122,17 @@ Act like an assistant for users of a system for building visual analytics datafl
           },
           "name": {
             "type": "string"
+          },
+          "task": {
+            "type": "string"
           }
         },
-        "required": ["nodes", "edges", "name"]
+        "required": ["nodes", "edges", "name", "task"]
       }
     },
     "required": ["dataflow"]
   }
+  
   
   
 

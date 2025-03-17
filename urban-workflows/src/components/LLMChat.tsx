@@ -8,10 +8,11 @@ import {
     faBroom
 } from "@fortawesome/free-solid-svg-icons";
 import ReactMarkdown from "react-markdown";
+import { TrillGenerator } from "../TrillGenerator";
 
 const ChatComponent = () => {
     const { openAIRequest } = useLLMContext();
-    const { setWorkflowGoal, cleanCanvas, setTriggerSuggestionsGeneration } = useFlowContext();
+    const { setWorkflowGoal, cleanCanvas, setTriggerSuggestionsGeneration, workflowNameRef } = useFlowContext();
     const [messages, setMessages] = useState<{ role: string; text: string }[]>([]);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
@@ -70,6 +71,7 @@ const ChatComponent = () => {
             cleanCanvas();
             setTriggerSuggestionsGeneration(true); // Generate suggestions automatically
             setWorkflowGoal(checkForGoal(task) as string);
+            TrillGenerator.addNewVersionProvenance([], [], workflowNameRef.current, checkForGoal(task) as string, "New Task from chat");
         }
 
     }
