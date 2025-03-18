@@ -23,10 +23,10 @@ import {
     NodeRemoveChange
 } from "reactflow";
 import { ConnectionValidator } from "../ConnectionValidator";
-import { BoxType, EdgeType, VisInteractionType } from "../constants";
+import { BoxType, EdgeType, LLMEvents, LLMEventStatus } from "../constants";
 import { useProvenanceContext } from "./ProvenanceProvider";
-import { useCode } from "../hook/useCode";
 import { TrillGenerator } from "../TrillGenerator";
+import { useLLMContext } from "./LLMProvider";
 
 export interface IOutput {
     nodeId: string;
@@ -53,8 +53,6 @@ interface FlowContextProps {
     workflowNameRef: React.MutableRefObject<string>;
     suggestionsLeft: number;
     workflowGoal: string;
-    triggerSuggestionsGeneration: boolean;
-    triggerTaskRefresh: boolean;
     setWorkflowGoal: (goal: string) => void;
     setOutputs: (updateFn: (outputs: IOutput[]) => IOutput[]) => void;
     setInteractions: (updateFn: (interactions: IInteraction[]) => IInteraction[]) => void;
@@ -72,17 +70,15 @@ interface FlowContextProps {
     updatePositionDashboard: (nodeId:string, position: any) => void;
     applyNewOutput: (output: IOutput) => void;
     setWorkflowName: (name: string) => void;
-    loadParsedTrill: (workflowName: string, node: any, edges: any, provenance?: boolean, merge?: boolean, refreshTask?: boolean) => void;
+    loadParsedTrill: (workflowName: string, node: any, edges: any, provenance?: boolean, merge?: boolean) => void;
     eraseWorkflowSuggestions: () => void;
     acceptSuggestion: (nodeId: string) => void;
     flagBasedOnKeyword: (keywordIndex?: number) => void;
     updateDataNode: (nodeId: string, newData: any) => void;
     cleanCanvas: () => void;
-    setTriggerSuggestionsGeneration: (value: boolean) => void;
-    setTriggerTaskRefresh: (value: boolean) => void;
-    updateSubtasks: (trill: any, callback?: any) => void;
+    updateSubtasks: (trill: any) => void;
     updateKeywords: (trill: any) => void;
-    updateDefaultCode: (nodeId: string, content: string, callback?: any) => void;
+    updateDefaultCode: (nodeId: string, content: string) => void;
     updateWarnings: (trill_spec: any) => void;
 }
 
@@ -92,8 +88,6 @@ export const FlowContext = createContext<FlowContextProps>({
     workflowNameRef: { current: "" },
     suggestionsLeft: 0,
     workflowGoal: "",
-    triggerSuggestionsGeneration: false,
-    triggerTaskRefresh: false,
     setWorkflowGoal: () => {},
     setOutputs: () => { },
     setInteractions: () => {},
@@ -117,8 +111,6 @@ export const FlowContext = createContext<FlowContextProps>({
     flagBasedOnKeyword: () => {},
     updateDataNode: () => {},
     cleanCanvas: () => {},
-    setTriggerSuggestionsGeneration: () => {},
-    setTriggerTaskRefresh: () => {},
     updateSubtasks: () => {},
     updateKeywords: () => {},
     updateDefaultCode: () => {},
@@ -132,9 +124,8 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
     const [interactions, setInteractions] = useState<IInteraction[]>([]);
     const [dashboardPins, setDashboardPins] = useState<any>({}); // {[nodeId] -> boolean}
     const [suggestionsLeft, setSuggestionsLeft] = useState<number>(0); // Number of suggestions left
-    const [workflowGoal, setWorkflowGoal] = useState("Load 311 request data from a CSV file, analyze trends in the number of requests over time, categorize requests by type to identify common issues, and visualize the findings using a line chart for trends, a bar chart for request types, and a geographic map for request locations.");
-    const [triggerSuggestionsGeneration, setTriggerSuggestionsGeneration] = useState(false);
-    const [triggerTaskRefresh, setTriggerTaskRefresh] = useState(false);
+    // const [workflowGoal, setWorkflowGoal] = useState("Load 311 request data from a CSV file, analyze trends in the number of requests over time, categorize requests by type to identify common issues, and visualize the findings using a line chart for trends, a bar chart for request types, and a geographic map for request locations.");
+    const [workflowGoal, setWorkflowGoal] = useState("");
 
     const [positionsInDashboard, _setPositionsInDashboard] = useState<any>({}); // [nodeId] -> change
     const positionsInDashboardRef = useRef(positionsInDashboard);
@@ -188,7 +179,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
         });
     }
 
-    const loadParsedTrill = async (workflowName: string, loaded_nodes: any, loaded_edges: any, provenance?: boolean, merge?: boolean, refreshTask?: boolean) => {
+    const loadParsedTrill = async (workflowName: string, loaded_nodes: any, loaded_edges: any, provenance?: boolean, merge?: boolean) => {
 
         if(!merge){
             setWorkflowName(workflowName);
@@ -219,9 +210,6 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
             current_edges_ids.push(edge.id);
         }
 
-        if(refreshTask || refreshTask == undefined)
-            setTriggerTaskRefresh(true);
-
         setNodes((prevNodes: any) => { // Guarantee that previous nodes were added
             
             for(const edge of loaded_edges){
@@ -244,7 +232,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
         // TODO: Unset dashboardMode (setDashBoardMode)
     }
 
-    const updateDefaultCode = (nodeId: string, content: string, callback?: any) => {
+    const updateDefaultCode = (nodeId: string, content: string) => {
         setNodes(prevNodes => {
 
             let newNodes = [];
@@ -258,9 +246,6 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
 
                 newNodes.push(newNode);
             }
-
-            if(callback != undefined)
-                callback(newNodes);
 
             return newNodes;
         });
@@ -319,7 +304,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
 
     }
 
-    const updateSubtasks = (trill_spec: any, callback?: any) => { // Given a trill specification update the nodes subtasks
+    const updateSubtasks = (trill_spec: any) => { // Given a trill specification update the nodes subtasks
        
         let node_to_goal: any = {};
 
@@ -343,9 +328,6 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
 
                 newNodes.push(newNode);
             }
-
-            if(callback)
-                callback(newNodes);
 
             return newNodes;
         });
@@ -468,8 +450,6 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
 
     // Accept the suggestion for adding a specific node
     const acceptSuggestion = (nodeId: string) => {
-
-        setTriggerTaskRefresh(true);
 
         setNodes(prevNodes => {
             let newNodes = [];
@@ -822,8 +802,6 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
     }
 
     const onEdgesDelete = useCallback((connections: Edge[]) => {
-
-        console.log("connections to delete", [...connections]);
 
         for(const connection of connections){
 
@@ -1252,8 +1230,6 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
                 workflowNameRef,
                 suggestionsLeft,
                 workflowGoal,
-                triggerSuggestionsGeneration,
-                triggerTaskRefresh,
                 setWorkflowGoal,
                 setOutputs,
                 setInteractions,
@@ -1277,8 +1253,6 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
                 flagBasedOnKeyword,
                 updateDataNode,
                 cleanCanvas,
-                setTriggerSuggestionsGeneration,
-                setTriggerTaskRefresh,
                 updateSubtasks,
                 updateKeywords,
                 updateWarnings,

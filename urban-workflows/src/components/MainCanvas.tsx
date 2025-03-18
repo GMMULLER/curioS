@@ -15,7 +15,7 @@ import { useFlowContext } from "../providers/FlowProvider";
 import { ToolsMenu, UpMenu } from "./tools-menu";
 import ComputationAnalysisBox from "./ComputationAnalysisBox";
 import DataTransformationBox from "./DataTransformationBox";
-import { BoxType, EdgeType } from "../constants";
+import { BoxType, EdgeType, LLMEvents, LLMEventStatus } from "../constants";
 import DataLoadingBox from "./DataLoadingBox";
 import VegaBox from "./VegaBox";
 import TextBox from "./TextBox";
@@ -98,7 +98,7 @@ export function MainCanvas() {
 
     const { onContextMenu, showMenu, menuPosition } = useRightClickMenu();
     const { createCodeNode } = useCode();
-    const { openAIRequest } = useLLMContext();
+    const { openAIRequest, llmEvents, addNewEvent, setCurrentEventPipeline } = useLLMContext();
    
     let objectTypes: any = {};
     objectTypes[BoxType.COMPUTATION_ANALYSIS] = ComputationAnalysisBox;
@@ -125,7 +125,7 @@ export function MainCanvas() {
     const edgeTypes = useMemo(() => objectEdgeTypes, []);
 
     const reactFlow = useReactFlow();
-    const { setDashBoardMode, updatePositionWorkflow, updatePositionDashboard, setTriggerTaskRefresh, workflowNameRef, workflowGoal } = useFlowContext();
+    const { setDashBoardMode, updatePositionWorkflow, updatePositionDashboard, workflowNameRef, workflowGoal } = useFlowContext();
 
     const [selectedEdgeId, setSelectedEdgeId] = useState<string>(""); // can only remove selected edges
     
@@ -259,8 +259,23 @@ export function MainCanvas() {
                                 }
                             }
 
-                            if(allowed)
-                                setTriggerTaskRefresh(true);
+                            if(allowed && llmEvents.length > 0){
+                                alert("Wait a few seconds, we are still processing requests.");
+                            }else if(allowed){
+                                for(const node of nodes){
+                                    if(node.id == change.id){
+                                        if(node.data != undefined && node.data.goal != "" && node.data.goal != undefined){
+                                            setCurrentEventPipeline("Deleting a node with Subtask");
+                                            
+                                            addNewEvent({
+                                                type: LLMEvents.DELETE_SUBTASK,
+                                                status: LLMEventStatus.NOTDONE,
+                                                data: ""
+                                            })
+                                        }
+                                    }
+                                }
+                            }
                         }
 
                         if(change.type == "position" && change.position != undefined && change.position.x != undefined){

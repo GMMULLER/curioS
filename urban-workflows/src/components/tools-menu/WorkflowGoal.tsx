@@ -4,10 +4,11 @@ import { useLLMContext } from "../../providers/LLMProvider";
 import { useFlowContext } from "../../providers/FlowProvider";
 import { TrillGenerator } from "../../TrillGenerator";
 import { useCode } from "../../hook/useCode";
+import { LLMEvents, LLMEventStatus } from "../../constants";
 
 export function WorkflowGoal({ }: { }) {
-    const { openAIRequest } = useLLMContext();
-    const { nodes, edges, workflowNameRef, suggestionsLeft, workflowGoal, triggerTaskRefresh, updateWarnings, updateSubtasks, setTriggerTaskRefresh, setWorkflowGoal, eraseWorkflowSuggestions, flagBasedOnKeyword, cleanCanvas, triggerSuggestionsGeneration, updateKeywords, setTriggerSuggestionsGeneration } = useFlowContext();
+    const { openAIRequest, llmEvents, consumeEvent, addNewEvent, setCurrentEventPipeline, currentEventPipeline } = useLLMContext();
+    const { nodes, edges, workflowNameRef, suggestionsLeft, workflowGoal, updateWarnings, updateSubtasks, setWorkflowGoal, eraseWorkflowSuggestions, flagBasedOnKeyword, cleanCanvas, updateKeywords } = useFlowContext();
     const { loadTrill } = useCode();
     const [isEditing, setIsEditing] = useState(false);
     const [segments, setSegments] = useState<any>([]);
@@ -27,7 +28,7 @@ export function WorkflowGoal({ }: { }) {
         Content: "#dedede"
     };
 
-    const generateSuggestion = async (highlights: any, skipConfirmation?: boolean) => {
+    const generateSuggestion = async (skipConfirmation?: boolean) => {
 
         let isConfirmed = false;
 
@@ -43,9 +44,9 @@ export function WorkflowGoal({ }: { }) {
     
             try {
     
-                let result = await openAIRequest("workflow_suggestions_preamble", "Target dataflow: " + JSON.stringify(trill_spec) + "\n" + " Highlighted keywords: " + JSON.stringify(highlights) + "\n" + "The user goal is: "+workflowGoal+" ");
+                let result = await openAIRequest("workflow_suggestions_preamble", "Target dataflow: " + JSON.stringify(trill_spec) + "\n" + "The user goal is: "+workflowGoal+" ");
     
-                console.log("result", result);
+                console.log("generateSuggestion result", result);
     
                 let clean_result = result.result.replaceAll("```json", "");
                 clean_result = clean_result.replaceAll("```", "");
@@ -105,17 +106,6 @@ export function WorkflowGoal({ }: { }) {
 
     }
 
-    useEffect(() => { // When a new task, from LLMChat, was processed there is a need to generate suggestions 
-
-        if(triggerSuggestionsGeneration){
-            generateSuggestion(highlights, true); // Also update keywords on the nodes and edges
-            setTriggerSuggestionsGeneration(false);
-        }else{
-            getNewHighlightsBinding(nodes, edges, workflowNameRef.current, highlights, workflowGoal)
-        }
-
-    }, [highlights]) 
-
     const cancelSuggestions = () => {
         eraseWorkflowSuggestions();
     }
@@ -156,18 +146,16 @@ export function WorkflowGoal({ }: { }) {
     }
 
     // Based on the current state of the workflow generates a new task that better reflects what is being done by the user
-    const refreshTask = async (current_task: string, current_keywords: any) => {
+    const getNewTask = async (current_task: string, current_keywords: any) => {
 
         try {
             let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowNameRef.current, workflowGoal);
 
             let result = await openAIRequest("task_refresh_preamble", "Current Task: " + current_task + "\n" + " Current keywords: " + JSON.stringify(current_keywords) + "\n" + "Trill specification: " + JSON.stringify(trill_spec));
 
-            console.log("refreshTask result", result);
+            console.log("getNewTask result", result);
 
             setWorkflowGoal(result.result);
-
-            TrillGenerator.addNewVersionProvenance(nodes, edges, workflowNameRef.current, result.result, "Subtask modification resulted in a new Task");
 
         } catch (error) {
             console.error("Error communicating with LLM", error);
@@ -183,26 +171,41 @@ export function WorkflowGoal({ }: { }) {
     const handleNameBlur = () => {
         setIsEditing(false);
 
+        setCurrentEventPipeline("Directly editing a Task");
+
         if(tempWorkflowGoal != workflowGoal){
-            getNewSubtasks(tempWorkflowGoal);
-            setWorkflowGoal(tempWorkflowGoal);
+            addNewEvent({
+                type: LLMEvents.EDIT_TASK,
+                status: LLMEventStatus.NOTDONE,
+                data: tempWorkflowGoal
+            });
         }
+
+
     };
 
     const getNewSubtasks = async (current_task: string) => { // Based on the changes that the user made on the task reflect it to the subtasks
 
         try {
-            let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowNameRef.current, workflowGoal);
 
-            let result = await openAIRequest("new_subtasks_preamble", "Current Task: " + current_task + "\n" + "Trill specification: " + JSON.stringify(trill_spec));
+            if(nodes.length != 0){
+                let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowNameRef.current, current_task);
 
-            console.log("result", result);
+                let result = await openAIRequest("new_subtasks_preamble", "Current Task: " + current_task + "\n" + "Trill specification: " + JSON.stringify(trill_spec));
+    
+                console.log("getNewSubtasks", result);
 
-            const generateNewVersionTrillProvenance = (newNodes: any) => {
-                TrillGenerator.addNewVersionProvenance(newNodes, edges, workflowNameRef.current, workflowGoal, "Directly editing Task");
+                let clean_result = result.result.replaceAll("```json", "");
+                clean_result = clean_result.replaceAll("```", "");
+    
+                let parsed_result = JSON.parse(clean_result);
+                parsed_result.dataflow.name = workflowNameRef.current;
+    
+                updateSubtasks(parsed_result);
+            }else if(llmEvents.length > 0 && llmEvents[0].type == LLMEvents.GENERATE_NEW_SUBTASK_FROM_TASK && llmEvents[0].status == LLMEventStatus.PROCESSING){
+                TrillGenerator.addNewVersionProvenance(nodes, edges, workflowNameRef.current, workflowGoal, currentEventPipeline);
+                consumeEvent({type: LLMEvents.GENERATE_HIGHLIGHTS, status: LLMEventStatus.NOTDONE, data: llmEvents[0].data});
             }
-
-            updateSubtasks(trill_spec, generateNewVersionTrillProvenance);
 
         } catch (error) {
             console.error("Error communicating with LLM", error);
@@ -211,11 +214,68 @@ export function WorkflowGoal({ }: { }) {
 
     }
 
-    // Every time the task changes keywords need to be parsed again
     useEffect(() => {
-        setTempWorkflowGoal(workflowGoal);
-        parseKeywords(workflowGoal);
+
+        if(llmEvents.length > 0){
+            if(llmEvents[0].type == LLMEvents.GENERATE_NEW_TASK_FROM_SUBTASK && llmEvents[0].status == LLMEventStatus.PROCESSING){ 
+                
+                TrillGenerator.addNewVersionProvenance(nodes, edges, workflowNameRef.current, workflowGoal, currentEventPipeline);
+
+                consumeEvent({type: LLMEvents.GENERATE_WARNINGS, status: LLMEventStatus.PROCESSING});
+                
+                generateWarnings(workflowGoal, nodes, edges, workflowNameRef);
+            }
+        }
+
     }, [workflowGoal])
+
+    useEffect(() => { 
+
+        if(llmEvents.length > 0){
+            if(llmEvents[0].type == LLMEvents.GENERATE_HIGHLIGHTS_RESET && llmEvents[0].status == LLMEventStatus.PROCESSING){ // The highlights generation is done
+
+                consumeEvent({type: LLMEvents.GENERATE_SUGGESTIONS, status: LLMEventStatus.NOTDONE, data: true});
+
+            }else if(llmEvents[0].type == LLMEvents.GENERATE_HIGHLIGHTS && llmEvents[0].status == LLMEventStatus.PROCESSING){
+
+                consumeEvent({type: LLMEvents.BIND_HIGHLIGHTS, status: LLMEventStatus.NOTDONE});
+
+            }
+        }
+
+    }, [highlights]) 
+
+    useEffect(() => {
+        if(llmEvents.length > 0){
+            if((llmEvents[0].type == LLMEvents.GENERATE_HIGHLIGHTS_RESET || llmEvents[0].type == LLMEvents.GENERATE_HIGHLIGHTS) && llmEvents[0].status == LLMEventStatus.NOTDONE){
+
+                let event = {...llmEvents[0]};
+
+                consumeEvent({type: event.type, status: LLMEventStatus.PROCESSING});
+                
+                setTempWorkflowGoal(event.data);
+                parseKeywords(event.data);
+            }else if(llmEvents[0].type == LLMEvents.BIND_HIGHLIGHTS && llmEvents[0].status == LLMEventStatus.NOTDONE){
+                consumeEvent({type: LLMEvents.BIND_HIGHLIGHTS, status: LLMEventStatus.PROCESSING});
+            }else if(llmEvents[0].type == LLMEvents.EDIT_TASK && llmEvents[0].status == LLMEventStatus.NOTDONE){
+                consumeEvent({type: LLMEvents.GENERATE_NEW_SUBTASK_FROM_TASK, status: LLMEventStatus.PROCESSING, data: llmEvents[0].data});
+            }else if(llmEvents[0].type == LLMEvents.GENERATE_NEW_TASK_FROM_SUBTASK && llmEvents[0].status == LLMEventStatus.NOTDONE){
+                consumeEvent({type: LLMEvents.GENERATE_NEW_TASK_FROM_SUBTASK, status: LLMEventStatus.PROCESSING, data: llmEvents[0].data});
+            }else if(llmEvents[0].status == LLMEventStatus.DONE){
+                consumeEvent();
+            }else if(llmEvents[0].type == LLMEvents.GENERATE_NEW_SUBTASK_FROM_TASK && llmEvents[0].status == LLMEventStatus.PROCESSING){
+                setWorkflowGoal(tempWorkflowGoal);
+                getNewSubtasks(tempWorkflowGoal);
+            }else if(llmEvents[0].type == LLMEvents.BIND_HIGHLIGHTS && llmEvents[0].status == LLMEventStatus.PROCESSING){
+                getNewHighlightsBinding(nodes, edges, workflowNameRef.current, highlights, workflowGoal);
+            }else if(llmEvents[0].type == LLMEvents.GENERATE_NEW_TASK_FROM_SUBTASK && llmEvents[0].status == LLMEventStatus.PROCESSING){
+                getNewTask(workflowGoal, highlights);
+            }else if((llmEvents[0].type == LLMEvents.GENERATE_SUGGESTIONS) && llmEvents[0].status == LLMEventStatus.NOTDONE){
+                consumeEvent({type: LLMEvents.GENERATE_SUGGESTIONS, status: LLMEventStatus.PROCESSING});
+                generateSuggestion(llmEvents[0].data);
+            }
+        }
+    }, [llmEvents])
 
     const generateWarnings = async (goal: string, nodes: any, edges: any, workflowNameRef: any) => {
         try{
@@ -241,13 +301,41 @@ export function WorkflowGoal({ }: { }) {
         }
     }
 
-    useEffect(() => { // If nodes changed it might mean that their subtask changed and we need to refresh the task
-        if(triggerTaskRefresh){
-            setTriggerTaskRefresh(false);
-            refreshTask(workflowGoal, highlights);
-            generateWarnings(workflowGoal, nodes, edges, workflowNameRef);
+    useEffect(() => {
+
+        if(llmEvents.length > 0){
+            if((llmEvents[0].type == LLMEvents.GENERATE_SUGGESTIONS) && llmEvents[0].status == LLMEventStatus.PROCESSING && nodes.length > 0){
+                TrillGenerator.addNewVersionProvenance(nodes, edges, workflowNameRef.current, workflowGoal, currentEventPipeline);
+                consumeEvent({type: LLMEvents.BIND_HIGHLIGHTS, status: LLMEventStatus.NOTDONE});
+            }else if(llmEvents[0].type == LLMEvents.GENERATE_NEW_SUBTASK_FROM_TASK && llmEvents[0].status == LLMEventStatus.PROCESSING){
+                TrillGenerator.addNewVersionProvenance(nodes, edges, workflowNameRef.current, workflowGoal, currentEventPipeline);
+                consumeEvent({type: LLMEvents.GENERATE_HIGHLIGHTS, status: LLMEventStatus.NOTDONE, data: llmEvents[0].data});
+            }else if(llmEvents[0].type == LLMEvents.EDIT_SUBTASK && llmEvents[0].status == LLMEventStatus.NOTDONE){
+                consumeEvent({type: LLMEvents.GENERATE_NEW_TASK_FROM_SUBTASK, status: LLMEventStatus.NOTDONE, data: llmEvents[0].data});
+            }else if(llmEvents[0].type == LLMEvents.GENERATE_WARNINGS && llmEvents[0].status == LLMEventStatus.PROCESSING){
+                consumeEvent({type: LLMEvents.GENERATE_HIGHLIGHTS, status: LLMEventStatus.NOTDONE, data: workflowGoal});
+            }else if(llmEvents[0].type == LLMEvents.DELETE_SUBTASK && llmEvents[0].status == LLMEventStatus.NOTDONE){
+                consumeEvent({type: LLMEvents.GENERATE_NEW_TASK_FROM_SUBTASK, status: LLMEventStatus.NOTDONE, data: llmEvents[0].data});
+            }else if(llmEvents[0].type == LLMEvents.BIND_HIGHLIGHTS && llmEvents[0].status == LLMEventStatus.PROCESSING){
+                consumeEvent({type: LLMEvents.BIND_HIGHLIGHTS, status: LLMEventStatus.DONE});
+            }
         }
+
     }, [nodes]);
+
+    const clickGenerateSuggestion = () => {
+        if(llmEvents.length > 0){
+            alert("Wait a few seconds, we are still processing requests.")
+        }else{
+            setCurrentEventPipeline("Generating suggestions from Task");
+
+            addNewEvent({
+                type: LLMEvents.GENERATE_SUGGESTIONS,
+                status: LLMEventStatus.NOTDONE,
+                data: false
+            });
+        }
+    }
 
     return (
         <>
@@ -255,9 +343,21 @@ export function WorkflowGoal({ }: { }) {
             <div style={workflowGoalContainer}>
                 
                 <div style={{border: "1px solid #ccc", borderRadius: "4px", width: "600px", overflowY: "auto", height: "150px", padding: "5px", display: "flex", justifyContent: "center", alignItems: "center"}}>
-                    {workflowGoal == "" ?
-                        <p style={{marginBottom: "0px", opacity: 0.7, fontSize: "20px"}}>Interact with the LLM to define your goal</p> : 
-                        <p style={goalStyle} onClick={() => setIsEditing(true)}>
+                    {workflowGoal == "" && !isEditing ?
+                        <p style={{marginBottom: "0px", opacity: 0.7, fontSize: "20px", cursor: "pointer"}} onClick={() => {
+                            if(llmEvents.length > 0){
+                                alert("Wait a few seconds, we are still processing requests.")
+                            }else{
+                                setIsEditing(true)
+                            }
+                        }}>Click here or interact with the LLM to define your goal</p> : 
+                        <p style={goalStyle} onClick={() => {
+                            if(llmEvents.length > 0){
+                                alert("Wait a few seconds, we are still processing requests.")
+                            }else{
+                                setIsEditing(true)
+                            }
+                        }}>
                             {/* {segments.map((item: any, index: any) => (
                                 item
                             ))} */}
@@ -298,10 +398,10 @@ export function WorkflowGoal({ }: { }) {
                     }   
                 </div>
                 {!loading ?
-                    workflowGoal != "" ?
+                    workflowGoal != "" && llmEvents.length == 0 ?
                         suggestionsLeft > 0 ? 
                             <button style={button} onClick={cancelSuggestions}>Cancel suggestions</button> :
-                            <button style={button} onClick={() => {generateSuggestion(highlights)}}>Generate suggestions</button>
+                            <button style={button} onClick={clickGenerateSuggestion}>Generate suggestions</button>
                         : null : <button style={button}>...</button>
                 }
 

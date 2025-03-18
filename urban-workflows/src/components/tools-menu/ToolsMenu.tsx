@@ -1,11 +1,8 @@
-import React, {
-    useEffect, useReducer
-} from "react";
+import React from "react";
 import CSS from "csstype";
-import Icon from "@mui/material/Icon";
 
 import { useCode } from "../../hook/useCode";
-import { AccessLevelType, BoxType } from "../../constants";
+import { BoxType, LLMEvents } from "../../constants";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faBroom,
@@ -21,20 +18,14 @@ import {
     faServer,
     faSquareRootVariable,
     faTable,
-    faUpload,
-    faSquareMinus
+    faUpload
 } from "@fortawesome/free-solid-svg-icons";
 import { Tooltip, OverlayTrigger } from "react-bootstrap";
-import { Template, useTemplateContext } from "../../providers/TemplateProvider";
-import { useUserContext } from "../../providers/UserProvider";
-import { useFlowContext } from "../../providers/FlowProvider";
+import { useLLMContext } from "../../providers/LLMProvider";
 
 export function ToolsMenu() {
     const { createCodeNode } = useCode();
-    const { getTemplates, deleteTemplate } = useTemplateContext();
-    const { eraseWorkflowSuggestions } = useFlowContext();
-
-    const { user } = useUserContext();
+    const { llmEvents } = useLLMContext();
 
     // const handleClick = (boxType: BoxType) => {
     //     for(const type in BoxType){
@@ -62,41 +53,9 @@ export function ToolsMenu() {
     //     return types;
     // }
 
-    const boxNameTranslation = (boxType: BoxType) => {
-        if(boxType == BoxType.COMPUTATION_ANALYSIS){
-            return "Computation Analysis"
-        }else if(boxType == BoxType.CONSTANTS){
-            return "Constants"
-        }else if(boxType == BoxType.DATA_CLEANING){
-            return "Data Cleaning"
-        }else if(boxType == BoxType.DATA_EXPORT){
-            return "Data Export"
-        }else if(boxType == BoxType.DATA_LOADING){
-            return "Data Loading"
-        }else if(boxType == BoxType.DATA_POOL){
-            return "Data Pool"
-        }else if(boxType == BoxType.DATA_TRANSFORMATION){
-            return "Data Transformation"
-        }else if(boxType == BoxType.FLOW_SWITCH){
-            return "Flow Switch"
-        }else if(boxType == BoxType.MERGE_FLOW){
-            return "Merge Flow"
-        }else if(boxType == BoxType.VIS_IMAGE){
-            return "Image"
-        }else if(boxType == BoxType.VIS_TABLE){
-            return "Table"
-        }else if(boxType == BoxType.VIS_TEXT){
-            return "Text"
-        }else if(boxType == BoxType.VIS_UTK){
-            return "UTK"
-        }else if(boxType = BoxType.VIS_VEGA){
-            return "Vega-Lite"
-        }
-    }
-
     return (
         <div>
-            <div style={containerStyle}>
+            <div style={{...containerStyle, ...(llmEvents.length > 0 ? {opacity: "60%", pointerEvents: "none"} : {})}}>
                 <OverlayTrigger
                     placement="right"
                     delay={overlayTriggerProps}

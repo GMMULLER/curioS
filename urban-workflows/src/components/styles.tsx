@@ -42,7 +42,7 @@ import {
     faCirclePlus,
     faTriangleExclamation
 } from "@fortawesome/free-solid-svg-icons";
-import { AccessLevelType, BoxType, SupportedType } from "../constants";
+import { AccessLevelType, BoxType, LLMEvents, LLMEventStatus, SupportedType } from "../constants";
 import './styles.css';
 import { Template, useTemplateContext } from "../providers/TemplateProvider";
 import { useCode } from "../hook/useCode";
@@ -91,8 +91,8 @@ export const BoxContainer = ({
     styles?: CSS.Properties;
     handleType?: string;
 }) => {
-    const { openAIRequest } = useLLMContext();
-    const { nodes, edges, workflowNameRef, updateDefaultCode, onNodesChange, setPinForDashboard, acceptSuggestion, updateDataNode, setTriggerTaskRefresh, workflowGoal } = useFlowContext();
+    const { openAIRequest, llmEvents, addNewEvent, setCurrentEventPipeline, currentEventPipeline, consumeEvent } = useLLMContext();
+    const { nodes, edges, workflowNameRef, updateDefaultCode, onNodesChange, setPinForDashboard, acceptSuggestion, updateDataNode, workflowGoal } = useFlowContext();
     const { getTemplates, deleteTemplate } = useTemplateContext();
     const { createCodeNode, loadTrill } = useCode();
     const [showComments, setShowComments] = useState(false);
@@ -124,11 +124,19 @@ export const BoxContainer = ({
     }
 
     useEffect(() => {
+        setGoal(data.goal);
+    }, [data.goal]);
+
+    useEffect(() => {
 
         if(data.output != undefined && data.output.code == 'success'){
 
-            if(goal == "") // If subtask is empty generate it based on the content of the node after execution
+            if(goal == ""){ // If subtask is empty generate it based on the content of the node after execution
+
                 generateSubtaskFromExec((code ? code : ""), data.nodeType, workflowGoal);
+
+
+            } 
 
             setExpectedOutputType(data.output.outputType);
         }
@@ -378,12 +386,8 @@ export const BoxContainer = ({
                 clean_result = clean_result.replaceAll("```", "");
 
                 console.log("generateContentNode result", clean_result);
-    
-                const updateTrillProvenance = (newNodes: any) => {
-                    TrillGenerator.addNewVersionProvenance(newNodes, edges, workflowNameRef.current, workflowGoal, "LLM generated content for node "+nodeId)
-                }
 
-                updateDefaultCode(nodeId, clean_result, updateTrillProvenance);
+                updateDefaultCode(nodeId, clean_result);
 
             } catch (error) {
                 console.error("Error communicating with LLM", error);
@@ -393,12 +397,55 @@ export const BoxContainer = ({
 
     }
 
+    const clickGenerateContentNode = () => {
+        if(llmEvents.length > 0){
+            alert("Wait a few seconds, we are still processing requests.")
+        }else{
+
+            setCurrentEventPipeline("Generate content for node");
+
+            addNewEvent({
+                type: LLMEvents.GENERATE_CONTENT_NODE,
+                status: LLMEventStatus.NOTDONE,
+                data: nodeId
+            });
+
+        }
+    }
+
+    useEffect(() => {
+        if(llmEvents.length > 0){
+            if(llmEvents[0].type == LLMEvents.GENERATE_CONTENT_NODE && llmEvents[0].status == LLMEventStatus.NOTDONE && llmEvents[0].data == nodeId){
+                consumeEvent({type: LLMEvents.GENERATE_CONTENT_NODE, status: LLMEventStatus.PROCESSING, data: nodeId});
+            }else if(llmEvents[0].type == LLMEvents.GENERATE_CONTENT_NODE && llmEvents[0].status == LLMEventStatus.PROCESSING && llmEvents[0].data == nodeId){
+                generateContentNode(nodes, edges, workflowNameRef, goal, workflowGoal)
+            }
+        }
+    }, [llmEvents]);
+
+    useEffect(() => {
+        if(llmEvents.length > 0){
+            if(llmEvents[0].type == LLMEvents.GENERATE_CONTENT_NODE && llmEvents[0].status == LLMEventStatus.PROCESSING && llmEvents[0].data == nodeId){
+                consumeEvent({type: LLMEvents.GENERATE_CONTENT_NODE, status: LLMEventStatus.DONE, data: nodeId});
+                TrillGenerator.addNewVersionProvenance(nodes, edges, workflowNameRef.current, workflowGoal, currentEventPipeline);
+            }
+        }
+    }, [nodes]);
+
     const updateDataGoal = (goal: string) => {
         if(data.goal != goal){
+
+            setCurrentEventPipeline("Directly editing a Subtask");
+
+            addNewEvent({
+                type: LLMEvents.EDIT_SUBTASK,
+                status: LLMEventStatus.NOTDONE,
+                data: goal
+            });
+
             let newData = {...data}; 
             newData.goal = goal; 
             updateDataNode(nodeId, newData);
-            setTriggerTaskRefresh(true); // When the subtask is update the task should be updated
         }
     }
 
@@ -413,8 +460,8 @@ export const BoxContainer = ({
             {!minimized ?
                 <div style={{...goalInput, ...((data.suggestionType != "none" && data.suggestionType != undefined) ? {opacity: "50%", pointerEvents: "none"} : {})}} className={"nodrag"}>
                     <label htmlFor={nodeId+"_goal_box_input"}>Subtask: </label>
-                    <input id={nodeId+"_goal_box_input"} type={"text"} placeholder={"Describe the subtask"} style={{width: "240px"}} value={goal} onBlur={() => {updateDataGoal(goal)}} onChange={(value: any) => {setGoal(value.target.value)}}/>
-                    <button style={buttonStyle} onClick={() => {generateContentNode(nodes, edges, workflowNameRef, goal, workflowGoal)}} >Generate code</button>
+                    <input id={nodeId+"_goal_box_input"} type={"text"} placeholder={"Describe the subtask"} style={{width: "240px"}} value={goal} onBlur={() => {updateDataGoal(goal)}} onChange={(value: any) => {if(llmEvents.length > 0){alert("Wait a few seconds, we are still processing requests.")}else{setGoal(value.target.value)}}}/>
+                    <button style={buttonStyle} onClick={clickGenerateContentNode} >Generate code</button>
                 </div> : null
             }
 
@@ -505,7 +552,7 @@ export const BoxContainer = ({
 
                 <Row  style={{...{ width: "30%", marginRight: "auto", marginLeft: "10px", marginTop: "4px"}, ...((data.suggestionType != "none" && data.suggestionType != undefined) ? {pointerEvents: "none"} : {})}}>
                     {sendCodeToWidgets != undefined ? <Row>
-                        <Col md={2}><FontAwesomeIcon className={"nowheel nodrag"} icon={faCirclePlay} style={{cursor: "pointer", fontSize: "27px", color: "#0d6efd"}} onClick={() => {
+                        <Col md={2}><FontAwesomeIcon className={"nowheel nodrag"} icon={faCirclePlay} style={{...{cursor: "pointer", fontSize: "27px", color: "#0d6efd"}, ...(llmEvents.length > 0 ? {opacity: "60%", pointerEvents: "none"} : {})}} onClick={() => {
                             setOutputCallback({code: "exec", content: ""});
                             sendCodeToWidgets(code); // will resolve markers
                         }} /></Col>

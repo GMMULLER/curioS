@@ -123,6 +123,12 @@
           },
           "task": {
             "type": "string"
+          },
+          "provenance_id": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string"
           }
         },
         "required": ["nodes", "edges", "name", "task"]

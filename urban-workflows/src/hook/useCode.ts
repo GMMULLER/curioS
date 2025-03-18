@@ -143,7 +143,7 @@ export function useCode(): IUseCode {
         else if(suggestionType == "workflow")
             loadParsedTrill(trill.dataflow.name, nodes, edges, false, true); // if loading as suggestion deactivate provenance and merge
         else
-            loadParsedTrill(trill.dataflow.name, nodes, edges, false, true, false); // connection suggestions should not refresh the task
+            loadParsedTrill(trill.dataflow.name, nodes, edges, false, true); 
 
     }
 

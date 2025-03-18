@@ -15,47 +15,43 @@ export class TrillGenerator {
         // TODO: look for a provenance JSON for the workflow. If it does not exist initialize it. If it exists load the meta and trill versions to memory (ideally they should be on the database)
         // TODO: for now assuming that the user is never loading a trill or provenanceJSON.
 
-        let workflowName = trill_spec.dataflow.name;
+        this.latestTrill = trill_spec.dataflow.name+"_"+trill_spec.dataflow.timestamp; // TODO: this should change if loading external trill or provenanceJSON.
+        this.list_of_trills[trill_spec.dataflow.name+"_"+trill_spec.dataflow.timestamp] = trill_spec; // TODO: this should change if loading external trill or provenanceJSON.
 
-        let now_timestamp = Date.now();
-
-        trill_spec.dataflow.name = workflowName+"_"+now_timestamp;
-        this.latestTrill = workflowName+"_"+now_timestamp; // TODO: this should change if loading external trill or provenanceJSON.
-        this.list_of_trills[workflowName+"_"+now_timestamp] = trill_spec; // TODO: this should change if loading external trill or provenanceJSON.
-
-        this.provenanceJSON.id = "meta_"+workflowName;
+        this.provenanceJSON.id = trill_spec.dataflow.provenance_id;
         this.provenanceJSON.nodes.push({
-            id: workflowName+"_"+now_timestamp,
-            label: workflowName+"_"+now_timestamp,
-            timestamp: now_timestamp
+            id: trill_spec.dataflow.name+"_"+trill_spec.dataflow.timestamp,
+            label: trill_spec.dataflow.name+" ("+trill_spec.dataflow.timestamp+")",
+            timestamp: trill_spec.dataflow.timestamp
         });
     }
 
     static addNewVersionProvenance(nodes: any, edges: any, name: string, task: string, change: string){
 
+        console.log("adding new provenance version for Trill");
+
         let new_trill = this.generateTrill(nodes, edges, name, task);
         
-        let now_timestamp = Date.now();
-        new_trill.dataflow.name = name+"_"+now_timestamp;
+        console.log("new_trill", new_trill);
 
         this.provenanceJSON.nodes.push({
-            id: name+"_"+now_timestamp,
-            label: name+"_"+now_timestamp,
-            timestamp: now_timestamp
+            id: new_trill.dataflow.name+"_"+new_trill.dataflow.timestamp,
+            label: new_trill.dataflow.name+" ("+new_trill.dataflow.timestamp+")",
+            timestamp: new_trill.dataflow.timestamp
         });        
 
-        this.list_of_trills[name+"_"+now_timestamp] = new_trill;
+        this.list_of_trills[new_trill.dataflow.name+"_"+new_trill.dataflow.timestamp] = new_trill;
 
         if(this.latestTrill){ // If there is a previous trill from which this one was derived add an edge connecting both
             this.provenanceJSON.edges.push({        
-                id: this.latestTrill+"_to_"+name+"_"+now_timestamp,
+                id: this.latestTrill+"_to_"+new_trill.dataflow.name+"_"+new_trill.dataflow.timestamp,
                 source: this.latestTrill,
-                target: name+"_"+now_timestamp,
-                change: change
+                target: new_trill.dataflow.name+"_"+new_trill.dataflow.timestamp,
+                label: change
             })
         }
 
-        this.latestTrill = name+"_"+now_timestamp;
+        this.latestTrill = new_trill.dataflow.name+"_"+new_trill.dataflow.timestamp;
 
     }
 
@@ -83,7 +79,9 @@ export class TrillGenerator {
                 nodes: [] as any,
                 edges: [] as any,
                 name: name,
-                task
+                task,
+                timestamp: Date.now(),
+                provenance_id: name
             }
         }
 

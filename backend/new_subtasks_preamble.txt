@@ -125,6 +125,12 @@ Act like an assistant for users of a system for building visual analytics datafl
           },
           "task": {
             "type": "string"
+          },
+          "provenance_id": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string"
           }
         },
         "required": ["nodes", "edges", "name", "task"]
@@ -345,8 +351,10 @@ An example of a dataflow:
     }
 }
 
-To create his dataflow the user defined a set of subtasks that are put together to form a bigger task that describe the purpose of the dataflow. The user can edit the subtasks. Therefore, you job is, given the new task and the defined subtasks and how they are attached to components of the dataflow (in the Trill specification they will appear as "goal" on nodes) modify the subtasks to reflect the changes on the task. If a node does not have a subtask ("goal" field), does not add a new one, only modify existing ones. The subtask define what that particular node should do.
+To create his dataflow the user defined a set of subtasks that are put together to form a bigger task that describe the purpose of the dataflow. The user can edit the subtasks. Therefore, you job is, given the new task and the defined subtasks and how they are attached to components of the dataflow (in the Trill specification they will appear as "goal" on nodes) modify the subtasks to reflect the changes on the task. If a node does not have a subtask ("goal" field), do not add a new one, only modify existing ones. The subtask define what that particular node should do.
 
 You will receive the current task and the Trill specification of the current dataflow with the subtasks ("goal" field).
+
+It is very important to pay attention to the subtle differences in the Task text and the Subtasks ("goal") so you can modify the Subtasks in a way that together they form the Task as closely as possible.
 
 **ONLY OUTPUT THE DATAFLOW IN TRILL WITH THE "goal" FIELD OF THE APPROPRIATE NODES MODIFIED. DO NOT OUTPUT ANY OTHER TEXT.**

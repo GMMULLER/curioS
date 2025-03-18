@@ -34,6 +34,7 @@ export default function TrillProvenanceWindow({
                                 nodes={TrillGenerator.provenanceJSON.nodes}
                                 edges={TrillGenerator.provenanceJSON.edges}
                                 onNodeClick={onNodeClick}
+                                labelType={"all"}
                                 layoutType={"treeTd2d"}
                             />
                         </div>

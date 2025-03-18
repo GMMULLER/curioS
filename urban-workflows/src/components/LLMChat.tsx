@@ -9,10 +9,11 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import ReactMarkdown from "react-markdown";
 import { TrillGenerator } from "../TrillGenerator";
+import { LLMEvents, LLMEventStatus } from "../constants";
 
 const ChatComponent = () => {
-    const { openAIRequest } = useLLMContext();
-    const { setWorkflowGoal, cleanCanvas, setTriggerSuggestionsGeneration, workflowNameRef } = useFlowContext();
+    const { openAIRequest, addNewEvent, llmEvents, consumeEvent, setCurrentEventPipeline } = useLLMContext();
+    const { setWorkflowGoal, cleanCanvas, workflowNameRef } = useFlowContext();
     const [messages, setMessages] = useState<{ role: string; text: string }[]>([]);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
@@ -65,16 +66,38 @@ const ChatComponent = () => {
 
     const applyGoal = (task: string) => {
 
-        const isConfirmed = window.confirm("Are you sure you want to proceed? This will clear your entire board.");
+        if(llmEvents.length == 0){ // Check if it will start a new chain of LLM events
+            const isConfirmed = window.confirm("Are you sure you want to proceed? This will clear your entire board.");
+    
+            if (isConfirmed) {
+                setCurrentEventPipeline("Applying Task from LLM");
 
-        if (isConfirmed) {
-            cleanCanvas();
-            setTriggerSuggestionsGeneration(true); // Generate suggestions automatically
-            setWorkflowGoal(checkForGoal(task) as string);
-            TrillGenerator.addNewVersionProvenance([], [], workflowNameRef.current, checkForGoal(task) as string, "New Task from chat");
+                addNewEvent({
+                    type: LLMEvents.APPLY_TASK,
+                    data: checkForGoal(task) as string,
+                    status: LLMEventStatus.NOTDONE
+                });
+            }
+        }else{
+            alert("Wait a few seconds, we are still processing requests.")
         }
 
     }
+
+    useEffect(() => {
+        if(llmEvents.length > 0){
+            if(llmEvents[0].type == LLMEvents.APPLY_TASK){
+
+                let event = {...llmEvents[0]};
+
+                consumeEvent({type: LLMEvents.GENERATE_HIGHLIGHTS_RESET, status: LLMEventStatus.NOTDONE, data: checkForGoal(event.data) as string}); // Consume current event and replace it with a new one in the same position
+                
+                cleanCanvas();
+                setWorkflowGoal(checkForGoal(event.data) as string);
+            }
+        }
+    }, [llmEvents]);
+
 
     useEffect(() => {
         cleanOpenAIChat();
