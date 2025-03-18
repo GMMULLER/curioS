@@ -70,7 +70,7 @@ interface FlowContextProps {
     updatePositionDashboard: (nodeId:string, position: any) => void;
     applyNewOutput: (output: IOutput) => void;
     setWorkflowName: (name: string) => void;
-    loadParsedTrill: (workflowName: string, node: any, edges: any, provenance?: boolean, merge?: boolean) => void;
+    loadParsedTrill: (workflowName: string, task: string, node: any, edges: any, provenance?: boolean, merge?: boolean) => void;
     eraseWorkflowSuggestions: () => void;
     acceptSuggestion: (nodeId: string) => void;
     flagBasedOnKeyword: (keywordIndex?: number) => void;
@@ -162,6 +162,8 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
     const updateDataNode = (nodeId: string, newData: any) => {
         let copy_newData = {...newData};
 
+        console.log("updateDataNode");
+
         setNodes(prevNodes => {
 
             let newNodes = [];
@@ -179,22 +181,31 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
         });
     }
 
-    const loadParsedTrill = async (workflowName: string, loaded_nodes: any, loaded_edges: any, provenance?: boolean, merge?: boolean) => {
+    const loadParsedTrill = async (workflowName: string, task: string, loaded_nodes: any, loaded_edges: any, provenance?: boolean, merge?: boolean) => {
+
+        setWorkflowGoal(task);
 
         if(!merge){
             setWorkflowName(workflowName);
             await addWorkflow(workflowName); // reseting provenance with new workflow
+            console.log("loadParsedTrill reseting nodes")
             setNodes(prevNodes => []); // Reseting nodes
         }
 
         let current_nodes_ids = [];
 
-        for(const node of nodes){
-            current_nodes_ids.push(node.id);
-        }
-
-        for(const node of loaded_nodes){ // adding new nodes one by one
-            if(!current_nodes_ids.includes(node.id)){ // if the node already exist do not include it again
+        if(merge){
+            for(const node of nodes){
+                current_nodes_ids.push(node.id);
+            }
+    
+            for(const node of loaded_nodes){ // adding new nodes one by one
+                if(!current_nodes_ids.includes(node.id)){ // if the node already exist do not include it again
+                    addNode(node, workflowName, provenance);
+                }
+            }
+        }else{
+            for(const node of loaded_nodes){ // adding new nodes one by one
                 addNode(node, workflowName, provenance);
             }
         }
@@ -210,13 +221,21 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
             current_edges_ids.push(edge.id);
         }
 
+        console.log("loadParsedTrill second");
         setNodes((prevNodes: any) => { // Guarantee that previous nodes were added
             
-            for(const edge of loaded_edges){
-                if(!current_edges_ids.includes(edge.id)){ // if the edge already exist do not include it again
+            if(merge){
+                for(const edge of loaded_edges){
+                    if(!current_edges_ids.includes(edge.id)){ // if the edge already exist do not include it again
+                        onConnect(edge, prevNodes, undefined, workflowName, provenance);
+                    }
+                }
+            }else{
+                for(const edge of loaded_edges){
                     onConnect(edge, prevNodes, undefined, workflowName, provenance);
                 }
             }
+
     
             if(!merge){
                 setOutputs([]);
@@ -233,6 +252,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
     }
 
     const updateDefaultCode = (nodeId: string, content: string) => {
+        console.log("updateDefaultCode");
         setNodes(prevNodes => {
 
             let newNodes = [];
@@ -270,6 +290,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
             }
         }
 
+        console.log("updateKeywords");
         setNodes(prevNodes => {
 
             let newNodes = [];
@@ -316,6 +337,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
             }
         }
 
+        console.log("updateSubtasks");
         setNodes(prevNodes => {
 
             let newNodes = [];
@@ -346,6 +368,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
             }
         }
 
+        console.log("updateWarnings");
         setNodes(prevNodes => {
 
             let newNodes = [];
@@ -383,6 +406,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
 
         }
 
+        console.log("cleanCanvas");
         setNodes(prevNodes => []);
 
         setOutputs([]);
@@ -430,6 +454,8 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
         }
 
         if(nodesToUpdate.length > 0){
+
+            console.log("flagAcceptableSuggestions");
             setNodes(prevNodes => {
                 let newNodes = [];
     
@@ -451,6 +477,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
     // Accept the suggestion for adding a specific node
     const acceptSuggestion = (nodeId: string) => {
 
+        console.log("acceptSuggestion");
         setNodes(prevNodes => {
             let newNodes = [];
             let suggestions = []; // ids of all suggestion nodes
@@ -511,6 +538,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
 
     // If keywordIndex is undefied all components are unflagged
     const flagBasedOnKeyword = (keywordIndex?: number) => {
+        console.log("flagBasedOnKeyword");
         setNodes(prevNodes => {
             let newNodes = [];
 
@@ -563,6 +591,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
         });
 
         setEdges((prevEdges: any) => { // Making sure that the removal of nodes happen after the removal of nodes
+            console.log("eraseWorkflowSuggestions");
             setNodes((prevNodes: any) => {
                 let newNodes = [];
     
@@ -718,6 +747,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
 
     const addNode = useCallback(
         (node: Node, customWorkflowName?: string, provenance?: boolean) => {
+            console.log("add node");
             setNodes((prev: any) => {
                 node.position
                 updatePositionWorkflow(node.id, {
@@ -758,6 +788,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
             })
         );
 
+        console.log("applyOutput");
         setNodes((nds: any) => 
             nds.map((node: any) => {
 
@@ -815,6 +846,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
 
             // skiping syncronized connections
             if(connection.sourceHandle != "in/out" || connection.targetHandle != "in/out"){
+                console.log("onEdgesDelete");
                 setNodes((nds: any) => 
                     nds.map((node: any) => {
         
@@ -1018,6 +1050,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
             }
         }
 
+        console.log("applyNewOutput");
         setNodes((nds: any) => 
             nds.map((node: any) => {
 
@@ -1149,6 +1182,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
             }
         }
 
+        console.log("applyNewInteractions");
         setNodes((nds: any) => 
             nds.map((node: any) => {
 
@@ -1190,6 +1224,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
             }
         }
 
+        console.log("applyNewPropagation");
         setNodes((nds: any) => 
             nds.map((node: any) => {
 

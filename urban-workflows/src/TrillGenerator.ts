@@ -28,6 +28,8 @@ export class TrillGenerator {
 
     static addNewVersionProvenance(nodes: any, edges: any, name: string, task: string, change: string){
 
+        console.log("nodes", [...nodes]);
+
         console.log("adding new provenance version for Trill");
 
         let new_trill = this.generateTrill(nodes, edges, name, task);
@@ -41,6 +43,8 @@ export class TrillGenerator {
         });        
 
         this.list_of_trills[new_trill.dataflow.name+"_"+new_trill.dataflow.timestamp] = new_trill;
+
+        console.log("list_of_trills", this.list_of_trills);
 
         if(this.latestTrill){ // If there is a previous trill from which this one was derived add an edge connecting both
             this.provenanceJSON.edges.push({        

@@ -453,7 +453,7 @@ export const BoxContainer = ({
         <>
             <div id={nodeId+"resizer"} className={"resizer nowheel nodrag"} style={{...((data.suggestionType != "none" && data.suggestionType != undefined) ? {pointerEvents: "none"} : {})}}></div>
             {data.suggestionAcceptable ?
-                <button style={buttonAcceptSuggestion} onClick={() => {acceptSuggestion(nodeId)}}>Accept Suggestion</button> :
+                <button style={{...buttonAcceptSuggestion, ...(llmEvents.length > 0 ? {opacity: "60%", pointerEvents: "none"} : {})}} onClick={() => {acceptSuggestion(nodeId)}}>Accept Suggestion</button> :
                 null
             }
 
