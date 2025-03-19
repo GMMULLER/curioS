@@ -109,7 +109,7 @@ export const BoxContainer = ({
 
     const generateSubtaskFromExec = async (node_content: string, node_type: BoxType, current_task: string) => {
         try {
-            let result = await openAIRequest("new_subtask_from_exec_preamble", " Node content: " + node_content + "\n" + "Node type: " + node_type + " Task: " + current_task);
+            let result = await openAIRequest("default_preamble", "new_subtask_from_exec_prompt", " Node content: " + node_content + "\n" + "Node type: " + node_type + " Task: " + current_task);
             
             console.log("generateSubtaskFromExec result", result);
 
@@ -328,7 +328,7 @@ export const BoxContainer = ({
 
         try {
     
-            let result = await openAIRequest("new_connection_preamble", "Dataflow task: " + workflowGoal + "\n nodeId: " + nodeId + "\n Subtask: " + goal + "\n Your suggested nodes will be connected to the: " + inOrOut + "\n Current Trill: " + JSON.stringify(trill_spec));
+            let result = await openAIRequest("default_preamble", "new_connection_prompt", "Dataflow task: " + workflowGoal + "\n nodeId: " + nodeId + "\n Subtask: " + goal + "\n Your suggested nodes will be connected to the: " + inOrOut + "\n Current Trill: " + JSON.stringify(trill_spec));
 
             let clean_result = result.result.replaceAll("```json", "").replaceAll("```python", "");
             clean_result = clean_result.replaceAll("```", "");
@@ -380,7 +380,7 @@ export const BoxContainer = ({
                     }
                 }
 
-                let result = await openAIRequest("new_content_preamble", "Current Trill: " + JSON.stringify(trill_spec) + "\n" + " Node ID: " + nodeId + "\n" + "Subtask: "+goal+" Task: " + "\n" + workflowGoal);
+                let result = await openAIRequest("default_preamble", "new_content_prompt", "Current Trill: " + JSON.stringify(trill_spec) + "\n" + " Node ID: " + nodeId + "\n" + "Subtask: "+goal+" Task: " + "\n" + workflowGoal);
     
                 let clean_result = result.result.replaceAll("```json", "").replaceAll("```python", "");
                 clean_result = clean_result.replaceAll("```", "");
@@ -461,7 +461,7 @@ export const BoxContainer = ({
                 <div style={{...goalInput, ...((data.suggestionType != "none" && data.suggestionType != undefined) ? {opacity: "50%", pointerEvents: "none"} : {})}} className={"nodrag"}>
                     <label htmlFor={nodeId+"_goal_box_input"}>Subtask: </label>
                     <input id={nodeId+"_goal_box_input"} type={"text"} placeholder={"Describe the subtask"} style={{width: "240px"}} value={goal} onBlur={() => {updateDataGoal(goal)}} onChange={(value: any) => {if(llmEvents.length > 0){alert("Wait a few seconds, we are still processing requests.")}else{setGoal(value.target.value)}}}/>
-                    <button style={buttonStyle} onClick={clickGenerateContentNode} >Generate code</button>
+                    {data.nodeType != BoxType.VIS_UTK ? <button style={buttonStyle} onClick={clickGenerateContentNode} >Generate code</button> : null}
                 </div> : null
             }
 

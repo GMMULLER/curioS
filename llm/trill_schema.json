@@ -15,7 +15,7 @@
                 },
                 "type": {
                   "type": "string",
-                  "enum": ["Data Loading", "Data Export", "Data Cleaning", "Data Transformation", "Computation Analysis", "Vega-Lite", "Merge Flow"]
+                  "enum": ["DATA_LOADING", "DATA_EXPORT", "DATA_CLEANING", "DATA_TRANSFORMATION", "COMPUTATION_ANALYSIS", "VIS_VEGA", "MERGE_FLOW"]
                 },
                 "content": {
                   "type": "string"

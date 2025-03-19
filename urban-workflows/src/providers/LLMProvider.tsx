@@ -8,7 +8,7 @@ import React, {
 import { LLMEvents, LLMEventStatus } from "../constants";
 
 interface LLMContextProps {
-    openAIRequest: (preamble_file: string, text: string, chatOn?: string) => any;
+    openAIRequest: (preamble_file: string, prompt_file: string, text: string, chatId?: string) => any;
     addNewEvent: (event: {type: LLMEvents,  status: LLMEventStatus, data?: any}) => void;
     consumeEvent: (newEvent?: {type: LLMEvents, status: LLMEventStatus, data?: any}) => void;
     setCurrentEventPipeline: (eventName: string) => void;
@@ -56,9 +56,9 @@ const LLMProvider = ({ children }: { children: ReactNode }) => {
         });
     }
 
-    const openAIRequest = async (preamble_file: string, text: string, chatId?: string) => {
+    const openAIRequest = async (preamble_file: string, prompt_file: string, text: string, chatId?: string) => {
 
-        let message: any = {preamble: preamble_file, text: text};
+        let message: any = {preamble: preamble_file, prompt: prompt_file, text: text};
 
         if(chatId)
             message.chatId = chatId;

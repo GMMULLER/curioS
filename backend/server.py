@@ -1085,6 +1085,7 @@ def llm_openaAI():
     data = request.get_json()
 
     preamble_file = data.get("preamble", None)
+    prompt_file = data.get("prompt", None)
     text = data.get("text", None)
     chatId = data.get("chatId", None)
 
@@ -1096,8 +1097,11 @@ def llm_openaAI():
     prompt_preamble_file = open(preamble_file+".txt")
     prompt_preamble = prompt_preamble_file.read()
 
+    prompt_file_obj = open(prompt_file+".txt")
+    prompt_text = prompt_file_obj.read()
+
     if len(past_conversation) == 0: # Adding the prompt to the conversation
-        past_conversation.append({"role": "system", "content": prompt_preamble})
+        past_conversation.append({"role": "system", "content": prompt_preamble + "\n" + prompt_text})
 
     api_file = open("api.env")
     api_key = api_file.read()

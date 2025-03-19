@@ -29,7 +29,7 @@ const ChatComponent = () => {
 
         try {
 
-            const response = await openAIRequest("chat_preamble", input, "ChatComponent");
+            const response = await openAIRequest("default_preamble", "chat_prompt", input, "ChatComponent");
             const aiMessage = { role: "ai", text: response.result };
             setMessages((prev) => [...prev, aiMessage]);
         } catch (error) {
@@ -90,10 +90,10 @@ const ChatComponent = () => {
 
                 let event = {...llmEvents[0]};
 
-                consumeEvent({type: LLMEvents.GENERATE_HIGHLIGHTS_RESET, status: LLMEventStatus.NOTDONE, data: checkForGoal(event.data) as string}); // Consume current event and replace it with a new one in the same position
+                consumeEvent({type: LLMEvents.GENERATE_HIGHLIGHTS_RESET, status: LLMEventStatus.NOTDONE, data: event.data}); // Consume current event and replace it with a new one in the same position
                 
                 cleanCanvas();
-                setWorkflowGoal(checkForGoal(event.data) as string);
+                setWorkflowGoal(event.data);
             }
         }
     }, [llmEvents]);

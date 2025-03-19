@@ -44,7 +44,7 @@ export function WorkflowGoal({ }: { }) {
     
             try {
     
-                let result = await openAIRequest("workflow_suggestions_preamble", "Target dataflow: " + JSON.stringify(trill_spec) + "\n" + "The user goal is: "+workflowGoal+" ");
+                let result = await openAIRequest("default_preamble", "workflow_suggestions_prompt", "Target dataflow: " + JSON.stringify(trill_spec) + "\n" + "The user goal is: "+workflowGoal+" ");
     
                 console.log("generateSuggestion result", result);
     
@@ -86,7 +86,7 @@ export function WorkflowGoal({ }: { }) {
         setLoading(true);
 
         try {
-            let result = await openAIRequest("keywords_binding_preamble", " Current keywords: " + JSON.stringify(current_keywords) + "\n" + "Trill specification: " + JSON.stringify(trill_spec));
+            let result = await openAIRequest("default_preamble", "keywords_binding_prompt", " Current keywords: " + JSON.stringify(current_keywords) + "\n" + "Trill specification: " + JSON.stringify(trill_spec));
 
             console.log("getNewHighlightsBinding result", result, workflowGoal);
 
@@ -116,7 +116,7 @@ export function WorkflowGoal({ }: { }) {
             if(goal == "")
                 return
 
-            let result = await openAIRequest("syntax_analysis_preamble", goal);
+            let result = await openAIRequest("syntax_analysis_preamble", "syntax_analysis_prompt", goal);
 
             console.log("parseKeywords result", result);
 
@@ -151,7 +151,7 @@ export function WorkflowGoal({ }: { }) {
         try {
             let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowNameRef.current, workflowGoal);
 
-            let result = await openAIRequest("task_refresh_preamble", "Current Task: " + current_task + "\n" + " Current keywords: " + JSON.stringify(current_keywords) + "\n" + "Trill specification: " + JSON.stringify(trill_spec));
+            let result = await openAIRequest("default_preamble", "task_refresh_prompt", "Current Task: " + current_task + "\n" + " Current keywords: " + JSON.stringify(current_keywords) + "\n" + "Trill specification: " + JSON.stringify(trill_spec));
 
             console.log("getNewTask result", result);
 
@@ -191,7 +191,7 @@ export function WorkflowGoal({ }: { }) {
             if(nodes.length != 0){
                 let trill_spec = TrillGenerator.generateTrill(nodes, edges, workflowNameRef.current, current_task);
 
-                let result = await openAIRequest("new_subtasks_preamble", "Current Task: " + current_task + "\n" + "Trill specification: " + JSON.stringify(trill_spec));
+                let result = await openAIRequest("default_preamble", "new_subtasks_prompt", "Current Task: " + current_task + "\n" + "Trill specification: " + JSON.stringify(trill_spec));
     
                 console.log("getNewSubtasks", result);
 
@@ -255,6 +255,8 @@ export function WorkflowGoal({ }: { }) {
                 
                 setTempWorkflowGoal(event.data);
                 parseKeywords(event.data);
+                // setTempWorkflowGoal(workflowGoal);
+                // parseKeywords(workflowGoal);
             }else if(llmEvents[0].type == LLMEvents.BIND_HIGHLIGHTS && llmEvents[0].status == LLMEventStatus.NOTDONE){
                 consumeEvent({type: LLMEvents.BIND_HIGHLIGHTS, status: LLMEventStatus.PROCESSING});
             }else if(llmEvents[0].type == LLMEvents.EDIT_TASK && llmEvents[0].status == LLMEventStatus.NOTDONE){
@@ -284,7 +286,7 @@ export function WorkflowGoal({ }: { }) {
 
             console.log("trill_spec", trill_spec);
 
-            let result_warnings = await openAIRequest("evaluate_coherence_subtasks_preamble", "Task: " + goal + " \n Current Trill: " + JSON.stringify(trill_spec));
+            let result_warnings = await openAIRequest("default_preamble", "evaluate_coherence_subtasks_prompt", "Task: " + goal + " \n Current Trill: " + JSON.stringify(trill_spec));
 
             console.log("warnings result", result_warnings);
 

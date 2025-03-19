@@ -166,7 +166,7 @@ export function MainCanvas() {
 
         let text = JSON.stringify(trill_spec) + "\n\n" + "Your task as an assistant is to textually explain, in an high school level, what this dataflow is doing. Include a lot of details and separate the explanation by node and explaining the flow of the data between nodes. Explain what the code in each node does, what is being visualized, what is the purpose of each node and what is the format of the data that is being passed forward. But do not include specific information about the trill structure like node or edge numeric ids. **DO NOT PROVIDE EXPLANATIONS FOR THE EXAMPLE DATAFLOW. ALWAYS PRODUCE EXPLANATIONS FOR THE LAST DATAFLOW PROVIDED EVEN IF IT IS EMPTY**"
 
-        openAIRequest("default_preamble", text).then((response: any) => {
+        openAIRequest("default_preamble", "explanation_prompt", text).then((response: any) => {
             console.log("Response:", response);
 
             setFloatingBoxes((prevFloatingBoxes: any) => {
@@ -193,9 +193,9 @@ export function MainCanvas() {
 
         let trill_spec = TrillGenerator.generateTrill(selectedComponents.nodes, selectedComponents.edges, workflowNameRef.current, workflowGoal);
 
-        let text = JSON.stringify(trill_spec) + "\n\n" + "Your task as an assistant is to textually debug, in an high school level, this dataflow. If errors are present help the users explain how they can be fixed (**DO NOT MENTION ANY PATH OR FILE NAME IN YOUR EXPLANATION**). If no errors are present but certain practices might not yield the expected results also cite them. Provide general opportunities for improvements of the dataflow. Analyze the of each node, edges connections, and box types used. Do not include specific information about the trill structure like node or edge numeric ids (that is transparent to the user). **DO NOT PROVIDE EXPLANATIONS FOR THE EXAMPLE DATAFLOW. ALWAYS PRODUCE EXPLANATIONS FOR THE LAST DATAFLOW PROVIDED EVEN IF IT IS EMPTY**"
+        let text = JSON.stringify(trill_spec) + "\n\n" + ""
 
-        openAIRequest("debug_preamble", text).then((response: any) => {
+        openAIRequest("default_preamble", "debug_prompt", text).then((response: any) => {
             console.log("Response:", response);
 
             setFloatingBoxes((prevFloatingBoxes: any) => {
