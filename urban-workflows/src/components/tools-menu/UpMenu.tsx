@@ -159,6 +159,7 @@ const menuBar: CSS.Properties = {
     background: "linear-gradient(to bottom, #23c686, #1ea872)",
     height: "65px",
     padding: "10px",
+    fontFamily: "Rubik",
     zIndex: 100,
 };
 

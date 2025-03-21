@@ -3,7 +3,7 @@ textarea:focus {
     box-shadow: none;
 }
 
-::placeholder {
-    color: red;
+textarea::placeholder {
+    color: rgb(171, 172, 166);
     opacity: 1; 
 }

@@ -13,9 +13,6 @@ import Row from "react-bootstrap/Row";
 import CSS from "csstype";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-    faGear,
-    faCircleInfo,
-    faCirclePlay,
     faExpand,
     faToolbox,
     faCode,
@@ -26,6 +23,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
 import BoxExplanation from "./BoxExplanation";
+import "./BoxEditor.css";
 
 type BoxEditorProps = {
     outputId?: string;
@@ -149,12 +147,12 @@ function BoxEditor({
     };
 
     const navItemStyle: CSS.Properties = {
-        maxWidth: "100%",
+        maxWidth: "100%"
     };
 
     const navLinkStyle: CSS.Properties = {
         display: "flex",
-        justifyContent: "center",
+        justifyContent: "center"
     };
 
     return (

@@ -40,7 +40,8 @@ import {
     faCube,
     faChartLine,
     faCirclePlus,
-    faTriangleExclamation
+    faTriangleExclamation,
+    faAnglesUp
 } from "@fortawesome/free-solid-svg-icons";
 import { AccessLevelType, BoxType, LLMEvents, LLMEventStatus, SupportedType } from "../constants";
 import './styles.css';
@@ -106,6 +107,9 @@ export const BoxContainer = ({
     const { showMenu, menuPosition, onContextMenu } = useRightClickMenu();
     const [minimized, setMinimized] = useState(data.nodeType == BoxType.MERGE_FLOW);
     const [showWarnings, setShowWarnings] = useState<boolean>(false);
+    const [isSubtasksOpen, setIsSubtasksOpen] = useState(false);
+    const [isConnectionLeftOpen, setIsConnectionLeftOpen] = useState(false);
+    const [isConnectionRightOpen, setIsConnectionRightOpen] = useState(false);
 
     const generateSubtaskFromExec = async (node_content: string, node_type: BoxType, current_task: string) => {
         try {
@@ -175,7 +179,7 @@ export const BoxContainer = ({
         }
 
         if(boxHeight == undefined){
-            setCurrentBoxHeight(267);
+            setCurrentBoxHeight(280);
         }
 
         const resizer = document.getElementById(nodeId+"resizer") as HTMLElement;
@@ -458,10 +462,16 @@ export const BoxContainer = ({
             }
 
             {!minimized ?
-                <div style={{...goalInput, ...((data.suggestionType != "none" && data.suggestionType != undefined) ? {opacity: "50%", pointerEvents: "none"} : {})}} className={"nodrag"}>
+                <button style={{border: "none", background: "none", color: "#1d3853", ...(isSubtasksOpen ? openSubtasksButton : closedSubtasksButton), ...(llmEvents.length > 0 ? {opacity: "60%"} : {})}} onClick={() => setIsSubtasksOpen(!isSubtasksOpen)}>
+                    <FontAwesomeIcon icon={faAnglesUp} style={{...(isSubtasksOpen ? {} : {transform: "rotate(180deg)"})}} />
+                </button> : null            
+            }
+
+            {!minimized && isSubtasksOpen ?
+                <div style={{...goalInput, ...(currentBoxWidth ? {width: (currentBoxWidth-4)+"px"} : {}), ...((data.suggestionType != "none" && data.suggestionType != undefined) ? {opacity: "50%", pointerEvents: "none"} : {})}} className={"nodrag"}>
                     <label htmlFor={nodeId+"_goal_box_input"}>Subtask: </label>
-                    <input id={nodeId+"_goal_box_input"} type={"text"} placeholder={"Describe the subtask"} style={{width: "240px"}} value={goal} onBlur={() => {updateDataGoal(goal)}} onChange={(value: any) => {if(llmEvents.length > 0){alert("Wait a few seconds, we are still processing requests.")}else{setGoal(value.target.value)}}}/>
-                    {data.nodeType != BoxType.VIS_UTK ? <button style={buttonStyle} onClick={clickGenerateContentNode} >Generate code</button> : null}
+                    <input id={nodeId+"_goal_box_input"} type={"text"} style={{width: "240px", border: "none", background: "transparent", color: "rgb(251, 252, 246)", borderBottom: "1px solid rgb(46, 91, 136)"}} value={goal} onBlur={() => {updateDataGoal(goal)}} onChange={(value: any) => {if(llmEvents.length > 0){alert("Wait a few seconds, we are still processing requests.")}else{setGoal(value.target.value)}}}/>
+                    {data.nodeType != BoxType.VIS_UTK ? <button style={buttonStyle} onClick={clickGenerateContentNode} >Get code</button> : null}
                 </div> : null
             }
 
@@ -479,6 +489,18 @@ export const BoxContainer = ({
             }
 
             {!minimized && (handleType == "in/out" || handleType == "in") ?
+                <button style={{border: "none", background: "none", color: "#1d3853", ...(isConnectionLeftOpen ? openConnectionLeftButton : closedConnectionLeftButton), ...(llmEvents.length > 0 ? {opacity: "60%"} : {})}} onClick={() => setIsConnectionLeftOpen(!isConnectionLeftOpen)}>
+                    <FontAwesomeIcon icon={faAnglesUp} style={{...(isConnectionLeftOpen ? {transform: "rotate(90deg)"} : {transform: "rotate(270deg)"})}} />
+                </button> : null            
+            }
+
+            {!minimized && (handleType == "in/out" || handleType == "out") ?
+                <button style={{border: "none", background: "none", color: "#1d3853", ...(isConnectionRightOpen ? openConnectionRightButton : closedConnectionRightButton), ...(llmEvents.length > 0 ? {opacity: "60%"} : {})}} onClick={() => setIsConnectionRightOpen(!isConnectionRightOpen)}>
+                    <FontAwesomeIcon icon={faAnglesUp} style={{...(isConnectionRightOpen ? {transform: "rotate(270deg)"} : {transform: "rotate(90deg)"})}} />
+                </button> : null            
+            }
+
+            {!minimized && isConnectionLeftOpen && (handleType == "in/out" || handleType == "in") ?
                 <div style={inputTypeSelect}>
                     <select id={nodeId+"_expected_box_input_type"} value={expectedInputType} onChange={handleChangeExpectedInputType}>
                         {Object.values(SupportedType).map((type) => {
@@ -496,12 +518,12 @@ export const BoxContainer = ({
                 </div> : null
             }
 
-            {!minimized && (handleType == "in/out" || handleType == "in") && !(data.suggestionType != "none" && data.suggestionType != undefined) ?
+            {!minimized && isConnectionLeftOpen && (handleType == "in/out" || handleType == "in") && !(data.suggestionType != "none" && data.suggestionType != undefined) ?
                 <FontAwesomeIcon style={newInConnectionStyle} icon={faCirclePlus} onClick={() => {generateConnectionSuggestions(nodes, edges, workflowNameRef, goal, "input")}} /> : null
             }
 
             {
-                !minimized && (handleType == "in/out" || handleType == "out") ?
+                !minimized && isConnectionRightOpen && (handleType == "in/out" || handleType == "out") ?
                 <div style={outputTypeSelect}>
                     <select id={nodeId+"_expected_box_output_type"} value={expectedOutputType} onChange={handleChangeExpectedOutputType}>
                         {Object.values(SupportedType).map((type) => {
@@ -519,27 +541,27 @@ export const BoxContainer = ({
                 </div> : null
             }
 
-            {!minimized && (handleType == "in/out" || handleType == "out") && !(data.suggestionType != "none" && data.suggestionType != undefined) ?
+            {!minimized && isConnectionRightOpen && (handleType == "in/out" || handleType == "out") && !(data.suggestionType != "none" && data.suggestionType != undefined) ?
                 <FontAwesomeIcon style={newOutConnectionStyle} icon={faCirclePlus} onClick={() => {generateConnectionSuggestions(nodes, edges, workflowNameRef, goal, "output")}} /> : null
             }
 
-            <div id={nodeId+"resizable"} className={"resizable"} style={{...boxContainerStyles, ...styles, width: currentBoxWidth+"px", height: currentBoxHeight+"px", ...(minimized ? {display: "none"} : {}), ...((data.suggestionType != "none" && data.suggestionType != undefined) ? {opacity: 0.5, borderWidth: "2px", borderStyle: "dashed", pointerEvents: "none"} : {}), ...(data.suggestionAcceptable ? {borderColor: "orange"} : {}), ...(data.keywordHighlighted ? {backgroundColor: "#373737"} : {})}} onContextMenu={onContextMenu}>
+            <div id={nodeId+"resizable"} className={"resizable"} style={{...boxContainerStyles, ...styles, width: currentBoxWidth+"px", height: currentBoxHeight+"px", ...(minimized ? {display: "none"} : {}), ...((data.suggestionType != "none" && data.suggestionType != undefined) ? {opacity: 0.5, borderWidth: "2px", borderStyle: "dashed", pointerEvents: "none"} : {}), ...(data.suggestionAcceptable ? {borderColor: "#1d3853"} : {}), ...(data.keywordHighlighted ? {backgroundColor: "rgb(29, 56, 83)"} : {})}} onContextMenu={onContextMenu}>
                 {
                     !noContent ? 
                     <Row style={{ width: "95%", marginBottom: "2px", paddingBottom: "2px", marginLeft: "auto", marginRight: "auto", borderBottom: "1px solid rgba(107, 107, 107, 0.3)" }}>
-                        <p style={{...{ textAlign: "center", marginBottom: 0, fontSize: "12px", fontWeight: "bold", position:"fixed", top: "10px", left: 0 }, ...(data.keywordHighlighted ? {color: "white"} : {color: "#888787"})}}>{boxNameTranslation(data.nodeType)}{templateData.name != undefined ? " - " + templateData.name : null}</p>
+                        <p style={{...{ textAlign: "center", marginBottom: 0, fontSize: "12px", fontWeight: "bold", position:"fixed", top: "10px", left: 0 }, ...(data.keywordHighlighted ? {color: "rgb(251, 252, 246)"} : {color: "#888787"})}}>{boxNameTranslation(data.nodeType)}{templateData.name != undefined ? " - " + templateData.name : null}</p>
 
                         <ul style={{listStyle: "none", padding: 0, display: "flex", margin: 0, justifyContent: "flex-end", zIndex: 5}}>
-                            {promptModal != undefined && user != undefined && templateData.id != undefined && templateData.custom && user != null && user.type == "programmer" ? <li style={{marginLeft: "10px"}}><FontAwesomeIcon onClick={() => { promptModal() }} icon={faGear} style={{...iconStyle, ...(data.keywordHighlighted ? {color: "white"} : {color: "#888787"})}} /></li> : null}
-                            <li style={{marginLeft: "10px"}}><FontAwesomeIcon onClick={() => { promptDescription() }} icon={faCircleInfo} style={{...iconStyle, ...(data.keywordHighlighted ? {color: "white"} : {color: "#888787"})}} /></li>
+                            {promptModal != undefined && user != undefined && templateData.id != undefined && templateData.custom && user != null && user.type == "programmer" ? <li style={{marginLeft: "10px"}}><FontAwesomeIcon onClick={() => { promptModal() }} icon={faGear} style={{...iconStyle, ...(data.keywordHighlighted ? {color: "rgb(251, 252, 246)"} : {color: "#888787"})}} /></li> : null}
+                            <li style={{marginLeft: "10px"}}><FontAwesomeIcon onClick={() => { promptDescription() }} icon={faCircleInfo} style={{...iconStyle, ...(data.keywordHighlighted ? {color: "rgb(251, 252, 246)"} : {color: "#888787"})}} /></li>
                             <li style={{marginLeft: "10px"}}><FontAwesomeIcon
                                     icon={faComments}
-                                    style={{...iconStyle, ...(data.keywordHighlighted ? {color: "white"} : {color: "#888787"})}}
+                                    style={{...iconStyle, ...(data.keywordHighlighted ? {color: "rgb(251, 252, 246)"} : {color: "#888787"})}}
                                     onClick={() => setShowComments(!showComments)}
                                 /></li>
                             {updateTemplate != undefined && user != undefined && code != undefined && templateData.id != undefined && templateData.custom && code != templateData.code && user != null && user.type == "programmer" ? 
                             <li style={{marginLeft: "10px"}}>
-                                <FontAwesomeIcon icon={faFloppyDisk} style={{...iconStyle, ...(data.keywordHighlighted ? {color: "white"} : {color: "#888787"})}} onClick={() => { updateTemplate({ ...templateData, code: code }) }} />
+                                <FontAwesomeIcon icon={faFloppyDisk} style={{...iconStyle, ...(data.keywordHighlighted ? {color: "rgb(251, 252, 246)"} : {color: "#888787"})}} onClick={() => { updateTemplate({ ...templateData, code: code }) }} />
                             </li> : null}
 
                         </ul>
@@ -552,7 +574,7 @@ export const BoxContainer = ({
 
                 <Row  style={{...{ width: "30%", marginRight: "auto", marginLeft: "10px", marginTop: "4px"}, ...((data.suggestionType != "none" && data.suggestionType != undefined) ? {pointerEvents: "none"} : {})}}>
                     {sendCodeToWidgets != undefined ? <Row>
-                        <Col md={2}><FontAwesomeIcon className={"nowheel nodrag"} icon={faCirclePlay} style={{...{cursor: "pointer", fontSize: "27px", color: "#0d6efd"}, ...(llmEvents.length > 0 ? {opacity: "60%", pointerEvents: "none"} : {})}} onClick={() => {
+                        <Col md={2}><FontAwesomeIcon className={"nowheel nodrag"} icon={faCirclePlay} style={{...{cursor: "pointer", fontSize: "27px", color: "rgb(35, 198, 134)"}, ...(llmEvents.length > 0 ? {opacity: "60%", pointerEvents: "none"} : {})}} onClick={() => {
                             setOutputCallback({code: "exec", content: ""});
                             sendCodeToWidgets(code); // will resolve markers
                         }} /></Col>
@@ -609,7 +631,7 @@ export const BoxContainer = ({
                 </Row>
 
                 {
-                    pinnedToDashboard ? <FontAwesomeIcon icon={faCircleDot} style={{...{ color: "red", cursor: "pointer", fontSize: "10px", position: "fixed", top: "12px", left: "10px", zIndex: 11 }, ...((data.suggestionType != "none" && data.suggestionType != undefined) ? {pointerEvents: "none"} : {})}} onClick={() => { updatePin(nodeId, pinnedToDashboard) }} /> : <FontAwesomeIcon style={{...(data.keywordHighlighted ? {color: "white"} : {color: "888"}), ...{ cursor: "pointer", fontSize: "10px", position: "fixed", top: "12px", left: "10px", zIndex: 11 }, ...((data.suggestionType != "none" && data.suggestionType != undefined) ? {pointerEvents: "none"} : {})}} icon={faCircle} onClick={() => { updatePin(nodeId, pinnedToDashboard) }} />
+                    pinnedToDashboard ? <FontAwesomeIcon icon={faCircleDot} style={{...{ color: "red", cursor: "pointer", fontSize: "10px", position: "fixed", top: "12px", left: "10px", zIndex: 11 }, ...((data.suggestionType != "none" && data.suggestionType != undefined) ? {pointerEvents: "none"} : {})}} onClick={() => { updatePin(nodeId, pinnedToDashboard) }} /> : <FontAwesomeIcon style={{...(data.keywordHighlighted ? {color: "rgb(251, 252, 246)"} : {color: "888"}), ...{ cursor: "pointer", fontSize: "10px", position: "fixed", top: "12px", left: "10px", zIndex: 11 }, ...((data.suggestionType != "none" && data.suggestionType != undefined) ? {pointerEvents: "none"} : {})}} icon={faCircle} onClick={() => { updatePin(nodeId, pinnedToDashboard) }} />
                 }
 
                 {
@@ -640,7 +662,7 @@ export const BoxContainer = ({
                 null
             }
 
-            <FontAwesomeIcon icon={(!minimized ? faMinus : faUpRightAndDownLeftFromCenter)} style={{...(data.keywordHighlighted ? {color: "white"} : {color: "#888787"}), ...iconStyle, position: "fixed", ...(minimized ?{top: "5px", left: "5px"} : {left: "50px", top: "12px"}), fontSize: "10px", zIndex: 8, ...((data.suggestionType != "none" && data.suggestionType != undefined) ? {pointerEvents: "none"} : {}) }} onClick={() => { 
+            <FontAwesomeIcon icon={(!minimized ? faMinus : faUpRightAndDownLeftFromCenter)} style={{...(data.keywordHighlighted ? {color: "rgb(251, 252, 246)"} : {color: "#888787"}), ...iconStyle, position: "fixed", ...(minimized ?{top: "5px", left: "5px"} : {left: "50px", top: "12px"}), fontSize: "10px", zIndex: 8, ...((data.suggestionType != "none" && data.suggestionType != undefined) ? {pointerEvents: "none"} : {}) }} onClick={() => { 
                 if(data.nodeType != BoxType.MERGE_FLOW){
                     if(!minimized){
                         setCurrentBoxWidth(70);
@@ -653,7 +675,7 @@ export const BoxContainer = ({
                         }
                 
                         if(boxHeight == undefined){
-                            setCurrentBoxHeight(267);
+                            setCurrentBoxHeight(280);
                         }else{
                             setCurrentBoxHeight(boxHeight);
                         }
@@ -679,8 +701,9 @@ export const iconStyle: CSS.Properties = {
 
 const boxContainerStyles: CSS.Properties = {
     position: "relative",
-    backgroundColor: "white",
-    boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px",
+    backgroundColor: "rgb(251, 252, 246)",
+    boxShadow: "rgba(0, 0, 0, 0.1) 0px 0px 50px",
+    fontFamily: "Rubik",
     borderRadius: "10px",
     padding: "5px"
 };
@@ -723,10 +746,11 @@ const boxContentStyle: CSS.Properties = {
 };
 
 export const buttonStyle: CSS.Properties = {
-    backgroundColor: "transparent",
-    color: "#545353",
-    border: "1px solid #545353",
-    padding: "4px 8px",
+    backgroundColor: "rgb(251, 252, 246)",
+    color: "rgb(29, 56, 83)",
+    padding: "3px 10px",
+    marginLeft: "5px",
+    border: "none",
     borderRadius: "4px",
     cursor: "pointer",
     outline: "none"
@@ -750,43 +774,97 @@ const buttonStyleAny: CSS.Properties = {
 const buttonAcceptSuggestion: CSS.Properties = {
     position: "absolute",
     top: "-50px",
-    padding: "8px 12px",
     cursor: "pointer",
-    backgroundColor: "#007bff",
-    color: "#fff",
+    backgroundColor: "rgb(29, 56, 83)",
+    color: "rgb(251, 252, 246)",
+    fontFamily: "Rubik",
+    padding: "6px 10px",
+    fontWeight: "bold",
     border: "none",
     borderRadius: "4px",
 };
 
 const newInConnectionStyle: CSS.Properties = {
     position: "absolute",
-    left: "-100px",
+    left: "-105px",
     fontSize: "25px",
-    top: "calc(50% - 50px)"
+    top: "calc(50% - 50px)",
+    color: "rgb(29, 56, 83)"
 };
 
 const newOutConnectionStyle: CSS.Properties = {
     position: "absolute",
     right: "-100px",
     fontSize: "25px",
-    top: "calc(50% - 50px)"
+    top: "calc(50% - 50px)",
+    color: "rgb(29, 56, 83)"
 };
 
 const goalInput: CSS.Properties = {
     position: "absolute",
-    bottom: "-50px"
+    bottom: "-50px",
+    left: "2px",
+    backgroundColor: "rgb(29, 56, 83)",
+    color: "rgb(251, 252, 246)",
+    borderRadius: "0 0 10px 10px",
+    fontFamily: "Rubik",
+    paddingTop: "10px",
+    height: "60px",
+    display: "flex", 
+    justifyContent: "center",
+    alignItems: "center"
 }
 
 const inputTypeSelect: CSS.Properties = {
     position: "absolute",
     left: "-160px",
-    fontSize: "14px",
-    top: "calc(50% - 14px)"
+    fontSize: "13px",
+    top: "calc(50% - 13px)",
+    fontFamily: "Rubik",
+    color: "rgb(29, 56, 83)"
 }
 
 const outputTypeSelect: CSS.Properties = {
     position: "absolute",
     right: "-160px",
-    fontSize: "14px",
-    top: "calc(50% - 14px)"
+    fontSize: "13px",
+    top: "calc(50% - 13px)",
+    fontFamily: "Rubik",
+    color: "rgb(29, 56, 83)"
+}
+
+const openSubtasksButton: CSS.Properties = {
+    position: "absolute",
+    bottom: "-80px",
+    left: "calc(50% - 12px)"
+}
+
+const closedSubtasksButton: CSS.Properties = {
+    position: "absolute",
+    bottom: "-25px",
+    left: "calc(50% - 12px)"
+}
+
+const openConnectionLeftButton: CSS.Properties = {
+    position: "absolute",
+    left: "-190px",
+    top: "calc(50% - 12px)"
+}
+
+const closedConnectionLeftButton: CSS.Properties = {
+    position: "absolute",
+    left: "-35px",
+    top: "calc(50% - 12px)"
+}
+
+const openConnectionRightButton: CSS.Properties = {
+    position: "absolute",
+    right: "-190px",
+    top: "calc(50% - 12px)"
+}
+
+const closedConnectionRightButton: CSS.Properties = {
+    position: "absolute",
+    right: "-35px",
+    top: "calc(50% - 12px)"
 }

@@ -18,3 +18,8 @@
     /* margin-right: -5px; */
     cursor: se-resize;
 }
+
+::placeholder {
+    color: #58abfd;
+    opacity: 1; 
+}

@@ -345,7 +345,7 @@ export function WorkflowGoal({ }: { }) {
             {/* Editable Workflow Goal */}
             <div style={workflowGoalContainer}>
                 
-                <div style={{boxShadow: "rgba(0, 0, 0, 0.1) 0px 0px 50px", borderRadius: "4px", width: "600px", overflowY: "auto", height: "150px", padding: "5px", display: "flex", justifyContent: "center", alignItems: "center"}}>
+                <div style={{boxShadow: "rgba(0, 0, 0, 0.1) 0px 0px 50px", borderRadius: "4px", width: "800px", overflowY: "auto", height: "200px", padding: "5px", display: "flex", justifyContent: "center", alignItems: "center", scrollbarColor: "#1d3853 transparent"}}>
                     {workflowGoal == "" && !isEditing ?
                         <p style={{marginBottom: "0px", opacity: 0.7, color: "rgb(29, 56, 83)", fontSize: "20px", cursor: "pointer"}} onClick={() => {
                             if(llmEvents.length > 0){
@@ -369,7 +369,7 @@ export function WorkflowGoal({ }: { }) {
                             : 
                                 segments.map((part: any, index: any) =>
                                     highlights[part] ? (
-                                        <span key={index+"_span_text_goal"} style={{ backgroundColor: typeColors[highlights[part]["type"]], fontWeight: "bold", padding: "2px", marginRight: "4px", borderRadius: "5px", cursor: "default"}}
+                                        <span key={index+"_span_text_goal"} style={{ backgroundColor: typeColors[highlights[part]["type"]], fontWeight: "bold", fontFamily: "Rubik", fontSize: "18px", padding: "2px", marginRight: "4px", borderRadius: "5px", cursor: "default", color: "rgb(29, 56, 83)"}}
                                             onMouseEnter={(e) => {
                                                 setTooltip({
                                                     visible: true,
@@ -394,7 +394,7 @@ export function WorkflowGoal({ }: { }) {
                                             
                                         </span>
                                     ) : (
-                                    part
+                                    <span key={index+"_span_text_goal"} style={{fontWeight: "bold", fontFamily: "Rubik", fontSize: "18px", cursor: "default", color: "rgb(29, 56, 83)"}}>{part}</span>
                                     )
                                 )}
                         </p>
@@ -456,6 +456,7 @@ const button: CSS.Properties = {
     backgroundColor: "rgb(29, 56, 83)",
     border: "none",
     color: "rgb(251, 252, 246)",
+    fontFamily: "Rubik",
     fontWeight: "bold",
     padding: "6px 10px",
     borderRadius: "5px"
