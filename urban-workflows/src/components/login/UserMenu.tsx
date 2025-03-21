@@ -118,9 +118,9 @@ const buttonStyle: CSS.Properties = {
 
 const containerStyle: CSS.Properties = {
   position: "fixed",
-  top: "40px",
-  right: "20%",
+  top: "14px",
+  right: "20px",
   display: "flex",
   cursor: "pointer",
-  zIndex: 100,
+  zIndex: 200,
 };
