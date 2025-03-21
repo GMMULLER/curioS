@@ -1,4 +1,23 @@
+Title: Analyzing crime distribution in Manhattan with multiple datasets (?)
+
 Dataset: https://github.com/urban-toolkit/utk/blob/master/docs/examples/1-data.md
+
+This use case focuses on loading multiple urban datasets for Manhattan and aggregate over zip code. There should be one UTK plot and one Vega Plot. 
+
+**Intention**: Definition.
+
+**Features used**: 
+
+- LLM-assisted Task definition chat
+- Generate dataflow suggestions from LLM
+- Accept or reject LLM suggestions node by node
+- LLM-assisted warnings
+- Subtasks sugestions from LLM
+- User can define expected input and output of each node
+
+Should I give less details to the LLM in the Task definition?
+Complete the content of the nodes manually?
+Edit task manually?
 
 ### Defining Task with LLM
 
@@ -24,12 +43,16 @@ Me: I want one map with the aggregated datasets by ZIP code and another 2D plot 
 
 LLM: To clarify, you want one 3D map visualization utilizing the aggregated datasets by ZIP code and a second 2D plot for a multidimensional representation, which could summarize or compare certain metrics across ZIP codes. For the 2D plot, which specific attributes or metrics would you like to visualize? This could include aggregated occurrences, averages, or specific comparisons among the datasets.
 
-Me: I want the same aggregation I am visualizing on the 3D map.
+Me: Just to confirm, you'll have one 3D map visualization using UTK that displays the aggregated occurrences of Crime, Food, Noise, Parks, School, Sky, Subway, and Taxi datasets by ZIP code. Additionally, you'll have a 2D plot using Vega-Lite that also represents the same aggregated occurrences by ZIP code.
 
-LLM: Great! To summarize, you want to load multiple local CSV files for the datasets (Crime, Food, Noise, Parks, School, Sky, Subway, Taxi) and another local file for ZIP code boundaries. You will aggregate the number of occurrences for each dataset per ZIP code. This data will be visualized with a 3D map using UTK to show the aggregated occurrences by ZIP code and a 2D plot to represent the same aggregated data.
+Let's summarize your task and the flow of the data: Load the Crime, Food, Noise, Parks, School, Sky, Subway, and Taxi datasets from local CSV files; load the ZIP code boundaries from a local shapefile; aggregate the number of occurrences for each dataset by ZIP code; create a 3D map visualization of the aggregated data using UTK; and create a 2D plot to represent the same aggregation using Vega-Lite.
 
-Now, let’s finalize the task description. Here’s the complete overview of your dataflow task:
+Here's the task summarized:
 
-Load the CSV files for Crime, Food, Noise, Parks, School, Sky, Subway, and Taxi datasets along with a local file for ZIP code boundaries. Aggregate the number of occurrences for each dataset per ZIP code. Visualize the aggregated data in a 3D map using Urban Toolkit (UTK) to represent occurrences by ZIP code and create a 2D plot that displays the same aggregated data for comparison among the ZIP codes.
+Task: **Load the Crime, Food, Noise, Parks, School, Sky, Subway, and Taxi datasets from local CSV files; load the ZIP code boundaries from a local shapefile; aggregate the number of occurrences for each dataset by ZIP code; create a 3D map visualization of the aggregated data using UTK; and create a 2D plot to represent the same aggregation using Vega-Lite.** If you would like to change it let me know!
 
-Task: Load the CSV files for Crime, Food, Noise, Parks, School, Sky, Subway, and Taxi datasets along with a local file for ZIP code boundaries. Aggregate the number of occurrences for each dataset per ZIP code. Visualize the aggregated data in a 3D map using Urban Toolkit (UTK) to represent occurrences by ZIP code and create a 2D plot that displays the same aggregated data for comparison among the ZIP codes. If you would like to change it let me know!
+--------------------------------------------------------
+
+- Using a Task with less number of datasets:
+
+**Load the Crime, School, and Taxi datasets from local CSV files; load the ZIP code boundaries from a local shapefile; aggregate the number of occurrences for each dataset by ZIP code; create a 3D map visualization of the aggregated data using UTK; and create a 2D plot to represent the same aggregation using Vega-Lite.**

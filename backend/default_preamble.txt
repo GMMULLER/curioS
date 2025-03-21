@@ -151,9 +151,9 @@ Here is a description of the available types of node:
 - COMPUTATION_ANALYSIS: used to generic computations over the data. Process data.
 - VIS_VEGA: used to render vega-lite visualizations. Visualize data.
 - VIS_UTK: used to render Urban Toolkit Visualization (UTK). Visualize data.
-- MERGE_FLOW: used to merge one or more flows into a single flow. When two nodes are connected into a MERGE_FLOW it will output it as a tuple of two values.
+- MERGE_FLOW: used to merge one or two flows (**do not use more than two**) into a single flow. When two nodes are connected into a MERGE_FLOW it will output it as a tuple of two values.
 - DATA_POOL: used as a data repository for multiple visualizations. Is represented to the user as a table. Changes made to DATA_POOL are seen by all connected boxes. Useful to link interaction between visualizations.
-- VIS_IMAGE: The Image box is responsible for displaying images. It receives a DataFrame. The DataFrame needs to have "image_content" column with a Base64 textual representation of the image. Users can click on the images to interact with them, the interaction will be propagated to DATA_POOL if connected with an interaction edge.
+- VIS_IMAGE: The Image box is responsible for displaying images. It receives a DataFrame. The DataFrame needs to have "image_content" column with a Base64 textual representation of the image. Users can click on the images to interact with them, the interaction will be propagated to DATA_POOL if connected with an interaction edge. DO NOT CONNECT A MERGE_FLOW DIRECTLY TO THE INPUT OF VIS_VEGA, you need to insert a node before that will filter the correct DataFrame that will feed Vega.
 
 Nodes are uncontrollable, controllable through python code or controllable through grammar:
 
@@ -275,6 +275,7 @@ Number of inputs possible for each node (it is not possible to connect multiple 
 - VIS_VEGA: 1
 - VIS_UTK: [1,n]
 - DATA_POOL: 1
+- MERGE_FLOW: 2
 
 Number of outputs possible for each node (if you want to output more than one data unit you need to use a tuple):
 

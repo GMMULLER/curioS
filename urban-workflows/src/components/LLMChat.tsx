@@ -5,11 +5,13 @@ import CSS from "csstype";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faAnglesUp,
-    faBroom
+    faBroom,
+    faArrowUp
 } from "@fortawesome/free-solid-svg-icons";
 import ReactMarkdown from "react-markdown";
 import { TrillGenerator } from "../TrillGenerator";
 import { LLMEvents, LLMEventStatus } from "../constants";
+import "./LLMChat.css";
 
 const ChatComponent = () => {
     const { openAIRequest, addNewEvent, llmEvents, consumeEvent, setCurrentEventPipeline } = useLLMContext();
@@ -98,6 +100,13 @@ const ChatComponent = () => {
         }
     }, [llmEvents]);
 
+    useEffect(() => {
+        let messagesDiv = document.getElementById("messagesDiv");
+
+        if (messagesDiv) {
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+    }, [messages]); // Scrolls when messages update
 
     useEffect(() => {
         cleanOpenAIChat();
@@ -106,18 +115,18 @@ const ChatComponent = () => {
     return (
         <div>
             {/* Toggle Button */}
-            <button style={{...toggleButton, ...(isOpen ? openButton : {})}} onClick={() => setIsOpen(!isOpen)}>
+            <button style={{...toggleButton, ...(isOpen ? openButton : {}), ...(llmEvents.length > 0 ? {opacity: "60%"} : {})}} onClick={() => setIsOpen(!isOpen)}>
                 LLM <FontAwesomeIcon icon={faAnglesUp} style={{...(isOpen ? {transform: "rotate(90deg)"} : {transform: "rotate(270deg)"})}} />
             </button>
             {/* Sidebar */}
-            <div style={{...sidebar, ...(isOpen ? openSidebar : {})}}>
-                <div style={{display: "flex", width: "100%", height: "50px", justifyContent: "center", alignItems: "center", borderBottom: "1px solid black", flexDirection: "row"}}>
-                    <p style={{margin: 0, fontWeight: "bold", marginRight: "15px"}}>LLM Assistant</p>
-                    <FontAwesomeIcon icon={faBroom} style={{cursor: "pointer"}} title={"Clean chat"} onClick={cleanOpenAIChat} />
+            <div style={{...sidebar, ...(isOpen ? openSidebar : {}), ...(llmEvents.length > 0 ? {opacity: "60%"} : {})}}>
+                <div style={{display: "flex", width: "100%", height: "50px", justifyContent: "center", alignItems: "center", borderBottom: "1px solid rgba(29, 56, 83, 0.1)", flexDirection: "row", marginTop: "15px", paddingBottom: "20px"}}>
+                    <p style={{margin: 0, fontWeight: "bold", marginRight: "10px", color: "#1d3853", fontFamily: "Rubik", fontSize: "25px"}}>LLM Assistant</p>
+                    <FontAwesomeIcon icon={faBroom} style={{cursor: "pointer", fontSize: "20px", color: "#1d3853"}} title={"Clean chat"} onClick={cleanOpenAIChat} />
                 </div>
-                <div style={{overflowY: "auto", height: "100%", paddingTop: "10px", paddingBottom: "10px"}}>
+                <div id={"messagesDiv"} style={{overflowY: "auto", height: "100%", width: "100%", padding: "15px"}}>
                     {messages.map((msg, index) => (
-                        <div key={index} style={{...messagesBackground, ...(msg.role === "user" ? {backgroundColor: "rgb(0, 123, 255)"} : {backgroundColor: "#424242"})}} className={`mb-2 p-2 rounded ${msg.role === "user" ? "bg-blue-100 text-right" : "bg-gray-200"}`}>
+                        <div key={index} style={{...messagesBackground, ...(msg.role === "user" ? {marginLeft: "auto"} : {})}} className={`mb-2 p-2 rounded ${msg.role === "user" ? "bg-blue-100 text-right" : "bg-gray-200"}`}>
                             <ReactMarkdown>{msg.text}</ReactMarkdown>
                             {msg.role != "user" && checkForGoal(msg.text)?
                                 <button style={applyGoalStyle} onClick={() => {applyGoal(msg.text)}}>Apply task</button> : null
@@ -132,7 +141,7 @@ const ChatComponent = () => {
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={(e) => {
                             if(e.key === "Enter"){
-                                handleSendMessage()
+                                handleSendMessage();
                             }}}
                         placeholder="Type your message..."
                         disabled={loading}
@@ -143,7 +152,7 @@ const ChatComponent = () => {
                         disabled={loading}
                         style={sendButtonStyle}
                     >
-                        {loading ? "..." : "Send"}
+                        {loading ? "..." : <FontAwesomeIcon icon={faArrowUp}/>}
                     </button>
                 </div>
             </div>
@@ -154,20 +163,31 @@ const ChatComponent = () => {
 const inputDiv: CSS.Properties =  {
     display: "flex",
     justifyContent: "center",
-    marginBottom: "10px"
+    marginBottom: "10px",
+    backgroundColor: "#1d3853",
+    width: "90%",
+    borderRadius: "10px",
+    padding: "15px"
 }
 
 const inputStyle: CSS.Properties =  {
-    padding: "5px"
+    padding: "5px",
+    border: "none",
+    backgroundColor: "#1d3853",
+    color: "#fbfcf6",
+    width: "80%"
 }
 
 const sendButtonStyle: CSS.Properties =  {
     border: "none",
     marginLeft: "5px",
-    backgroundColor: "rgb(0, 123, 255)",
-    color: "white",
+    backgroundColor: "rgb(251, 252, 246)",
+    padding: "6px 10px",
+    color: "#1d3853",
     fontWeight: "bold",
-    borderRadius: "4px"
+    borderRadius: "50%",
+    width: "40px",
+    height: "40px"
 }
 
 const applyGoalStyle: CSS.Properties =  {
@@ -175,26 +195,28 @@ const applyGoalStyle: CSS.Properties =  {
     marginLeft: "5px",
     marginTop: "3px",
     marginBottom: "5px",
-    backgroundColor: "rgb(0, 123, 255)",
-    color: "white",
+    backgroundColor: "#fbfcf6",
+    color: "#1d3853",
     fontWeight: "bold",
     borderRadius: "4px"
 }
 
 const sidebar: CSS.Properties =  {
     position: "fixed",
-    top: 0,
-    right: "-350px",
-    width: "350px",
-    height: "100vh",
+    top: "65px",
+    right: "-450px",
+    width: "450px",
+    height: "calc(100% - 65px)",
     zIndex: 200,
     padding: "5px",
-    backgroundColor: "white",
-    border: "1px solid black",
+    backgroundColor: "#fbfcf6",
+    boxShadow: "-10px 0px 50px rgba(0, 0, 0, 0.1)",
     transition: "right 0.3s ease-in-out",
     display: "flex",
     flexDirection: "column",
-    justifyContent: "space-between"
+    alignItems: "center",
+    justifyContent: "space-between",
+    scrollbarColor: "#1d3853 transparent"
 }
   
 const openSidebar: CSS.Properties = {
@@ -202,17 +224,17 @@ const openSidebar: CSS.Properties = {
 }
 
 const openButton: CSS.Properties = {
-    right: "350px"
+    right: "450px"
 }
   
 const toggleButton: CSS.Properties = {
     position: "fixed",
-    top: "0",
+    top: "65px",
     right: 0,
     padding: "10px 20px",
     zIndex: 200,
-    background: "rgb(0, 123, 255)",
-    color: "white",
+    backgroundColor: "rgb(29, 56, 83)",
+    color: "rgb(251, 252, 246)",
     fontWeight: "bold",
     border: "none",
     cursor: "pointer",
@@ -221,6 +243,8 @@ const toggleButton: CSS.Properties = {
 
 const messagesBackground: CSS.Properties = {
     borderRadius: "4px",
+    backgroundColor: "#1d3853",
+    width: "75%",
     padding: "5px",
     color: "white"
 }

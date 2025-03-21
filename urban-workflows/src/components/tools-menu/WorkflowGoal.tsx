@@ -5,6 +5,7 @@ import { useFlowContext } from "../../providers/FlowProvider";
 import { TrillGenerator } from "../../TrillGenerator";
 import { useCode } from "../../hook/useCode";
 import { LLMEvents, LLMEventStatus } from "../../constants";
+import "./WorkflowGoal.css";
 
 export function WorkflowGoal({ }: { }) {
     const { openAIRequest, llmEvents, consumeEvent, addNewEvent, setCurrentEventPipeline, currentEventPipeline } = useLLMContext();
@@ -344,15 +345,15 @@ export function WorkflowGoal({ }: { }) {
             {/* Editable Workflow Goal */}
             <div style={workflowGoalContainer}>
                 
-                <div style={{border: "1px solid #ccc", borderRadius: "4px", width: "600px", overflowY: "auto", height: "150px", padding: "5px", display: "flex", justifyContent: "center", alignItems: "center"}}>
+                <div style={{boxShadow: "rgba(0, 0, 0, 0.1) 0px 0px 50px", borderRadius: "4px", width: "600px", overflowY: "auto", height: "150px", padding: "5px", display: "flex", justifyContent: "center", alignItems: "center"}}>
                     {workflowGoal == "" && !isEditing ?
-                        <p style={{marginBottom: "0px", opacity: 0.7, fontSize: "20px", cursor: "pointer"}} onClick={() => {
+                        <p style={{marginBottom: "0px", opacity: 0.7, color: "rgb(29, 56, 83)", fontSize: "20px", cursor: "pointer"}} onClick={() => {
                             if(llmEvents.length > 0){
                                 alert("Wait a few seconds, we are still processing requests.")
                             }else{
                                 setIsEditing(true)
                             }
-                        }}>Click here or interact with the LLM to define your goal</p> : 
+                        }}>Click here or interact with the LLM to define your task</p> : 
                         <p style={goalStyle} onClick={() => {
                             if(llmEvents.length > 0){
                                 alert("Wait a few seconds, we are still processing requests.")
@@ -364,7 +365,7 @@ export function WorkflowGoal({ }: { }) {
                                 item
                             ))} */}
                             {isEditing ? 
-                                <textarea style={{width: "100%", height: "100%"}} autoFocus value={tempWorkflowGoal} onChange={handleGoalChange} onBlur={handleNameBlur}></textarea>
+                                <textarea style={{width: "100%", height: "100%", resize: "none", border: "none", backgroundColor: "rgb(251, 252, 246)", color: "rgb(29, 56, 83)", fontFamily: "Rubik", padding: "10px"}} autoFocus placeholder="Specify your task..." value={tempWorkflowGoal} onChange={handleGoalChange} onBlur={handleNameBlur}></textarea>
                             : 
                                 segments.map((part: any, index: any) =>
                                     highlights[part] ? (
@@ -428,14 +429,15 @@ export function WorkflowGoal({ }: { }) {
 }
 
 const workflowGoalContainer: CSS.Properties = {
-    marginTop: "20px",
+    top: "90px",
     textAlign: "center",
     zIndex: 100,
     left: "50%",
     transform: "translateX(-50%)",
     position: "fixed",
     display: "flex",
-    flexDirection: "column"
+    flexDirection: "column",
+    backgroundColor: "rgb(251, 252, 246)"
 };
 
 const goalStyle: CSS.Properties = {
@@ -451,10 +453,11 @@ const goalStyle: CSS.Properties = {
 };
 
 const button: CSS.Properties = {
-    backgroundColor: "rgb(0, 123, 255)",
+    backgroundColor: "rgb(29, 56, 83)",
     border: "none",
-    color: "white",
-    padding: "5px",
+    color: "rgb(251, 252, 246)",
+    fontWeight: "bold",
+    padding: "6px 10px",
     borderRadius: "5px"
 };
  

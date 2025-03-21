@@ -115,7 +115,7 @@ export function UpMenu({ setDashBoardMode, setDashboardOn, dashboardOn }: { setD
                     )}
                 </div>
                 <FileUpload style={button} />
-                <button style={{...button, ...(dashboardOn ? {boxShadow: "0px 0px 5px 0px red"} : {boxShadow: "0px 0px 5px 0px black"})}} onClick={() => {setDashBoardMode(!dashboardOn); setDashboardOn(!dashboardOn);}}>Dashboard Mode</button>
+                <button style={{...button, ...(dashboardOn ? {background: "repeating-linear-gradient(-45deg, transparent 0px, transparent 8px,rgb(226, 45, 124) 8px, rgb(226, 45, 124) 12px)"} : {background: "transparent"})}} onClick={() => {setDashBoardMode(!dashboardOn); setDashboardOn(!dashboardOn);}}>Dashboard Mode</button>
                 <button style={{...button}} onClick={openTrillProvenanceModal}>Trill Provenance</button>
             </div>
             {/* Editable Workflow Name */}
@@ -152,22 +152,24 @@ export function UpMenu({ setDashBoardMode, setDashboardOn, dashboardOn }: { setD
 
 const menuBar: CSS.Properties = {
     position: "fixed",
+    width: "100%",
     top: 0,
     display: "flex",
     alignItems: "center",
-    backgroundColor: "#f0f0f0",
+    background: "linear-gradient(to bottom, #23c686, #1ea872)",
+    height: "65px",
     padding: "10px",
-    borderBottom: "1px solid #ccc",
     zIndex: 100,
 };
 
 const button: CSS.Properties = {
     margin: "0 10px",
-    padding: "8px 12px",
+    padding: "6px 10px",
     cursor: "pointer",
-    backgroundColor: "#007bff",
-    color: "#fff",
-    border: "none",
+    fontWeight: "bold",
+    backgroundColor: "transparent",
+    color: "#fbfcf6",
+    border: "2px solid #fbfcf6",
     borderRadius: "4px",
 };
 

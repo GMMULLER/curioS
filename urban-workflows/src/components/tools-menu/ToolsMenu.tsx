@@ -278,8 +278,7 @@ const containerStyle: CSS.Properties = {
     zIndex: 100,
     top: "150px",
     left: "50px",
-    backgroundColor: "white",
-    boxShadow: "0px 0px 5px 0px black",
+    backgroundColor: "#23c686",
     padding: "5px",
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
@@ -305,7 +304,7 @@ const optionText: CSS.Properties = {
 
 const iconStyle: CSS.Properties = {
     fontSize: "1.5em",
-    color: "#888787",
+    color: "#fbfcf6",
 };
 
 const buttonStyleProgrammer: CSS.Properties = {

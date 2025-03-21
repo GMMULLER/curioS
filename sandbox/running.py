@@ -5,8 +5,10 @@ import geopandas as gpd
 import pandas as pd
 import json
 def userCode(arg):
-	return 5
-boxType = 'COMPUTATION_ANALYSIS'
+	import pandas as pd
+	crime_data = pd.read_csv('Crime_Dataset.csv')
+	return crime_data
+boxType = 'DATA_LOADING'
 def dumpsInput(input):
 	if input['dataType'] == 'outputs':
 		for key,elem in enumerate(input['data']):

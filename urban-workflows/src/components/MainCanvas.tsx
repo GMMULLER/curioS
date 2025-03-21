@@ -372,7 +372,7 @@ export function MainCanvas() {
                     },
                   ]}
                 />
-                <Background />
+                <Background color="fbfcf6" />
                 <Controls />
                 { isComponentsSelected ? (
                     <button
