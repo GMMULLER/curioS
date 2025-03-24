@@ -63,6 +63,25 @@ const LLMProvider = ({ children }: { children: ReactNode }) => {
         if(chatId)
             message.chatId = chatId;
 
+        const response_usage = await fetch(`${process.env.BACKEND_URL}/checkUsageOpenAI`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(message),
+        });
+
+        if (!response_usage.ok) {
+            throw new Error("Failed to submit data.");
+        }
+
+        const result_usage = await response_usage.json();
+
+        if(result_usage.result != "yes") // There is no token left, have to wait
+            await new Promise(resolve => setTimeout(resolve, (result_usage.result + 15) * 1000)); // add a 15 seconds margin
+
+        console.log("message", {...message});
+
         const response = await fetch(`${process.env.BACKEND_URL}/openAI`, {
             method: "POST",
             headers: {
@@ -71,12 +90,12 @@ const LLMProvider = ({ children }: { children: ReactNode }) => {
             body: JSON.stringify(message),
         });
     
-          if (!response.ok) {
+        if (!response.ok) {
             throw new Error("Failed to submit data.");
-          }
-    
-          const result = await response.json();
-          return result;
+        }
+
+        const result = await response.json();
+        return result;
     }
 
     return (

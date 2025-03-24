@@ -7,6 +7,7 @@ from services.google_oauth import GoogleOAuth
 from middlewares import require_auth
 import sqlite3
 from openai import OpenAI
+import time
 
 app = Flask(__name__)
 address = 'localhost'
@@ -16,6 +17,9 @@ api_address = 'http://localhost'
 api_port = 2000
 
 conversation = {}
+
+tokens_left = 200000 # Tokens allowed per minute
+last_refresh = time.time() # Last time that 60 minutes elapsed
 
 # initialize database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///urban_workflow.db'
@@ -1126,6 +1130,54 @@ def llm_openaAI():
         conversation[chatId] = past_conversation
 
     return jsonify({"result": completion.choices[0].message.content})
+
+@app.route('/checkUsageOpenAI', methods=['POST'])
+def check_usage_OpenAI():
+    global conversation
+    global tokens_left
+    global last_refresh
+
+    data = request.get_json()
+
+    preamble_file = data.get("preamble", None)
+    prompt_file = data.get("prompt", None)
+    text = data.get("text", None)
+    chatId = data.get("chatId", None)
+
+    past_conversation = []
+
+    if chatId != None and chatId in conversation:
+        past_conversation = conversation[chatId]
+
+    prompt_preamble_file = open(preamble_file+".txt")
+    prompt_preamble = prompt_preamble_file.read()
+
+    prompt_file_obj = open(prompt_file+".txt")
+    prompt_text = prompt_file_obj.read()
+
+    if len(past_conversation) == 0: # Adding the prompt to the conversation
+        past_conversation.append({"role": "system", "content": prompt_preamble + "\n" + prompt_text})
+
+    past_conversation.append({"role": "user", "content": text})
+
+    total_tokens = 0
+
+    for message in past_conversation:
+        total_tokens += len(message["content"].split()) * 1.5 # estimating the number of tokens
+
+    print("total_tokens", total_tokens)
+    print("tokens_left", tokens_left)
+
+    now_time = time.time()
+
+    if((now_time - last_refresh) >= 60): # One minute passed
+        tokens_left = 200000
+
+    if(tokens_left > total_tokens):
+        tokens_left -= total_tokens
+        return jsonify({"result": "yes"})
+    
+    return jsonify({"result": (60 - (now_time - last_refresh))})
 
 @app.route('/cleanOpenAIChat', methods=['GET'])
 def clean_openai_chat():

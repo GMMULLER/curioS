@@ -1,0 +1,2 @@
+- task_get_more_complete: For this image I did not use any help from the LLM yet, but you can see that it progressively define our main task very well based on the content of the nodes.
+- 

@@ -35,14 +35,12 @@ You should output the trill specification with the keywords attached following t
         "nodes": [
             {
               "id": "node1",
-              "type": "Computation Analysis",
               "metadata": {
                 "keywords": [0,3]
               }
             },
             {
                 "id": "node2",
-                "type": "Vega-Lite",
                 "metadata": {
                   "keywords": [1,2]
                 }
@@ -51,8 +49,6 @@ You should output the trill specification with the keywords attached following t
         "edges": [
             {
                 "id": "reactflow__node1_node2_1",
-                "source": "node1",
-                "target": "node2",
                 "metadata": {
                   "keywords": [0]
                 }
@@ -64,5 +60,5 @@ You should output the trill specification with the keywords attached following t
 
 For each node and edge list out the related keywords based on their index. 
 
-**OUPUT A TRILL JSON SPECIFICATION AND NOTHING ELSE. DO NOT REMOVE OR ADD NODES OR EDGES. MAKE SURE YOU ADD THE 'dataflow' ATTRIBUTE. PAY ATTENTION TO THE 'goal' ATTRIBUTE OF EACH NODE TO HELP YOU DETERMINE WHAT KEYWORDS TO BIND. DO NOT USE THE EXAMPLE DATAFLOW. DO NOT MODIFY ANY OTHER FIELDS BESIDES 'keywords'**
+**OUPUT A TRILL JSON SPECIFICATION AND NOTHING ELSE. DO NOT REMOVE OR ADD NODES OR EDGES. MAKE SURE YOU ADD THE 'dataflow' ATTRIBUTE. PAY ATTENTION TO THE 'goal' ATTRIBUTE OF EACH NODE TO HELP YOU DETERMINE WHAT KEYWORDS TO BIND. DO NOT USE THE EXAMPLE DATAFLOW. DO NOT MODIFY ANY OTHER FIELDS BESIDES 'keywords'. FOR NODES AND EDGES JUST OUTPUT 'id' and 'metadata' WITH THE 'keywords' FIELDS DO NOT OUTPUT ANYTHING ELSE.**
 

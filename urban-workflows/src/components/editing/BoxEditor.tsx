@@ -243,12 +243,13 @@ function BoxEditor({
                                                 textAlign: "center",
                                                 width: "100%",
                                                 height: "100%",
+                                                overflowY: "scroll"
                                             }}
                                         ></div>
                                     ) : contentComponent != undefined ? (
                                         contentComponent
                                     ) : (
-                                        <div style={{ width: "100%", height: "100%" }}>
+                                        <div style={{ width: "100%", height: "100%", overflowY: "scroll" }}>
                                             <p
                                                 style={{ margin: 0, padding: "10px", fontSize: "10px" }}
                                             >

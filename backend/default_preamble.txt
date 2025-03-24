@@ -234,7 +234,7 @@ filtered_gdf.metadata = {
 return filtered_gdf
 ```
 
-Notice that the GeoDataFrame needs to be anotated with metadata = {'name': 'layer_name'}. That is how UTK differenciate multiple GeoDataFrames.
+Notice that the GeoDataFrame needs to be anotated with metadata = {'name': 'layer_name'}. That is how UTK differenciate multiple GeoDataFrames. Aditionally the GeoDataFrame needs to use CRS 3395.
 
 Visualization nodes 
 
