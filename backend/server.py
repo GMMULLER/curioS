@@ -9,6 +9,11 @@ import sqlite3
 from openai import OpenAI
 import time
 
+import os
+import json
+import pandas as pd
+import geopandas as gpd
+
 app = Flask(__name__)
 address = 'localhost'
 port = 5002
@@ -94,6 +99,8 @@ def upload_file():
 
     if file.filename == '':
         return 'No selected file'
+
+    file.save(file.filename)
 
     response = requests.post(api_address+":"+str(api_port)+"/upload", files={'file': file}, data={'fileName': file.filename})
 
@@ -1082,6 +1089,40 @@ def evl_llm():
 
     return jsonify(response.json())
 
+def get_loaded_files_metadata(folder_path):
+    metadata = ""
+
+    for file in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, file)
+        if file.endswith(".csv"):
+            df = pd.read_csv(file_path)
+            columns = [f"{col} ({df[col].dtype})" for col in df.columns]
+            geometry_type = "None"
+        elif file.endswith(".json") or file.endswith(".geojson"):
+            try:
+                gdf = gpd.read_file(file_path, parse_dates=False)
+                columns = [f"{col} ({gdf[col].dtype})" for col in gdf.columns]
+                if "geometry" in gdf.columns:
+                    geometry_type = gdf.geom_type.unique().tolist()
+                else:
+                    geometry_type = "None"
+            except Exception:
+                try:
+                    with open(file_path, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                        columns = list(data[0].keys()) if isinstance(data, list) and data else []
+                        geometry_type = "None"
+                except Exception:
+                    columns = []
+                    geometry_type = "Unreadable JSON"
+        else:
+            continue
+        
+        metadata += f"File name: {file}\nColumns: {', '.join(columns)}\nGeometry type: {geometry_type}\n\n"
+
+    return metadata
+
+
 @app.route('/openAI', methods=['POST'])
 def llm_openaAI():
     global conversation
@@ -1100,6 +1141,12 @@ def llm_openaAI():
 
     prompt_preamble_file = open(preamble_file+".txt")
     prompt_preamble = prompt_preamble_file.read()
+
+    prompt_preamble += "In case you need. This is the list of files and metadata currently loaded into the system"
+
+    metadata = get_loaded_files_metadata("./")
+
+    prompt_preamble += "\n" + metadata
 
     prompt_file_obj = open(prompt_file+".txt")
     prompt_text = prompt_file_obj.read()
@@ -1121,6 +1168,12 @@ def llm_openaAI():
         store=True,
         messages=past_conversation
     )
+
+    # completion = client.chat.completions.create(
+    #     model="o3-mini",
+    #     store=True,
+    #     messages=past_conversation
+    # )
 
     assistant_reply = completion.choices[0].message.content
 

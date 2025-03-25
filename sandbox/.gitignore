@@ -8,3 +8,6 @@ images
 Census*
 model.pth
 dataset
+*.csv
+*.geojson
+*.json

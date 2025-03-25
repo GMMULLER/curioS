@@ -37,6 +37,13 @@ Your warnings should contribute to a more coherent dataflow. Keep your warnings 
 - Lack of supporting nodes. A subtask that does is not correctly supported by previous boxes. For example: trying to do analysis on data that was not loaded.
 - Underspecified subtask. Not enough details to implement it.
 
+Do not generate warnings for these node types:
+
+- DATA_POOL
+- MERGE_FLOW
+- VIS_VEGA
+- VIS_UTK
+
 **BE VERY SPECIFIC, DO NOT PROVIDE VAGUE WARNINGS LIKE: 'Input data format not suited for analysis'. YOU DO NOT NEED TO OUTPUT WARNING FOR EVERY NODE**.
 
 **ONLY OUTPUT THE DATAFLOW IN TRILL WITH THE WARNINGS LISTED AS ARRAYS IN EACH NODE. DO NOT OUTPUT ANY OTHER TEXT. DO NOT OUTPUT THE EXAMPLE. IF YOU RECEIVE AN EMPTY TRILL JUST OUTPUT AN EMPTY TRILL. THIS IS CRUCIAL: DO NOT GENERATE NODES OR EDGES THAT WERE NOT PRESENT IN THE TRILL YOU RECEIVED. DO NOT GENERATE NEW NODES OR EDGES BASED ON THE TASK. THE ONLY FIELD YOU ARE ALLOWED TO CHANGE IS THE 'warning' **

@@ -183,7 +183,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
 
     const loadParsedTrill = async (workflowName: string, task: string, loaded_nodes: any, loaded_edges: any, provenance?: boolean, merge?: boolean) => {
 
-        setWorkflowGoal(task);
+        // setWorkflowGoal(task);
 
         if(!merge){
             setWorkflowName(workflowName);

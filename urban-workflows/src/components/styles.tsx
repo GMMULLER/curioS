@@ -175,7 +175,7 @@ export const BoxContainer = ({
 
     useEffect(() => {
         if(boxWidth == undefined){
-            setCurrentBoxWidth(525);
+            setCurrentBoxWidth(560);
         }
 
         if(boxHeight == undefined){
@@ -572,16 +572,16 @@ export const BoxContainer = ({
 
                 {children}
 
-                <Row  style={{...{ width: "30%", marginRight: "auto", marginLeft: "10px", marginTop: "4px"}, ...((data.suggestionType != "none" && data.suggestionType != undefined) ? {pointerEvents: "none"} : {})}}>
-                    {sendCodeToWidgets != undefined ? <Row>
+                <Row  style={{...{ width: "32%", marginRight: "auto", marginLeft: "10px", marginTop: "4px"}, ...((data.suggestionType != "none" && data.suggestionType != undefined) ? {pointerEvents: "none"} : {})}}>
+                    {sendCodeToWidgets != undefined ? <Row style={{alignItems: "center"}}>
                         <Col md={2}><FontAwesomeIcon className={"nowheel nodrag"} icon={faCirclePlay} style={{...{cursor: "pointer", fontSize: "27px", color: "rgb(35, 198, 134)"}, ...(llmEvents.length > 0 ? {opacity: "60%", pointerEvents: "none"} : {})}} onClick={() => {
                             setOutputCallback({code: "exec", content: ""});
                             sendCodeToWidgets(code); // will resolve markers
                         }} /></Col>
                         {
-                            output != undefined ? <Col md={3} className="d-flex align-items-center">
+                            output != undefined ? <Col md={3} className="d-flex align-items-center" style={{paddingLeft: "19px"}}>
                                 <p style={{fontSize: "10px", textAlign: "center", marginBottom: 0}}>
-                                    {output.code == "success" ? <span style={{color: "green"}}>Done</span> : output.code == "exec" ? "Executing..." : output.code == "error" ? <span style={{color: "red"}}>Error</span> : ""}
+                                    {output.code == "success" ? <span style={{color: "green"}}>Done</span> : output.code == "exec" ? "..." : output.code == "error" ? <span style={{color: "red"}}>Error</span> : ""}
                                 </p>
                             </Col>
                             : null
@@ -590,7 +590,7 @@ export const BoxContainer = ({
                         {promptModal != undefined && user != undefined && user != null && user.type == "programmer" ? 
                         <Col md={3}>
                             <Dropdown>
-                                <Dropdown.Toggle variant="primary" style={{ fontSize: "9px" }}>
+                                <Dropdown.Toggle style={{ fontSize: "9px", backgroundColor: "rgb(35, 198, 134)", border: "none", color: "rgb(251, 252, 246)", fontWeight: "bold", padding: "6px 10px" }}>
                                     Templates
                                 </Dropdown.Toggle>
 
@@ -669,7 +669,7 @@ export const BoxContainer = ({
                         setCurrentBoxHeight(40);
                     }else{
                         if(boxWidth == undefined){
-                            setCurrentBoxWidth(525);
+                            setCurrentBoxWidth(560);
                         }else{
                             setCurrentBoxWidth(boxWidth);
                         }

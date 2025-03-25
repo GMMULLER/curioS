@@ -5,3 +5,4 @@ requests==2.31.0
 uuid==1.30
 google-auth==2.27.0
 openai==1.61.0
+fiona==1.9.6

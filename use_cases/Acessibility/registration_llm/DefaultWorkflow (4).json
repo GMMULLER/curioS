@@ -1,0 +1,455 @@
+{
+  "dataflow": {
+    "nodes": [
+      {
+        "id": "node1",
+        "type": "DATA_LOADING",
+        "x": -688.4302434165393,
+        "y": -105.69579889496791,
+        "content": "import pandas as pd\ndf = pd.read_csv('access_attributes.csv')\nreturn df\n",
+        "out": "DATAFRAME",
+        "in": "JSON",
+        "goal": "Load 'access_attributes' CSV file from local source.",
+        "metadata": {
+          "keywords": [
+            0,
+            1,
+            3,
+            7
+          ]
+        }
+      },
+      {
+        "id": "node2",
+        "type": "DATA_LOADING",
+        "x": -719.7338013396111,
+        "y": 801.1250959222709,
+        "content": "import geopandas as gpd\r\n\r\ngdf_neighborhood = gpd.read_file(\"access_score_neighborhood.geojson\")[[\"coverage\", \"avg_attribute_count\", \"geometry\", \"neighborhood_name\"]]\r\n\r\nreturn gdf_neighborhood",
+        "out": "GEODATAFRAME",
+        "in": "JSON",
+        "goal": "Load key fields from the 'access_score_neighborhood' GeoJSON dataset, including coverage, average attribute count, and geometry for further analysis and visualization.",
+        "metadata": {
+          "keywords": [
+            0,
+            2,
+            3,
+            4,
+            11
+          ]
+        }
+      },
+      {
+        "id": "node3",
+        "type": "DATA_LOADING",
+        "x": -700.224154911683,
+        "y": -929.0303045186827,
+        "content": "import geopandas as gpd\n\ngdf_streets = gpd.read_file(\"access_score_streets.geojson\")[[\"attribute_count\", \"geometry\"]]\n\nreturn gdf_streets\n",
+        "out": "GEODATAFRAME",
+        "in": "JSON",
+        "goal": "Load 'access_score_streets' GeoJSON file from local source. Only keeping 'attribute_count' and 'geometry' columns.''",
+        "metadata": {
+          "keywords": [
+            0,
+            5,
+            11
+          ]
+        }
+      },
+      {
+        "id": "node4",
+        "type": "DATA_CLEANING",
+        "x": 230.76311569423615,
+        "y": -114.32620772930929,
+        "content": "import pandas as pd\r\nimport geopandas as gpd\r\nfrom shapely.geometry import Point\r\n\r\ndf_point = arg\r\n\r\ncolumns_to_keep = [\"Label Type\", \"Attribute Latitude\", \"Attribute Longitude\", \"Agree Count\", \"Disagree Count\", \"Unsure Count\"]\r\ndf_point_filtered = df_point[columns_to_keep]\r\n\r\ndf_point_filtered[\"Label Type\"] = df_point_filtered[\"Label Type\"].fillna(\"Other\")\r\ndf_point_filtered = df_point_filtered.dropna(subset=[\"Attribute Latitude\"])\r\ndf_point_filtered = df_point_filtered.dropna(subset=[\"Attribute Longitude\"])\r\ndf_point_filtered[\"Agree Count\"] = df_point_filtered[\"Agree Count\"].fillna(0)\r\ndf_point_filtered[\"Disagree Count\"] = df_point_filtered[\"Disagree Count\"].fillna(0)\r\ndf_point_filtered[\"Unsure Count\"] = df_point_filtered[\"Unsure Count\"].fillna(0)\r\n\r\ndf_point_filtered = df_point_filtered.rename(columns={\"Label Type\": \"label\"})\r\ndf_point_filtered = df_point_filtered.rename(columns={\"Attribute Latitude\": \"latitude\"})\r\ndf_point_filtered = df_point_filtered.rename(columns={\"Attribute Longitude\": \"longitude\"})\r\ndf_point_filtered = df_point_filtered.rename(columns={\"Agree Count\": \"agree\"})\r\ndf_point_filtered = df_point_filtered.rename(columns={\"Disagree Count\": \"disagree\"})\r\ndf_point_filtered = df_point_filtered.rename(columns={\"Unsure Count\": \"unsure\"})\r\n\r\ndf_point_filtered[\"geometry\"] = df_point_filtered.apply(lambda row: Point(row[\"longitude\"], row[\"latitude\"]), axis=1)\r\n\r\ngdf_point = gpd.GeoDataFrame(df_point_filtered, geometry=\"geometry\", crs=\"EPSG:4326\")\r\n\r\nreturn gdf_point",
+        "out": "DATAFRAME",
+        "in": "DATAFRAME",
+        "goal": "Clean and transform the 'access_attributes' dataset by filtering relevant fields, filling missing values, and creating a GeoDataFrame for point geometries based on latitude and longitude.",
+        "metadata": {
+          "keywords": [
+            6,
+            1,
+            7
+          ]
+        }
+      },
+      {
+        "id": "node5",
+        "type": "DATA_CLEANING",
+        "x": 2064,
+        "y": 924,
+        "content": "",
+        "out": "GEODATAFRAME",
+        "in": "GEODATAFRAME",
+        "goal": "Clean and filter 'access_score_neighborhood' retaining key fields.",
+        "metadata": {
+          "keywords": [
+            6,
+            2,
+            3,
+            11
+          ]
+        }
+      },
+      {
+        "id": "node6",
+        "type": "DATA_CLEANING",
+        "x": 199.7976964868679,
+        "y": -929.7654271715688,
+        "content": "import geopandas as gpd\r\n\r\ngdf_streets = arg\r\n\r\ngdf_streets = gdf_streets.join(pd.json_normalize(gdf_streets[\"attribute_count\"])).drop(columns=[\"attribute_count\"])\r\n\r\ngdf_streets = gdf_streets.dropna(subset=[\"geometry\"])\r\ngdf_streets[\"CurbRamp\"] = gdf_streets[\"CurbRamp\"].fillna(0)\r\ngdf_streets[\"NoCurbRamp\"] = gdf_streets[\"NoCurbRamp\"].fillna(0)\r\ngdf_streets[\"Obstacle\"] = gdf_streets[\"Obstacle\"].fillna(0)\r\ngdf_streets[\"SurfaceProblem\"] = gdf_streets[\"SurfaceProblem\"].fillna(0)\r\n\r\nreturn gdf_streets",
+        "out": "GEODATAFRAME",
+        "in": "GEODATAFRAME",
+        "goal": "Clean and filter 'access_score_streets' retaining key fields.",
+        "metadata": {
+          "keywords": [
+            6,
+            5,
+            11
+          ]
+        }
+      },
+      {
+        "id": "node7",
+        "type": "COMPUTATION_ANALYSIS",
+        "x": 1258.7506666434563,
+        "y": -114.61953095511926,
+        "content": "",
+        "out": "DATAFRAME",
+        "in": "DATAFRAME",
+        "goal": "Compute uncertainty score based on attribute counts and uncertainty score from user agreement.",
+        "metadata": {
+          "keywords": [
+            8,
+            9,
+            11
+          ]
+        }
+      },
+      {
+        "id": "node13",
+        "type": "MERGE_FLOW",
+        "x": 2636,
+        "y": 412,
+        "out": "DATAFRAME",
+        "in": "DATAFRAME",
+        "goal": "Merge computed scores with 'access_score_neighborhood' cleaned data for neighborhood visualization.",
+        "metadata": {
+          "keywords": [
+            10,
+            2,
+            11,
+            12
+          ]
+        }
+      },
+      {
+        "id": "node14",
+        "type": "MERGE_FLOW",
+        "x": 1706,
+        "y": -814,
+        "out": "DATAFRAME",
+        "in": "DATAFRAME",
+        "goal": "Merge computed scores with 'access_score_streets' cleaned data for street visualization.",
+        "metadata": {
+          "keywords": [
+            10,
+            5,
+            11,
+            12
+          ]
+        }
+      },
+      {
+        "id": "node15",
+        "type": "DATA_TRANSFORMATION",
+        "x": 2876,
+        "y": -546,
+        "content": "",
+        "out": "GEODATAFRAME",
+        "in": "GEODATAFRAME",
+        "goal": "Extract merged neighborhood geo-data for accessibility and uncertainty maps.",
+        "metadata": {
+          "keywords": [
+            11,
+            14
+          ]
+        }
+      },
+      {
+        "id": "node16",
+        "type": "DATA_TRANSFORMATION",
+        "x": 1912,
+        "y": -930,
+        "content": "",
+        "out": "GEODATAFRAME",
+        "in": "GEODATAFRAME",
+        "goal": "Extract merged street geo-data for accessibility and uncertainty maps.",
+        "metadata": {
+          "keywords": [
+            11,
+            14
+          ]
+        }
+      },
+      {
+        "id": "node17",
+        "type": "DATA_TRANSFORMATION",
+        "x": 4000,
+        "y": 46,
+        "content": "",
+        "out": "DATAFRAME",
+        "in": "GEODATAFRAME",
+        "goal": "Convert neighborhood geo-data to dataframe for accessibility plotting.",
+        "metadata": {
+          "keywords": [
+            12
+          ]
+        }
+      },
+      {
+        "id": "node8",
+        "type": "VIS_UTK",
+        "x": 3998,
+        "y": -1174,
+        "content": "{}",
+        "out": "GEODATAFRAME",
+        "in": "GEODATAFRAME",
+        "goal": "Render accessibility map visualization for neighborhoods using geo-data.",
+        "metadata": {
+          "keywords": [
+            11,
+            14
+          ]
+        }
+      },
+      {
+        "id": "node10",
+        "type": "VIS_UTK",
+        "x": 4001.2,
+        "y": -548,
+        "content": "{}",
+        "out": "GEODATAFRAME",
+        "in": "GEODATAFRAME",
+        "goal": "Render uncertainty map visualization for neighborhoods using geo-data.",
+        "metadata": {
+          "keywords": [
+            11,
+            14
+          ]
+        }
+      },
+      {
+        "id": "node12",
+        "type": "VIS_VEGA",
+        "x": 4932,
+        "y": 44,
+        "out": "DATAFRAME",
+        "in": "DATAFRAME",
+        "goal": "Plot accessibility by neighborhood linking with accessibility map.",
+        "metadata": {
+          "keywords": [
+            12,
+            14
+          ]
+        }
+      },
+      {
+        "id": "node9",
+        "type": "VIS_UTK",
+        "x": 2874,
+        "y": -930,
+        "content": "{}",
+        "out": "GEODATAFRAME",
+        "in": "GEODATAFRAME",
+        "goal": "Render accessibility map visualization for streets using geo-data.",
+        "metadata": {
+          "keywords": [
+            11,
+            14
+          ]
+        }
+      },
+      {
+        "id": "node11",
+        "type": "VIS_UTK",
+        "x": 2868,
+        "y": -1372,
+        "content": "{}",
+        "out": "GEODATAFRAME",
+        "in": "GEODATAFRAME",
+        "goal": "Render uncertainty map visualization for streets using geo-data.",
+        "metadata": {
+          "keywords": [
+            11,
+            14
+          ]
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge1",
+        "source": "node1",
+        "target": "node4",
+        "metadata": {
+          "keywords": [
+            0
+          ]
+        }
+      },
+      {
+        "id": "edge2",
+        "source": "node4",
+        "target": "node7",
+        "metadata": {
+          "keywords": [
+            6
+          ]
+        }
+      },
+      {
+        "id": "edge3",
+        "source": "node2",
+        "target": "node5",
+        "metadata": {
+          "keywords": [
+            0
+          ]
+        }
+      },
+      {
+        "id": "edge4",
+        "source": "node3",
+        "target": "node6",
+        "metadata": {
+          "keywords": [
+            6
+          ]
+        }
+      },
+      {
+        "id": "edge5",
+        "source": "node7",
+        "target": "node13",
+        "metadata": {
+          "keywords": [
+            8
+          ]
+        }
+      },
+      {
+        "id": "edge6",
+        "source": "node5",
+        "target": "node13",
+        "metadata": {
+          "keywords": [
+            8
+          ]
+        }
+      },
+      {
+        "id": "edge7",
+        "source": "node7",
+        "target": "node14",
+        "metadata": {
+          "keywords": [
+            8
+          ]
+        }
+      },
+      {
+        "id": "edge8",
+        "source": "node6",
+        "target": "node14",
+        "metadata": {
+          "keywords": [
+            8
+          ]
+        }
+      },
+      {
+        "id": "edge9",
+        "source": "node13",
+        "target": "node15",
+        "metadata": {
+          "keywords": [
+            11
+          ]
+        }
+      },
+      {
+        "id": "edge10",
+        "source": "node14",
+        "target": "node16",
+        "metadata": {
+          "keywords": [
+            11
+          ]
+        }
+      },
+      {
+        "id": "edge11",
+        "source": "node15",
+        "target": "node8",
+        "metadata": {
+          "keywords": [
+            12
+          ]
+        }
+      },
+      {
+        "id": "edge12",
+        "source": "node15",
+        "target": "node10",
+        "metadata": {
+          "keywords": [
+            12
+          ]
+        }
+      },
+      {
+        "id": "edge13",
+        "source": "node15",
+        "target": "node17",
+        "metadata": {
+          "keywords": [
+            12
+          ]
+        }
+      },
+      {
+        "id": "edge14",
+        "source": "node17",
+        "target": "node12",
+        "metadata": {
+          "keywords": [
+            12
+          ]
+        }
+      },
+      {
+        "id": "edge15",
+        "source": "node16",
+        "target": "node9",
+        "metadata": {
+          "keywords": [
+            12
+          ]
+        }
+      },
+      {
+        "id": "edge16",
+        "source": "node16",
+        "target": "node11",
+        "metadata": {
+          "keywords": [
+            12
+          ]
+        }
+      }
+    ],
+    "name": "DefaultWorkflow",
+    "task": "Load the 'access_attributes' dataset from a local CSV file, load the 'access_score_neighborhood' dataset from a local GeoJSON file while retaining key fields such as coverage and average attribute count for analysis and visualization, and load the 'access_score_streets' dataset from another local GeoJSON file focusing on relevant attributes. Clean and transform the 'access_attributes' dataset by filtering relevant fields, filling missing values, and creating a GeoDataFrame for point geometries based on latitude and longitude. Clean and filter the 'access_score_neighborhood' dataset, retaining key fields, and similarly, clean and filter the 'access_score_streets' dataset to maintain relevant data. Compute an accessibility score based on the counts of attributes and derive an uncertainty score from user agreement metrics. Merge the computed scores with the cleaned 'access_score_neighborhood' dataset for neighborhood visualization and with the cleaned 'access_score_streets' dataset for street visualization. Extract the merged neighborhood geo-data for creating accessibility and uncertainty maps, and extract the merged street geo-data for their respective mappings. Render accessibility map visualizations for both neighborhoods and streets using the geo-data, and create uncertainty map visualizations for both datasets. Finally, create an interactive plot that visualizes accessibility by neighborhood and links it to the neighborhood accessibility map visualization for dynamic exploration of the data.",
+    "timestamp": 1742857403401,
+    "provenance_id": "DefaultWorkflow"
+  }
+}

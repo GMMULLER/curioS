@@ -81,69 +81,73 @@ function WidgetsEditor({ userCode, sendReplacedCode, nodeId, markersDirty, custo
 
     // look for markers in this format [!! variable$widget$default !!]
     const resolveMarks = (userCode: string, currentWidgetsValues: any) => {
-        const computeMark = (content: string, prevWidgetsValues: any) => {
-            let config = content.split('$');
-
-            if (config.length < 3 || config.length > 4) {
-                alert("Invalid marker [!! " + content + " !!]. Markers must follow [!! variable$widget$default$arg1;arg2;arg3 !!]");
-                return {}
-            }
-
-            let args = undefined;
-
-            if(config.length == 4){
-                args = config[3].split(";");
-            }
-
-            if(prevWidgetsValues[config[0]] != undefined && prevWidgetsValues[config[0]].widget == config[1]){ // this is not a new marker, carry the previous value of the widget
-                
-                if(args != undefined)
-                    return {[config[0]]: {widget: config[1], value: prevWidgetsValues[config[0]].value, args: args}};
-                else
-                    return {[config[0]]: {widget: config[1], value: prevWidgetsValues[config[0]].value, args: undefined}};
-            }else{
-                let resolvedMark = validateWidgetValue(config[1], config[2]); // validate what comes from default values in the marks
-
-                if(Object.keys(resolvedMark).length == 0){
-                    alert("Invalid widget and default value combination for [!! "+content+" !!]");
+        try{
+            const computeMark = (content: string, prevWidgetsValues: any) => {
+                let config = content.split('$');
+    
+                if (config.length < 3 || config.length > 4) {
+                    alert("Invalid marker [!! " + content + " !!]. Markers must follow [!! variable$widget$default$arg1;arg2;arg3 !!]");
                     return {}
                 }
-
-                if(args != undefined)
-                    return {[config[0]]: {widget: resolvedMark.widget, value: resolvedMark.value, args: args}}; 
-                else
-                    return {[config[0]]: {widget: resolvedMark.widget, value: resolvedMark.value, args: undefined}}; 
+    
+                let args = undefined;
+    
+                if(config.length == 4){
+                    args = config[3].split(";");
+                }
+    
+                if(prevWidgetsValues[config[0]] != undefined && prevWidgetsValues[config[0]].widget == config[1]){ // this is not a new marker, carry the previous value of the widget
+                    
+                    if(args != undefined)
+                        return {[config[0]]: {widget: config[1], value: prevWidgetsValues[config[0]].value, args: args}};
+                    else
+                        return {[config[0]]: {widget: config[1], value: prevWidgetsValues[config[0]].value, args: undefined}};
+                }else{
+                    let resolvedMark = validateWidgetValue(config[1], config[2]); // validate what comes from default values in the marks
+    
+                    if(Object.keys(resolvedMark).length == 0){
+                        alert("Invalid widget and default value combination for [!! "+content+" !!]");
+                        return {}
+                    }
+    
+                    if(args != undefined)
+                        return {[config[0]]: {widget: resolvedMark.widget, value: resolvedMark.value, args: args}}; 
+                    else
+                        return {[config[0]]: {widget: resolvedMark.widget, value: resolvedMark.value, args: undefined}}; 
+                }
             }
-        }
-
-        // Regular expression to match the content inside [!! !!] markers globally
-        const regex = /\[\!\!\s*(.*?)\s*\!\!\]/g;
-
-        let widgetsValues: any = {}
-
-        let errorReplacing = false;
-
-        const replacedCode = userCode.replace(regex, (match, content) => {
-            const param = computeMark(content, currentWidgetsValues);
-            const atribs = Object.keys(param);
-
-            if(atribs.length == 0){
-                errorReplacing = true;
-                return ""
+    
+            // Regular expression to match the content inside [!! !!] markers globally
+            const regex = /\[\!\!\s*(.*?)\s*\!\!\]/g;
+    
+            let widgetsValues: any = {}
+    
+            let errorReplacing = false;
+    
+            const replacedCode = userCode.replace(regex, (match, content) => {
+                const param = computeMark(content, currentWidgetsValues);
+                const atribs = Object.keys(param);
+    
+                if(atribs.length == 0){
+                    errorReplacing = true;
+                    return ""
+                }else{
+                    const variable = atribs[0];
+                    widgetsValues[variable] = {widget: param[variable].widget, value: param[variable].value, args: param[variable].args};
+                    
+                    return param[variable].value as string;
+                }
+            });
+    
+            if(errorReplacing){
+                alert("Could not resolve marks");
+                return {}
             }else{
-                const variable = atribs[0];
-                widgetsValues[variable] = {widget: param[variable].widget, value: param[variable].value, args: param[variable].args};
-                
-                return param[variable].value as string;
+                sendReplacedCode(replacedCode);
+                return widgetsValues;
             }
-        });
-
-        if(errorReplacing){
-            alert("Could not resolve marks");
-            return {}
-        }else{
-            sendReplacedCode(replacedCode);
-            return widgetsValues;
+        }catch(error){
+            console.log("Something went wrong when solving widgets annotations ", error);
         }
     }
 
