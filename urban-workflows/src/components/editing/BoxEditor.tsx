@@ -219,8 +219,8 @@ function BoxEditor({
                                         <BoxExplanation 
                                             box_type={boxType}
                                             code={data.code}
-                                            current_input={data.input}
-                                            current_output={output.content}
+                                            current_input={data.in}
+                                            current_output={data.out}
                                         />
                                     </Tab.Pane>
                                 ) : null}

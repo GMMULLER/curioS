@@ -102,6 +102,8 @@ def upload_file():
 
     file.save(file.filename)
 
+    file.seek(0)
+
     response = requests.post(api_address+":"+str(api_port)+"/upload", files={'file': file}, data={'fileName': file.filename})
 
     if response.status_code == 200:

@@ -6,3 +6,5 @@ uuid==1.30
 google-auth==2.27.0
 openai==1.61.0
 fiona==1.9.6
+pandas==2.2.3
+geopandas==1.0.1
