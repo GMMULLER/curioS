@@ -1,0 +1,252 @@
+{
+  "dataflow": {
+    "nodes": [
+      {
+        "id": "1780d986-e2d0-4de4-b980-6a684ebf5602",
+        "type": "DATA_LOADING",
+        "x": 112.5,
+        "y": 105,
+        "content": "import pandas as pd\r\nimport json\r\n\r\njson_features_file = open(\"flickr-spring-features.json\")\r\n\r\nparsed_json_features = json.load(json_features_file)\r\n\r\ndf_features = pd.json_normalize(parsed_json_features[\"features\"])\r\n\r\ndf_features = df_features[[\"latLng\", \"rank\", \"resolutions.ALL.fnRank\", \"resolutions.ALL.sigRank\", \"resolutions.ALL.maxRank\"]]\r\ndf_features = df_features.rename(columns={\"resolutions.ALL.fnRank\": \"fnRank\", \"resolutions.ALL.sigRank\": \"sigRank\", \"resolutions.ALL.maxRank\": \"maxRank\"})\r\n\r\ndf_features = df_features.dropna(subset=[\"fnRank\"])\r\ndf_features = df_features.dropna(subset=[\"sigRank\"])\r\ndf_features = df_features.dropna(subset=[\"maxRank\"])\r\n\r\nreturn df_features",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Load and preprocess flickr spring features data from a JSON file, extracting relevant fields and dropping missing values.",
+        "metadata": {
+          "keywords": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        }
+      },
+      {
+        "id": "d128215c-94d8-4117-a886-bfd38f466f12",
+        "type": "COMPUTATION_ANALYSIS",
+        "x": 1416.1586377315894,
+        "y": 104.71856337544592,
+        "content": "import numpy as np\r\n\r\ndf_scatterplot = arg[[\"rank\", \"fnRank\", \"sigRank\", \"maxRank\"]]\r\n\r\ndf_scatterplot[\"combinedRanks\"] = np.sqrt(\r\n    df_scatterplot[\"maxRank\"] ** 2 +\r\n    df_scatterplot[\"fnRank\"] ** 2 +\r\n    df_scatterplot[\"sigRank\"] ** 2\r\n)\r\n\r\ndf_scatterplot['linked'] = df_scatterplot.index.to_series().apply(lambda x: [x])\r\n\r\nreturn df_scatterplot",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "",
+        "metadata": {
+          "keywords": [
+            10,
+            11
+          ]
+        }
+      },
+      {
+        "id": "67c60435-8570-42e6-a62c-7ce52973316f",
+        "type": "VIS_VEGA",
+        "x": 4161.5,
+        "y": -477.99999999999994,
+        "content": "{ \r\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\", \r\n  \"title\": \"RANK (spring)\",\r\n  \"params\": [ {\"name\": \"clickSelect\", \"select\": \"interval\"} ], \r\n  \"mark\": { \"type\": \"point\", \"cursor\": \"pointer\" }, \r\n  \"encoding\": { \r\n    \"x\": {\"field\": \"combinedRanks\", \"type\": \"quantitative\"},\r\n    \"y\": {\"field\": \"rank\", \"type\": \"quantitative\"}, \r\n    \"fillOpacity\": { \r\n        \"condition\": {\"param\": \"clickSelect\", \"value\": 1}, \r\n        \"value\": 0.3 \r\n    }, \r\n    \"color\": { \r\n      \"field\": \"interacted\", \r\n      \"type\": \"nominal\", \r\n      \"condition\": {\r\n        \"test\": \"datum.interacted === '1'\", \"value\": \"red\", \"else\": \"blue\"} } \r\n  }, \r\n  \"config\": { \"scale\": { \"bandPaddingInner\": 0.2 } } \r\n} ",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "",
+        "metadata": {
+          "keywords": [
+            10,
+            12,
+            13,
+            14,
+            15
+          ]
+        }
+      },
+      {
+        "id": "436b6a7d-10f1-4439-bdcc-39b908b5874f",
+        "type": "DATA_TRANSFORMATION",
+        "x": 875.5667857856907,
+        "y": -582.8010154017836,
+        "content": "import pandas as pd\r\nimport geopandas as gpd\r\nfrom shapely.geometry import Point\r\n\r\ndf_points = arg\r\n\r\ndf_points = df_points.explode(\"latLng\", ignore_index=True)\r\n\r\ndf_points[\"geometry\"] = df_points[\"latLng\"].apply(lambda x: Point(x[1], x[0]))  # (lon, lat)\r\n\r\ngdf_points = gpd.GeoDataFrame(df_points, geometry=\"geometry\", crs=\"EPSG:4326\")\r\n\r\ngdf_points = gdf_points.drop(columns=[\"latLng\"])\r\n\r\ngdf_points = gdf_points.to_crs(3857)\r\n\r\ngdf_points[\"geometry\"] = gdf_points[\"geometry\"].buffer(50)\r\n\r\ngdf_points[\"value\"] = 1\r\n\r\ngdf_points['linked'] = gdf_points.index.to_series().apply(lambda x: [x])\r\n\r\ngdf_points = gdf_points[[\"geometry\", \"value\", \"linked\"]]\r\n\r\ngdf_points = gdf_points.to_crs(3395)\r\n\r\ngdf_points.metadata = {\r\n    'name': 'pulse'\r\n}\r\n\r\nreturn gdf_points",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Transform point data into a GeoDataFrame, enrich it with geometry, and project it to a different coordinate reference system for further analysis.",
+        "metadata": {
+          "keywords": []
+        }
+      },
+      {
+        "id": "9e088544-774f-4be3-8427-15b69f018e6f",
+        "type": "DATA_LOADING",
+        "x": 876.9480748892049,
+        "y": -1031.283169845394,
+        "content": "import utk\r\n\r\nuc = utk.OSM.load([40.67187576076156, -74.0703927880446, 40.928446768674455, -73.8413807958497], layers=['parks'])\r\n\r\n#parks\r\njson_parks = uc.layers['json'][0]\r\ngdf_parks = uc.layers['gdf']['objects'][0]\r\ngdf_parks.metadata = {\r\n 'name': 'parks',\r\n 'style': 'parks'\r\n}\r\n\r\nreturn gdf_parks",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Load OSM data for parks and water features within specified coordinates, annotating the geometries with metadata for visualization.",
+        "metadata": {
+          "keywords": [
+            13,
+            14,
+            15
+          ]
+        }
+      },
+      {
+        "id": "d2f7b5a2-b961-40a4-b023-c84856078284",
+        "type": "MERGE_FLOW",
+        "x": 2810.3733823776547,
+        "y": -1128.5096511010956,
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Merge multiple data flows for processing flickr spring features and OSM data.",
+        "metadata": {
+          "keywords": []
+        }
+      },
+      {
+        "id": "0d87a948-dca7-4b91-a299-92a68f0e05a7",
+        "type": "DATA_LOADING",
+        "x": 884.1380408016156,
+        "y": -1497.8238636640722,
+        "content": "import geopandas as gpd\r\nfrom shapely.geometry import box\r\n\r\ngdf_zip = gpd.read_file(\"nyc_zip.geojson\")\r\n\r\ngdf_zip = gdf_zip[[\"geometry\"]]\r\n\r\ngdf_zip = gdf_zip.to_crs(\"EPSG:4326\")\r\n\r\nmin_lat, max_lat = 40.67187576076156, 40.928446768674455\r\nmin_lon, max_lon = -74.0703927880446, -73.8413807958497\r\nbbox = box(min_lon, min_lat, max_lon, max_lat)\r\nbbox_gdf = gpd.GeoDataFrame(geometry=[bbox], crs=\"EPSG:4326\")\r\n\r\ngdf_zip = gdf_zip[gdf_zip.within(bbox_gdf.iloc[0].geometry)]\r\n\r\ngdf_zip = gdf_zip.to_crs(\"3395\")\r\n\r\ngdf_zip.metadata = {\r\n    'name': 'zip'\r\n}\r\n\r\nreturn gdf_zip",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Load neighborhood geometries from the nyc_zip.geojson file using GeoPandas for further spatial analysis and visualization.",
+        "metadata": {
+          "keywords": [
+            13
+          ]
+        }
+      },
+      {
+        "id": "83d3b53c-c091-4656-a352-96ebb2e3d5fe",
+        "type": "DATA_POOL",
+        "x": 2827.473812532022,
+        "y": -346.66371933881055,
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Manage and store intermediate data for various visualizations, allowing multiple visualizations to access and interact with the same dataset seamlessly.",
+        "metadata": {
+          "keywords": []
+        }
+      },
+      {
+        "id": "3c7dbffc-cfa6-4d89-9319-234564d46ee5",
+        "type": "DATA_POOL",
+        "x": 1654.7523705752467,
+        "y": -582.4822022531845,
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Manage and store data for multiple visualizations, allowing changes to be reflected across all connected components.",
+        "metadata": {
+          "keywords": []
+        }
+      },
+      {
+        "id": "e5c71fea-4152-4cb9-bb19-a9cef5adc21f",
+        "type": "VIS_UTK",
+        "x": 4050.8076566270324,
+        "y": -1535.1535929335935,
+        "content": "{\n    \"components\": [\n        {\n            \"id\": \"grammar_map\",\n            \"position\": {\n                \"width\": [\n                    1,\n                    12\n                ],\n                \"height\": [\n                    1,\n                    4\n                ]\n            }\n        }\n    ],\n    \"knots\": [],\n    \"ex_knots\": [\n        {\n            \"id\": \"water0\",\n            \"out_name\": \"water\"\n        },\n        {\n            \"id\": \"zip0\",\n            \"out_name\": \"zip\"\n        },\n        {\n            \"id\": \"parks0\",\n            \"out_name\": \"parks\"\n        },\n        {\n            \"id\": \"pulse0\",\n            \"out_name\": \"pulse\",\n            \"in_name\": \"value\"\n        }\n    ],\n    \"grid\": {\n        \"width\": 12,\n        \"height\": 4\n    },\n    \"grammar\": false\n}",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Display a 2D or 3D visualization using Urban Toolkit with specified position and grid dimensions.",
+        "metadata": {
+          "keywords": []
+        }
+      },
+      {
+        "id": "b204fc9d-631c-4d4f-aca8-2ec3fb032e72",
+        "type": "DATA_LOADING",
+        "x": 888.1946261185936,
+        "y": -1920.5044838304277,
+        "content": "import utk\r\n\r\nuc = utk.OSM.load([40.67187576076156, -74.0703927880446, 40.928446768674455, -73.8413807958497], layers=['water'])\r\n\r\njson_water = uc.layers['json'][0]\r\ngdf_water = uc.layers['gdf']['objects'][0]\r\ngdf_water.metadata = {\r\n 'name': 'water',\r\n 'style': 'water'\r\n}\r\n\r\nreturn gdf_water",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Load water geometry data using the Urban Toolkit from OSM within a specified bounding box.",
+        "metadata": {
+          "keywords": []
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "reactflow__edge-1780d986-e2d0-4de4-b980-6a684ebf5602out-d128215c-94d8-4117-a886-bfd38f466f12in",
+        "source": "1780d986-e2d0-4de4-b980-6a684ebf5602",
+        "target": "d128215c-94d8-4117-a886-bfd38f466f12",
+        "metadata": {
+          "keywords": []
+        }
+      },
+      {
+        "id": "reactflow__edge-1780d986-e2d0-4de4-b980-6a684ebf5602out-436b6a7d-10f1-4439-bdcc-39b908b5874fin",
+        "source": "1780d986-e2d0-4de4-b980-6a684ebf5602",
+        "target": "436b6a7d-10f1-4439-bdcc-39b908b5874f",
+        "metadata": {
+          "keywords": []
+        }
+      },
+      {
+        "id": "reactflow__edge-d128215c-94d8-4117-a886-bfd38f466f12out-83d3b53c-c091-4656-a352-96ebb2e3d5fein",
+        "source": "d128215c-94d8-4117-a886-bfd38f466f12",
+        "target": "83d3b53c-c091-4656-a352-96ebb2e3d5fe"
+      },
+      {
+        "id": "reactflow__edge-83d3b53c-c091-4656-a352-96ebb2e3d5feout-67c60435-8570-42e6-a62c-7ce52973316fin",
+        "source": "83d3b53c-c091-4656-a352-96ebb2e3d5fe",
+        "target": "67c60435-8570-42e6-a62c-7ce52973316f"
+      },
+      {
+        "type": "Interaction",
+        "id": "reactflow__edge-83d3b53c-c091-4656-a352-96ebb2e3d5fein/out-67c60435-8570-42e6-a62c-7ce52973316fin/out",
+        "source": "83d3b53c-c091-4656-a352-96ebb2e3d5fe",
+        "target": "67c60435-8570-42e6-a62c-7ce52973316f"
+      },
+      {
+        "type": "Interaction",
+        "id": "reactflow__edge-3c7dbffc-cfa6-4d89-9319-234564d46ee5in/out-e5c71fea-4152-4cb9-bb19-a9cef5adc21fin/out",
+        "source": "3c7dbffc-cfa6-4d89-9319-234564d46ee5",
+        "target": "e5c71fea-4152-4cb9-bb19-a9cef5adc21f"
+      },
+      {
+        "type": "Interaction",
+        "id": "reactflow__edge-3c7dbffc-cfa6-4d89-9319-234564d46ee5in/out-83d3b53c-c091-4656-a352-96ebb2e3d5fein/out",
+        "source": "3c7dbffc-cfa6-4d89-9319-234564d46ee5",
+        "target": "83d3b53c-c091-4656-a352-96ebb2e3d5fe"
+      },
+      {
+        "id": "reactflow__edge-436b6a7d-10f1-4439-bdcc-39b908b5874fout-3c7dbffc-cfa6-4d89-9319-234564d46ee5in",
+        "source": "436b6a7d-10f1-4439-bdcc-39b908b5874f",
+        "target": "3c7dbffc-cfa6-4d89-9319-234564d46ee5"
+      },
+      {
+        "id": "reactflow__edge-b204fc9d-631c-4d4f-aca8-2ec3fb032e72out-d2f7b5a2-b961-40a4-b023-c84856078284in",
+        "source": "b204fc9d-631c-4d4f-aca8-2ec3fb032e72",
+        "target": "d2f7b5a2-b961-40a4-b023-c84856078284"
+      },
+      {
+        "id": "reactflow__edge-0d87a948-dca7-4b91-a299-92a68f0e05a7out-d2f7b5a2-b961-40a4-b023-c84856078284in",
+        "source": "0d87a948-dca7-4b91-a299-92a68f0e05a7",
+        "target": "d2f7b5a2-b961-40a4-b023-c84856078284"
+      },
+      {
+        "id": "reactflow__edge-9e088544-774f-4be3-8427-15b69f018e6fout-d2f7b5a2-b961-40a4-b023-c84856078284in",
+        "source": "9e088544-774f-4be3-8427-15b69f018e6f",
+        "target": "d2f7b5a2-b961-40a4-b023-c84856078284"
+      },
+      {
+        "id": "reactflow__edge-3c7dbffc-cfa6-4d89-9319-234564d46ee5out-d2f7b5a2-b961-40a4-b023-c84856078284in",
+        "source": "3c7dbffc-cfa6-4d89-9319-234564d46ee5",
+        "target": "d2f7b5a2-b961-40a4-b023-c84856078284"
+      },
+      {
+        "id": "reactflow__edge-d2f7b5a2-b961-40a4-b023-c84856078284out-e5c71fea-4152-4cb9-bb19-a9cef5adc21fin",
+        "source": "d2f7b5a2-b961-40a4-b023-c84856078284",
+        "target": "e5c71fea-4152-4cb9-bb19-a9cef5adc21f"
+      }
+    ],
+    "name": "DefaultWorkflow",
+    "task": "",
+    "timestamp": 1743038969285,
+    "provenance_id": "DefaultWorkflow"
+  }
+}

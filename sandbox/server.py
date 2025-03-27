@@ -81,9 +81,15 @@ def toLayers():
         parsedGeoJson = json.loads(geoJson)
 
         layerName = "layer"+str(index)
+        styleKey = "surface"
 
         if 'metadata' in parsedGeoJson and 'name' in parsedGeoJson['metadata']:
             layerName = parsedGeoJson['metadata']['name']
+
+        if 'metadata' in parsedGeoJson and 'style' in parsedGeoJson['metadata']:
+            styleKey = parsedGeoJson['metadata']['style']
+
+        print("style", styleKey)
 
         # gdfs.append(gpd.GeoDataFrame.from_features(geoJson))
         gdf = gpd.GeoDataFrame.from_features(parsedGeoJson)
@@ -112,7 +118,7 @@ def toLayers():
                 "id": layerName,
                 "type": "BUILDINGS_LAYER",
                 "renderStyle": renderStyle,
-                "styleKey": "surface",
+                "styleKey": styleKey,
                 "data": mesh
             }
 
@@ -253,7 +259,7 @@ def toLayers():
                 "id": layerName,
                 "type": "TRIANGLES_3D_LAYER",
                 "renderStyle": renderStyle,
-                "styleKey": "surface",
+                "styleKey": styleKey,
                 "data": mesh
             }
 
