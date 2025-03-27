@@ -1,0 +1,470 @@
+{
+  "dataflow": {
+    "nodes": [
+      {
+        "id": "1780d986-e2d0-4de4-b980-6a684ebf5602",
+        "type": "DATA_LOADING",
+        "x": -710.6020393787387,
+        "y": 434.8704271594989,
+        "content": "import pandas as pd\r\nimport json\r\n\r\njson_features_file = open(\"flickr-features.json\")\r\n\r\nparsed_json_features = json.load(json_features_file)\r\n\r\ndf_features = pd.json_normalize(parsed_json_features[\"features\"])\r\n\r\ndf_features = df_features[[\"latLng\", \"rank\", \"resolutions.HOUR.fnRank\", \"resolutions.HOUR.sigRank\", \"resolutions.HOUR.maxRank\", \"resolutions.DAYOFWEEK.fnRank\", \"resolutions.DAYOFWEEK.sigRank\", \"resolutions.DAYOFWEEK.maxRank\", \"resolutions.MONTH.fnRank\", \"resolutions.MONTH.sigRank\", \"resolutions.MONTH.maxRank\"]]\r\n\r\ndf_hour = df_features[[\"latLng\", \"rank\", \r\n    \"resolutions.HOUR.fnRank\", \"resolutions.HOUR.sigRank\", \"resolutions.HOUR.maxRank\"]].copy()\r\n\r\ndf_dayofweek = df_features[[\"latLng\", \"rank\", \r\n    \"resolutions.DAYOFWEEK.fnRank\", \"resolutions.DAYOFWEEK.sigRank\", \"resolutions.DAYOFWEEK.maxRank\"]].copy()\r\n\r\ndf_month = df_features[[\"latLng\", \"rank\", \r\n    \"resolutions.MONTH.fnRank\", \"resolutions.MONTH.sigRank\", \"resolutions.MONTH.maxRank\"]].copy()\r\n\r\nreturn df_hour, df_dayofweek, df_month",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Load and preprocess flickr spring features data from a JSON file, extracting relevant fields and dropping missing values.",
+        "metadata": {
+          "keywords": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        }
+      },
+      {
+        "id": "436b6a7d-10f1-4439-bdcc-39b908b5874f",
+        "type": "DATA_TRANSFORMATION",
+        "x": 885.5667857856907,
+        "y": -583.8010154017836,
+        "content": "import pandas as pd\r\nimport geopandas as gpd\r\nfrom shapely.geometry import Point\r\n\r\ndf_points = arg\r\n\r\ndf_points = df_points.explode(\"latLng\", ignore_index=True)\r\n\r\ndf_points[\"geometry\"] = df_points[\"latLng\"].apply(lambda x: Point(x[1], x[0]))  # (lon, lat)\r\n\r\ngdf_points = gpd.GeoDataFrame(df_points, geometry=\"geometry\", crs=\"EPSG:4326\")\r\n\r\ngdf_points = gdf_points.drop(columns=[\"latLng\"])\r\n\r\ngdf_points = gdf_points.to_crs(3857)\r\n\r\ngdf_points[\"geometry\"] = gdf_points[\"geometry\"].buffer(50)\r\n\r\ngdf_points[\"value\"] = 1\r\n\r\ngdf_points['linked'] = gdf_points.index.to_series().apply(lambda x: [x])\r\n\r\ngdf_points = gdf_points[[\"geometry\", \"value\", \"linked\"]]\r\n\r\ngdf_points = gdf_points.to_crs(3395)\r\n\r\ngdf_points.metadata = {\r\n    'name': 'pulse'\r\n}\r\n\r\nreturn gdf_points",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Transform point data into a GeoDataFrame, enrich it with geometry, and project it to a different coordinate reference system for further analysis.",
+        "metadata": {
+          "keywords": []
+        }
+      },
+      {
+        "id": "9e088544-774f-4be3-8427-15b69f018e6f",
+        "type": "DATA_LOADING",
+        "x": 876.9480748892049,
+        "y": -1031.283169845394,
+        "content": "import utk\r\n\r\nuc = utk.OSM.load([40.67187576076156, -74.0703927880446, 40.928446768674455, -73.8413807958497], layers=['parks'])\r\n\r\n#parks\r\njson_parks = uc.layers['json'][0]\r\ngdf_parks = uc.layers['gdf']['objects'][0]\r\ngdf_parks.metadata = {\r\n 'name': 'parks',\r\n 'style': 'parks'\r\n}\r\n\r\nreturn gdf_parks",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Load OSM data for parks and water features within specified coordinates, annotating the geometries with metadata for visualization.",
+        "metadata": {
+          "keywords": [
+            13,
+            14,
+            15
+          ]
+        }
+      },
+      {
+        "id": "d2f7b5a2-b961-40a4-b023-c84856078284",
+        "type": "MERGE_FLOW",
+        "x": 2810.3733823776547,
+        "y": -1128.5096511010956,
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Merge multiple data flows for processing flickr spring features and OSM data.",
+        "metadata": {
+          "keywords": []
+        }
+      },
+      {
+        "id": "0d87a948-dca7-4b91-a299-92a68f0e05a7",
+        "type": "DATA_LOADING",
+        "x": 884.1380408016156,
+        "y": -1497.8238636640722,
+        "content": "import geopandas as gpd\r\nfrom shapely.geometry import box\r\n\r\ngdf_zip = gpd.read_file(\"nyc_zip.geojson\")\r\n\r\ngdf_zip = gdf_zip[[\"geometry\"]]\r\n\r\ngdf_zip = gdf_zip.to_crs(\"EPSG:4326\")\r\n\r\nmin_lat, max_lat = 40.67187576076156, 40.928446768674455\r\nmin_lon, max_lon = -74.0703927880446, -73.8413807958497\r\nbbox = box(min_lon, min_lat, max_lon, max_lat)\r\nbbox_gdf = gpd.GeoDataFrame(geometry=[bbox], crs=\"EPSG:4326\")\r\n\r\ngdf_zip = gdf_zip[gdf_zip.within(bbox_gdf.iloc[0].geometry)]\r\n\r\ngdf_zip = gdf_zip.to_crs(\"3395\")\r\n\r\ngdf_zip.metadata = {\r\n    'name': 'zip'\r\n}\r\n\r\nreturn gdf_zip",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Load neighborhood geometries from the nyc_zip.geojson file using GeoPandas for further spatial analysis and visualization.",
+        "metadata": {
+          "keywords": [
+            13
+          ]
+        }
+      },
+      {
+        "id": "3c7dbffc-cfa6-4d89-9319-234564d46ee5",
+        "type": "DATA_POOL",
+        "x": 1659.9756739550235,
+        "y": -582.4822022531845,
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Manage and store data for multiple visualizations, allowing changes to be reflected across all connected components.",
+        "metadata": {
+          "keywords": []
+        }
+      },
+      {
+        "id": "e5c71fea-4152-4cb9-bb19-a9cef5adc21f",
+        "type": "VIS_UTK",
+        "x": 4050.8076566270324,
+        "y": -1535.1535929335935,
+        "content": "{\n    \"components\": [\n        {\n            \"id\": \"grammar_map\",\n            \"position\": {\n                \"width\": [\n                    1,\n                    12\n                ],\n                \"height\": [\n                    1,\n                    4\n                ]\n            }\n        }\n    ],\n    \"knots\": [],\n    \"ex_knots\": [\n        {\n            \"id\": \"water0\",\n            \"out_name\": \"water\"\n        },\n        {\n            \"id\": \"zip0\",\n            \"out_name\": \"zip\"\n        },\n        {\n            \"id\": \"parks0\",\n            \"out_name\": \"parks\"\n        },\n        {\n            \"id\": \"pulse0\",\n            \"out_name\": \"pulse\",\n            \"in_name\": \"value\"\n        }\n    ],\n    \"grid\": {\n        \"width\": 12,\n        \"height\": 4\n    },\n    \"grammar\": false\n}",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Display a 2D or 3D visualization using Urban Toolkit with specified position and grid dimensions.",
+        "metadata": {
+          "keywords": []
+        }
+      },
+      {
+        "id": "b204fc9d-631c-4d4f-aca8-2ec3fb032e72",
+        "type": "DATA_LOADING",
+        "x": 888.1946261185936,
+        "y": -1920.5044838304277,
+        "content": "import utk\r\n\r\nuc = utk.OSM.load([40.67187576076156, -74.0703927880446, 40.928446768674455, -73.8413807958497], layers=['water'])\r\n\r\njson_water = uc.layers['json'][0]\r\ngdf_water = uc.layers['gdf']['objects'][0]\r\ngdf_water.metadata = {\r\n 'name': 'water',\r\n 'style': 'water'\r\n}\r\n\r\nreturn gdf_water",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Load water geometry data using the Urban Toolkit from OSM within a specified bounding box.",
+        "metadata": {
+          "keywords": []
+        }
+      },
+      {
+        "id": "2cfa69ce-6d5a-480e-902a-b7fb2b101f61",
+        "type": "COMPUTATION_ANALYSIS",
+        "x": 522.59681871686,
+        "y": 49.1779935834132,
+        "content": "df_hour = arg[0]\r\n\r\ndf_hour = df_hour.rename(columns={\"resolutions.HOUR.fnRank\": \"fnRank\", \"resolutions.HOUR.sigRank\": \"sigRank\", \"resolutions.HOUR.maxRank\": \"maxRank\"})\r\n\r\ndf_hour = df_hour.dropna(subset=[\"fnRank\"])\r\ndf_hour = df_hour.dropna(subset=[\"sigRank\"])\r\ndf_hour = df_hour.dropna(subset=[\"maxRank\"])\r\n\r\nreturn df_hour",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Clean and preprocess hourly resolution data by renaming columns and removing rows with missing values in specific columns.",
+        "metadata": {
+          "keywords": []
+        }
+      },
+      {
+        "id": "66a2fd20-1431-4401-a73d-dc31e32a7e76",
+        "type": "COMPUTATION_ANALYSIS",
+        "x": 530.6253949752207,
+        "y": 437.6832309679155,
+        "content": "df_dayofweek = arg[1]\r\n\r\ndf_dayofweek = df_dayofweek.rename(columns={\"resolutions.DAYOFWEEK.fnRank\": \"fnRank\", \"resolutions.DAYOFWEEK.sigRank\": \"sigRank\", \"resolutions.DAYOFWEEK.maxRank\": \"maxRank\"})\r\n\r\ndf_dayofweek = df_dayofweek.dropna(subset=[\"fnRank\"])\r\ndf_dayofweek = df_dayofweek.dropna(subset=[\"sigRank\"])\r\ndf_dayofweek = df_dayofweek.dropna(subset=[\"maxRank\"])\r\n\r\nreturn df_dayofweek",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "",
+        "metadata": {
+          "keywords": []
+        }
+      },
+      {
+        "id": "14da52da-9d75-49dd-ac5f-590ef91b7222",
+        "type": "COMPUTATION_ANALYSIS",
+        "x": 530.935595493631,
+        "y": 881.023051246576,
+        "content": "df_month = arg[2]\r\n\r\ndf_month = df_month.rename(columns={\"resolutions.MONTH.fnRank\": \"fnRank\", \"resolutions.MONTH.sigRank\": \"sigRank\", \"resolutions.MONTH.maxRank\": \"maxRank\"})\r\n\r\ndf_month = df_month.dropna(subset=[\"fnRank\"])\r\ndf_month = df_month.dropna(subset=[\"sigRank\"])\r\ndf_month = df_month.dropna(subset=[\"maxRank\"])\r\n\r\nreturn df_month",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "",
+        "metadata": {
+          "keywords": []
+        }
+      },
+      {
+        "id": "603fa887-1027-4154-9b62-49530dc7ba42",
+        "type": "COMPUTATION_ANALYSIS",
+        "x": 1476.0744434357277,
+        "y": 48.84790372274352,
+        "content": "import numpy as np\r\n\r\ndf_scatterplot = arg[[\"rank\", \"fnRank\", \"sigRank\", \"maxRank\"]]\r\n\r\ndf_scatterplot[\"combinedRanks\"] = np.sqrt(\r\n    df_scatterplot[\"maxRank\"] ** 2 +\r\n    df_scatterplot[\"fnRank\"] ** 2 +\r\n    df_scatterplot[\"sigRank\"] ** 2\r\n)\r\n\r\ndf_scatterplot['linked'] = df_scatterplot.index.to_series().apply(lambda x: [x])\r\n\r\nreturn df_scatterplot",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Calculate combined ranks and prepare linked index for the scatterplot data.",
+        "metadata": {
+          "keywords": []
+        }
+      },
+      {
+        "id": "d900b1c4-11f0-4bd4-866a-e90bc7b314aa",
+        "type": "COMPUTATION_ANALYSIS",
+        "x": 1477.1679252032927,
+        "y": 438.07785945918386,
+        "content": "import numpy as np\r\n\r\ndf_scatterplot = arg[[\"rank\", \"fnRank\", \"sigRank\", \"maxRank\"]]\r\n\r\ndf_scatterplot[\"combinedRanks\"] = np.sqrt(\r\n    df_scatterplot[\"maxRank\"] ** 2 +\r\n    df_scatterplot[\"fnRank\"] ** 2 +\r\n    df_scatterplot[\"sigRank\"] ** 2\r\n)\r\n\r\ndf_scatterplot['linked'] = df_scatterplot.index.to_series().apply(lambda x: [x])\r\n\r\nreturn df_scatterplot",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Calculate combined ranks from multiple ranking columns and prepare the DataFrame for visualization.",
+        "metadata": {
+          "keywords": []
+        }
+      },
+      {
+        "id": "60706055-77bf-4940-93dc-31d46eccd591",
+        "type": "COMPUTATION_ANALYSIS",
+        "x": 1493.1546204899673,
+        "y": 880.8353433604304,
+        "content": "import numpy as np\r\n\r\ndf_scatterplot = arg[[\"rank\", \"fnRank\", \"sigRank\", \"maxRank\"]]\r\n\r\ndf_scatterplot[\"combinedRanks\"] = np.sqrt(\r\n    df_scatterplot[\"maxRank\"] ** 2 +\r\n    df_scatterplot[\"fnRank\"] ** 2 +\r\n    df_scatterplot[\"sigRank\"] ** 2\r\n)\r\n\r\ndf_scatterplot['linked'] = df_scatterplot.index.to_series().apply(lambda x: [x])\r\n\r\nreturn df_scatterplot",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Compute combined ranks from multiple ranking columns and prepare data for visualization.",
+        "metadata": {
+          "keywords": []
+        }
+      },
+      {
+        "id": "0d11f2ef-7bf7-4e43-85dc-64bd1303f2c6",
+        "type": "DATA_POOL",
+        "x": 2343.5,
+        "y": 33.02305124657596,
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Maintain a centralized data repository for multiple visualizations to facilitate interactions among them.",
+        "metadata": {
+          "keywords": []
+        }
+      },
+      {
+        "id": "8f9ea090-919e-4179-a01e-4811638a3ee8",
+        "type": "DATA_POOL",
+        "x": 2345.5,
+        "y": 439.02305124657596,
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Data repository for multiple visualizations, where changes to the data are visible across all connected visualizations.",
+        "metadata": {
+          "keywords": []
+        }
+      },
+      {
+        "id": "b6beb899-ecaa-4585-aa09-ee9200b0a5bd",
+        "type": "DATA_POOL",
+        "x": 2337.5,
+        "y": 881.023051246576,
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Manage and store data for multiple visualizations, enabling interactive updates across connected visual components.",
+        "metadata": {
+          "keywords": []
+        }
+      },
+      {
+        "id": "e4fe6fed-9d74-4c61-b1e4-9c4e20777ae9",
+        "type": "VIS_VEGA",
+        "x": 3669.4999999999995,
+        "y": 43.02305124657596,
+        "content": "{ \r\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\", \r\n  \"title\": \"RANK (HOUR)\",\r\n  \"params\": [ {\"name\": \"clickSelect\", \"select\": \"interval\"} ], \r\n  \"mark\": { \"type\": \"point\", \"cursor\": \"pointer\" }, \r\n  \"encoding\": { \r\n    \"x\": {\"field\": \"combinedRanks\", \"type\": \"quantitative\"},\r\n    \"y\": {\"field\": \"rank\", \"type\": \"quantitative\"}, \r\n    \"fillOpacity\": { \r\n        \"condition\": {\"param\": \"clickSelect\", \"value\": 1}, \r\n        \"value\": 0.3 \r\n    }, \r\n    \"color\": { \r\n      \"field\": \"interacted\", \r\n      \"type\": \"nominal\", \r\n      \"condition\": {\r\n        \"test\": \"datum.interacted === '1'\", \"value\": \"red\", \"else\": \"blue\"} } \r\n  }, \r\n  \"config\": { \"scale\": { \"bandPaddingInner\": 0.2 } } \r\n} ",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "",
+        "metadata": {
+          "keywords": []
+        }
+      },
+      {
+        "id": "2edefb07-9577-444d-9b88-26c3fbd2d0ea",
+        "type": "VIS_VEGA",
+        "x": 3700.3428343348955,
+        "y": 454.53876781308634,
+        "content": "{ \r\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\", \r\n  \"title\": \"RANK (DAYOFWEEK)\",\r\n  \"params\": [ {\"name\": \"clickSelect\", \"select\": \"interval\"} ], \r\n  \"mark\": { \"type\": \"point\", \"cursor\": \"pointer\" }, \r\n  \"encoding\": { \r\n    \"x\": {\"field\": \"combinedRanks\", \"type\": \"quantitative\"},\r\n    \"y\": {\"field\": \"rank\", \"type\": \"quantitative\"}, \r\n    \"fillOpacity\": { \r\n        \"condition\": {\"param\": \"clickSelect\", \"value\": 1}, \r\n        \"value\": 0.3 \r\n    }, \r\n    \"color\": { \r\n      \"field\": \"interacted\", \r\n      \"type\": \"nominal\", \r\n      \"condition\": {\r\n        \"test\": \"datum.interacted === '1'\", \"value\": \"red\", \"else\": \"blue\"} } \r\n  }, \r\n  \"config\": { \"scale\": { \"bandPaddingInner\": 0.2 } } \r\n} ",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "",
+        "metadata": {
+          "keywords": []
+        }
+      },
+      {
+        "id": "25b639cc-01a2-43c8-9d71-49aa67e35e1c",
+        "type": "VIS_VEGA",
+        "x": 3717.5,
+        "y": 905.023051246576,
+        "content": "{ \r\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\", \r\n  \"title\": \"RANK (MONTH)\",\r\n  \"params\": [ {\"name\": \"clickSelect\", \"select\": \"interval\"} ], \r\n  \"mark\": { \"type\": \"point\", \"cursor\": \"pointer\" }, \r\n  \"encoding\": { \r\n    \"x\": {\"field\": \"combinedRanks\", \"type\": \"quantitative\"},\r\n    \"y\": {\"field\": \"rank\", \"type\": \"quantitative\"}, \r\n    \"fillOpacity\": { \r\n        \"condition\": {\"param\": \"clickSelect\", \"value\": 1}, \r\n        \"value\": 0.3 \r\n    }, \r\n    \"color\": { \r\n      \"field\": \"interacted\", \r\n      \"type\": \"nominal\", \r\n      \"condition\": {\r\n        \"test\": \"datum.interacted === '1'\", \"value\": \"red\", \"else\": \"blue\"} } \r\n  }, \r\n  \"config\": { \"scale\": { \"bandPaddingInner\": 0.2 } } \r\n} ",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "",
+        "metadata": {
+          "keywords": []
+        }
+      },
+      {
+        "id": "d708ffc2-b507-47ec-a343-fd5af625de62",
+        "type": "DATA_LOADING",
+        "x": 9.615876474917684,
+        "y": -584.2714431204628,
+        "content": "import pandas as pd\r\nimport json\r\n\r\njson_features_file = open(\"flickr-features.json\")\r\n\r\nparsed_json_features = json.load(json_features_file)\r\n\r\ndf_features = pd.json_normalize(parsed_json_features[\"features\"])\r\n\r\ndf_features = df_features[[\"latLng\"]]\r\n\r\nreturn df_features",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Load flickr feature data from a JSON file and extract latitude and longitude information.",
+        "metadata": {
+          "keywords": []
+        }
+      },
+      {
+        "id": "a9fa6a42-6c61-4b5c-96ef-852c5ad28616",
+        "type": "VIS_UTK",
+        "x": 3058.807656627032,
+        "y": -926.976948753424,
+        "content": "{\n    \"components\": [\n        {\n            \"id\": \"grammar_map\",\n            \"position\": {\n                \"width\": [\n                    1,\n                    12\n                ],\n                \"height\": [\n                    1,\n                    4\n                ]\n            }\n        }\n    ],\n    \"knots\": [],\n    \"ex_knots\": [\n        {\n            \"id\": \"pulse0\",\n            \"out_name\": \"pulse\",\n            \"in_name\": \"value\"\n        }\n    ],\n    \"grid\": {\n        \"width\": 12,\n        \"height\": 4\n    },\n    \"grammar\": false\n}",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Render a visualization using the Urban Toolkit based on the provided data inputs.",
+        "metadata": {
+          "keywords": []
+        }
+      }
+    ],
+    "edges": [
+      {
+        "type": "Interaction",
+        "id": "reactflow__edge-3c7dbffc-cfa6-4d89-9319-234564d46ee5in/out-e5c71fea-4152-4cb9-bb19-a9cef5adc21fin/out",
+        "source": "3c7dbffc-cfa6-4d89-9319-234564d46ee5",
+        "target": "e5c71fea-4152-4cb9-bb19-a9cef5adc21f"
+      },
+      {
+        "id": "reactflow__edge-436b6a7d-10f1-4439-bdcc-39b908b5874fout-3c7dbffc-cfa6-4d89-9319-234564d46ee5in",
+        "source": "436b6a7d-10f1-4439-bdcc-39b908b5874f",
+        "target": "3c7dbffc-cfa6-4d89-9319-234564d46ee5"
+      },
+      {
+        "id": "reactflow__edge-b204fc9d-631c-4d4f-aca8-2ec3fb032e72out-d2f7b5a2-b961-40a4-b023-c84856078284in",
+        "source": "b204fc9d-631c-4d4f-aca8-2ec3fb032e72",
+        "target": "d2f7b5a2-b961-40a4-b023-c84856078284"
+      },
+      {
+        "id": "reactflow__edge-0d87a948-dca7-4b91-a299-92a68f0e05a7out-d2f7b5a2-b961-40a4-b023-c84856078284in",
+        "source": "0d87a948-dca7-4b91-a299-92a68f0e05a7",
+        "target": "d2f7b5a2-b961-40a4-b023-c84856078284"
+      },
+      {
+        "id": "reactflow__edge-9e088544-774f-4be3-8427-15b69f018e6fout-d2f7b5a2-b961-40a4-b023-c84856078284in",
+        "source": "9e088544-774f-4be3-8427-15b69f018e6f",
+        "target": "d2f7b5a2-b961-40a4-b023-c84856078284"
+      },
+      {
+        "id": "reactflow__edge-3c7dbffc-cfa6-4d89-9319-234564d46ee5out-d2f7b5a2-b961-40a4-b023-c84856078284in",
+        "source": "3c7dbffc-cfa6-4d89-9319-234564d46ee5",
+        "target": "d2f7b5a2-b961-40a4-b023-c84856078284"
+      },
+      {
+        "id": "reactflow__edge-d2f7b5a2-b961-40a4-b023-c84856078284out-e5c71fea-4152-4cb9-bb19-a9cef5adc21fin",
+        "source": "d2f7b5a2-b961-40a4-b023-c84856078284",
+        "target": "e5c71fea-4152-4cb9-bb19-a9cef5adc21f"
+      },
+      {
+        "id": "reactflow__edge-1780d986-e2d0-4de4-b980-6a684ebf5602out-2cfa69ce-6d5a-480e-902a-b7fb2b101f61in",
+        "source": "1780d986-e2d0-4de4-b980-6a684ebf5602",
+        "target": "2cfa69ce-6d5a-480e-902a-b7fb2b101f61"
+      },
+      {
+        "id": "reactflow__edge-1780d986-e2d0-4de4-b980-6a684ebf5602out-66a2fd20-1431-4401-a73d-dc31e32a7e76in",
+        "source": "1780d986-e2d0-4de4-b980-6a684ebf5602",
+        "target": "66a2fd20-1431-4401-a73d-dc31e32a7e76"
+      },
+      {
+        "id": "reactflow__edge-1780d986-e2d0-4de4-b980-6a684ebf5602out-14da52da-9d75-49dd-ac5f-590ef91b7222in",
+        "source": "1780d986-e2d0-4de4-b980-6a684ebf5602",
+        "target": "14da52da-9d75-49dd-ac5f-590ef91b7222"
+      },
+      {
+        "id": "reactflow__edge-2cfa69ce-6d5a-480e-902a-b7fb2b101f61out-603fa887-1027-4154-9b62-49530dc7ba42in",
+        "source": "2cfa69ce-6d5a-480e-902a-b7fb2b101f61",
+        "target": "603fa887-1027-4154-9b62-49530dc7ba42"
+      },
+      {
+        "id": "reactflow__edge-66a2fd20-1431-4401-a73d-dc31e32a7e76out-d900b1c4-11f0-4bd4-866a-e90bc7b314aain",
+        "source": "66a2fd20-1431-4401-a73d-dc31e32a7e76",
+        "target": "d900b1c4-11f0-4bd4-866a-e90bc7b314aa"
+      },
+      {
+        "id": "reactflow__edge-14da52da-9d75-49dd-ac5f-590ef91b7222out-60706055-77bf-4940-93dc-31d46eccd591in",
+        "source": "14da52da-9d75-49dd-ac5f-590ef91b7222",
+        "target": "60706055-77bf-4940-93dc-31d46eccd591"
+      },
+      {
+        "id": "reactflow__edge-603fa887-1027-4154-9b62-49530dc7ba42out-0d11f2ef-7bf7-4e43-85dc-64bd1303f2c6in",
+        "source": "603fa887-1027-4154-9b62-49530dc7ba42",
+        "target": "0d11f2ef-7bf7-4e43-85dc-64bd1303f2c6"
+      },
+      {
+        "id": "reactflow__edge-d900b1c4-11f0-4bd4-866a-e90bc7b314aaout-8f9ea090-919e-4179-a01e-4811638a3ee8in",
+        "source": "d900b1c4-11f0-4bd4-866a-e90bc7b314aa",
+        "target": "8f9ea090-919e-4179-a01e-4811638a3ee8"
+      },
+      {
+        "id": "reactflow__edge-60706055-77bf-4940-93dc-31d46eccd591out-b6beb899-ecaa-4585-aa09-ee9200b0a5bdin",
+        "source": "60706055-77bf-4940-93dc-31d46eccd591",
+        "target": "b6beb899-ecaa-4585-aa09-ee9200b0a5bd"
+      },
+      {
+        "id": "reactflow__edge-0d11f2ef-7bf7-4e43-85dc-64bd1303f2c6out-e4fe6fed-9d74-4c61-b1e4-9c4e20777ae9in",
+        "source": "0d11f2ef-7bf7-4e43-85dc-64bd1303f2c6",
+        "target": "e4fe6fed-9d74-4c61-b1e4-9c4e20777ae9"
+      },
+      {
+        "id": "reactflow__edge-8f9ea090-919e-4179-a01e-4811638a3ee8out-2edefb07-9577-444d-9b88-26c3fbd2d0eain",
+        "source": "8f9ea090-919e-4179-a01e-4811638a3ee8",
+        "target": "2edefb07-9577-444d-9b88-26c3fbd2d0ea"
+      },
+      {
+        "id": "reactflow__edge-b6beb899-ecaa-4585-aa09-ee9200b0a5bdout-25b639cc-01a2-43c8-9d71-49aa67e35e1cin",
+        "source": "b6beb899-ecaa-4585-aa09-ee9200b0a5bd",
+        "target": "25b639cc-01a2-43c8-9d71-49aa67e35e1c"
+      },
+      {
+        "type": "Interaction",
+        "id": "reactflow__edge-0d11f2ef-7bf7-4e43-85dc-64bd1303f2c6in/out-e4fe6fed-9d74-4c61-b1e4-9c4e20777ae9in/out",
+        "source": "0d11f2ef-7bf7-4e43-85dc-64bd1303f2c6",
+        "target": "e4fe6fed-9d74-4c61-b1e4-9c4e20777ae9"
+      },
+      {
+        "type": "Interaction",
+        "id": "reactflow__edge-8f9ea090-919e-4179-a01e-4811638a3ee8in/out-2edefb07-9577-444d-9b88-26c3fbd2d0eain/out",
+        "source": "8f9ea090-919e-4179-a01e-4811638a3ee8",
+        "target": "2edefb07-9577-444d-9b88-26c3fbd2d0ea"
+      },
+      {
+        "type": "Interaction",
+        "id": "reactflow__edge-b6beb899-ecaa-4585-aa09-ee9200b0a5bdin/out-25b639cc-01a2-43c8-9d71-49aa67e35e1cin/out",
+        "source": "b6beb899-ecaa-4585-aa09-ee9200b0a5bd",
+        "target": "25b639cc-01a2-43c8-9d71-49aa67e35e1c"
+      },
+      {
+        "id": "reactflow__edge-d708ffc2-b507-47ec-a343-fd5af625de62out-436b6a7d-10f1-4439-bdcc-39b908b5874fin",
+        "source": "d708ffc2-b507-47ec-a343-fd5af625de62",
+        "target": "436b6a7d-10f1-4439-bdcc-39b908b5874f"
+      },
+      {
+        "type": "Interaction",
+        "id": "reactflow__edge-3c7dbffc-cfa6-4d89-9319-234564d46ee5in/out-0d11f2ef-7bf7-4e43-85dc-64bd1303f2c6in/out",
+        "source": "3c7dbffc-cfa6-4d89-9319-234564d46ee5",
+        "target": "0d11f2ef-7bf7-4e43-85dc-64bd1303f2c6"
+      },
+      {
+        "type": "Interaction",
+        "id": "reactflow__edge-3c7dbffc-cfa6-4d89-9319-234564d46ee5in/out-8f9ea090-919e-4179-a01e-4811638a3ee8in/out",
+        "source": "3c7dbffc-cfa6-4d89-9319-234564d46ee5",
+        "target": "8f9ea090-919e-4179-a01e-4811638a3ee8"
+      },
+      {
+        "type": "Interaction",
+        "id": "reactflow__edge-3c7dbffc-cfa6-4d89-9319-234564d46ee5in/out-b6beb899-ecaa-4585-aa09-ee9200b0a5bdin/out",
+        "source": "3c7dbffc-cfa6-4d89-9319-234564d46ee5",
+        "target": "b6beb899-ecaa-4585-aa09-ee9200b0a5bd"
+      },
+      {
+        "id": "reactflow__edge-3c7dbffc-cfa6-4d89-9319-234564d46ee5out-a9fa6a42-6c61-4b5c-96ef-852c5ad28616in",
+        "source": "3c7dbffc-cfa6-4d89-9319-234564d46ee5",
+        "target": "a9fa6a42-6c61-4b5c-96ef-852c5ad28616"
+      },
+      {
+        "type": "Interaction",
+        "id": "reactflow__edge-8f9ea090-919e-4179-a01e-4811638a3ee8in/out-0d11f2ef-7bf7-4e43-85dc-64bd1303f2c6in/out",
+        "source": "8f9ea090-919e-4179-a01e-4811638a3ee8",
+        "target": "0d11f2ef-7bf7-4e43-85dc-64bd1303f2c6"
+      },
+      {
+        "type": "Interaction",
+        "id": "reactflow__edge-b6beb899-ecaa-4585-aa09-ee9200b0a5bdin/out-8f9ea090-919e-4179-a01e-4811638a3ee8in/out",
+        "source": "b6beb899-ecaa-4585-aa09-ee9200b0a5bd",
+        "target": "8f9ea090-919e-4179-a01e-4811638a3ee8"
+      },
+      {
+        "type": "Interaction",
+        "id": "reactflow__edge-b6beb899-ecaa-4585-aa09-ee9200b0a5bdin/out-0d11f2ef-7bf7-4e43-85dc-64bd1303f2c6in/out",
+        "source": "b6beb899-ecaa-4585-aa09-ee9200b0a5bd",
+        "target": "0d11f2ef-7bf7-4e43-85dc-64bd1303f2c6"
+      }
+    ],
+    "name": "DefaultWorkflow",
+    "task": "",
+    "timestamp": 1743044979209,
+    "provenance_id": "DefaultWorkflow"
+  }
+}
