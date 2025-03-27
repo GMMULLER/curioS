@@ -21,8 +21,13 @@ export const pythonCode = `def parseInput(input):
     elif(parsedJson['dataType'] == 'geodataframe'):
         loadedJson = json.loads(parsedJson['data'])
         parsedInput = gpd.GeoDataFrame.from_features(loadedJson)
-        if('metadata' in loadedJson and 'name' in loadedJson['metadata']):
-            parsedInput.metadata = {'name': loadedJson['metadata']['name']}
+        if('metadata' in loadedJson):
+            metadata = {}
+            if('name' in loadedJson['metadata']):
+                metadata['name'] = loadedJson['metadata']['name']
+            if('style' in loadedJson['metadata']):
+                metadata['style'] = loadedJson['metadata']['style']
+            parsedInput.metadata = metadata.copy()
     elif(parsedJson['dataType'] == 'raster'):
         parsedInput = rasterio.open(parsedJson['data'])
     elif(parsedJson['dataType'] == 'outputs'):
@@ -117,9 +122,14 @@ def parseOutput(output):
         jsonOutput['dataType'] = 'dataframe'
     elif(outputType == gpd.geodataframe.GeoDataFrame):
         jsonOutput['data'] = output.to_json()
-        if(hasattr(output, 'metadata') and 'name' in output.metadata):
+        if(hasattr(output, 'metadata')):
             parsedGeojson = json.loads(jsonOutput['data'])
-            parsedGeojson['metadata'] = {'name': output.metadata['name']}
+            metadata = {}
+            if('name' in output.metadata):
+                metadata['name'] = output.metadata['name']
+            if('style' in output.metadata):
+                metadata['style'] = output.metadata['style']
+            parsedGeojson['metadata'] = metadata.copy()
             jsonOutput['data'] = json.dumps(parsedGeojson)
         jsonOutput['dataType'] = 'geodataframe'
     elif(outputType == rasterio.io.DatasetReader):
