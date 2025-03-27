@@ -1,0 +1,97 @@
+{
+  "dataflow": {
+    "nodes": [
+      {
+        "id": "66a7b2b2-9bcc-4f49-a84f-cd4a8db60155",
+        "type": "DATA_LOADING",
+        "x": -9.007234423575937,
+        "y": -185.26803211100633,
+        "content": "import pandas as pd\r\nimport json\r\n\r\njson_features_file = open(\"flickr-features.json\")\r\n\r\nparsed_json_features = json.load(json_features_file)\r\n\r\ndf_features = pd.json_normalize(parsed_json_features[\"features\"])\r\n\r\ndf_features = df_features[[\"latLng\", \"rank\", \"resolutions.HOUR.fnRank\", \"resolutions.HOUR.sigRank\", \"resolutions.HOUR.maxRank\", \"resolutions.DAYOFWEEK.fnRank\", \"resolutions.DAYOFWEEK.sigRank\", \"resolutions.DAYOFWEEK.maxRank\", \"resolutions.MONTH.fnRank\", \"resolutions.MONTH.sigRank\", \"resolutions.MONTH.maxRank\"]]\r\n\r\ndf_hour = df_features[[\"latLng\", \"rank\", \r\n    \"resolutions.HOUR.fnRank\", \"resolutions.HOUR.sigRank\", \"resolutions.HOUR.maxRank\"]].copy()\r\n\r\ndf_dayofweek = df_features[[\"latLng\", \"rank\", \r\n    \"resolutions.DAYOFWEEK.fnRank\", \"resolutions.DAYOFWEEK.sigRank\", \"resolutions.DAYOFWEEK.maxRank\"]].copy()\r\n\r\ndf_month = df_features[[\"latLng\", \"rank\", \r\n    \"resolutions.MONTH.fnRank\", \"resolutions.MONTH.sigRank\", \"resolutions.MONTH.maxRank\"]].copy()\r\n\r\nreturn df_hour, df_dayofweek, df_month",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Load and normalize features from a JSON file into separate DataFrames for hourly, daily, and monthly rank resolutions.",
+        "metadata": {
+          "keywords": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            12
+          ]
+        }
+      },
+      {
+        "id": "e413cafe-7f5f-4c29-a3df-6effae8fcfce",
+        "type": "COMPUTATION_ANALYSIS",
+        "x": 957.9915336091058,
+        "y": -595.9886579486983,
+        "content": "\r\nimport pandas as pd\r\n\r\ndf_hour = arg[0]\r\n\r\ndf_hour = df_hour.rename(columns={\"resolutions.HOUR.fnRank\": \"fnRank\", \"resolutions.HOUR.sigRank\": \"sigRank\", \"resolutions.HOUR.maxRank\": \"maxRank\"})\r\n\r\ndf_hour = df_hour.dropna(subset=[\"fnRank\"])\r\ndf_hour = df_hour.dropna(subset=[\"sigRank\"])\r\ndf_hour = df_hour.dropna(subset=[\"maxRank\"])\r\n\r\nreturn df_hour\r\n\r\n",
+        "out": "DATAFRAME",
+        "in": "DATAFRAME",
+        "goal": "Rename the columns of df_hour for improved readability and drop any NaN values.",
+        "metadata": {
+          "keywords": [
+            8,
+            9,
+            10,
+            11
+          ]
+        }
+      },
+      {
+        "id": "98c19c59-1c5b-4d3b-b2d5-5b2b1e303474",
+        "type": "COMPUTATION_ANALYSIS",
+        "x": 963.244731527461,
+        "y": -185.25829495854518,
+        "content": "df_dayofweek = arg[1]\r\n\r\ndf_dayofweek = df_dayofweek.rename(columns={\"resolutions.DAYOFWEEK.fnRank\": \"fnRank\", \"resolutions.DAYOFWEEK.sigRank\": \"sigRank\", \"resolutions.DAYOFWEEK.maxRank\": \"maxRank\"})\r\n\r\ndf_dayofweek = df_dayofweek.dropna(subset=[\"fnRank\"])\r\ndf_dayofweek = df_dayofweek.dropna(subset=[\"sigRank\"])\r\ndf_dayofweek = df_dayofweek.dropna(subset=[\"maxRank\"])\r\n\r\nreturn df_dayofweek",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "",
+        "metadata": {
+          "keywords": []
+        }
+      },
+      {
+        "id": "ddc2c490-69f6-485d-8915-47c366a914c8",
+        "type": "COMPUTATION_ANALYSIS",
+        "x": 961.3143530289817,
+        "y": 176.76917810419195,
+        "content": "df_month = arg[2]\r\n\r\ndf_month = df_month.rename(columns={\"resolutions.MONTH.fnRank\": \"fnRank\", \"resolutions.MONTH.sigRank\": \"sigRank\", \"resolutions.MONTH.maxRank\": \"maxRank\"})\r\n\r\ndf_month = df_month.dropna(subset=[\"fnRank\"])\r\ndf_month = df_month.dropna(subset=[\"sigRank\"])\r\ndf_month = df_month.dropna(subset=[\"maxRank\"])\r\n\r\nreturn df_month",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "",
+        "metadata": {
+          "keywords": []
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "reactflow__66a7b2b2-9bcc-4f49-a84f-cd4a8db60155_e413cafe-7f5f-4c29-a3df-6effae8fcfce_1",
+        "source": "66a7b2b2-9bcc-4f49-a84f-cd4a8db60155",
+        "target": "e413cafe-7f5f-4c29-a3df-6effae8fcfce",
+        "metadata": {
+          "keywords": [
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "id": "reactflow__edge-66a7b2b2-9bcc-4f49-a84f-cd4a8db60155out-98c19c59-1c5b-4d3b-b2d5-5b2b1e303474in",
+        "source": "66a7b2b2-9bcc-4f49-a84f-cd4a8db60155",
+        "target": "98c19c59-1c5b-4d3b-b2d5-5b2b1e303474"
+      },
+      {
+        "id": "reactflow__edge-66a7b2b2-9bcc-4f49-a84f-cd4a8db60155out-ddc2c490-69f6-485d-8915-47c366a914c8in",
+        "source": "66a7b2b2-9bcc-4f49-a84f-cd4a8db60155",
+        "target": "ddc2c490-69f6-485d-8915-47c366a914c8"
+      }
+    ],
+    "name": "DefaultWorkflow",
+    "task": "Load and normalize features from the JSON file into separate DataFrames for hourly, daily, and monthly rank resolutions. Create three distinct DataFrames: one for hourly ranks, one for daily ranks, and one for monthly ranks. Rename the columns of the hourly DataFrame for improved readability and drop any NaN values. ",
+    "timestamp": 1743111556884,
+    "provenance_id": "DefaultWorkflow"
+  }
+}

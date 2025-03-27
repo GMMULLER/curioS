@@ -28,7 +28,7 @@ export default function TrillProvenanceWindow({
                     <div style={modalBackground}></div>
                     <div style={modal}>
                         <span style={{position: "absolute", right: "15px", top: "10px", cursor: "pointer", fontWeight: "bold", fontSize: "19px"}} onClick={closeModal}>X</span>
-                        <p style={{fontWeight: "bold", fontSize: "22px"}}>Trill provenance for {workflowName}</p>
+                        <p style={{fontWeight: "bold", fontSize: "22px"}}>Provenance for {workflowName}</p>
                         <div style={{width: "85%", height: "85%", position: "relative", border: "1px solid black"}}>
                             <GraphCanvas
                                 nodes={TrillGenerator.provenanceJSON.nodes}

@@ -1,0 +1,119 @@
+{
+  "dataflow": {
+    "nodes": [
+      {
+        "id": "66a7b2b2-9bcc-4f49-a84f-cd4a8db60155",
+        "type": "DATA_LOADING",
+        "x": -9.007234423575937,
+        "y": -184.28753362077583,
+        "content": "import pandas as pd\r\nimport json\r\n\r\njson_features_file = open(\"flickr-features.json\")\r\n\r\nparsed_json_features = json.load(json_features_file)\r\n\r\ndf_features = pd.json_normalize(parsed_json_features[\"features\"])\r\n\r\ndf_features = df_features[[\"latLng\", \"rank\", \"resolutions.HOUR.fnRank\", \"resolutions.HOUR.sigRank\", \"resolutions.HOUR.maxRank\", \"resolutions.DAYOFWEEK.fnRank\", \"resolutions.DAYOFWEEK.sigRank\", \"resolutions.DAYOFWEEK.maxRank\", \"resolutions.MONTH.fnRank\", \"resolutions.MONTH.sigRank\", \"resolutions.MONTH.maxRank\"]]\r\n\r\ndf_hour = df_features[[\"latLng\", \"rank\", \r\n    \"resolutions.HOUR.fnRank\", \"resolutions.HOUR.sigRank\", \"resolutions.HOUR.maxRank\"]].copy()\r\n\r\ndf_dayofweek = df_features[[\"latLng\", \"rank\", \r\n    \"resolutions.DAYOFWEEK.fnRank\", \"resolutions.DAYOFWEEK.sigRank\", \"resolutions.DAYOFWEEK.maxRank\"]].copy()\r\n\r\ndf_month = df_features[[\"latLng\", \"rank\", \r\n    \"resolutions.MONTH.fnRank\", \"resolutions.MONTH.sigRank\", \"resolutions.MONTH.maxRank\"]].copy()\r\n\r\nreturn df_hour, df_dayofweek, df_month",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Load and preprocess features data from a JSON file, extracting specific ranking information for hour, day of the week, and month into separate DataFrames.",
+        "metadata": {
+          "keywords": [
+            0,
+            1,
+            2
+          ]
+        }
+      },
+      {
+        "id": "e413cafe-7f5f-4c29-a3df-6effae8fcfce",
+        "type": "COMPUTATION_ANALYSIS",
+        "x": 968.7770170016413,
+        "y": -545.0027364567123,
+        "content": "\r\nimport pandas as pd\r\n\r\ndf_hour = arg[0]\r\n\r\ndf_hour = df_hour.rename(columns={\"resolutions.HOUR.fnRank\": \"fnRank\", \"resolutions.HOUR.sigRank\": \"sigRank\", \"resolutions.HOUR.maxRank\": \"maxRank\"})\r\n\r\ndf_hour = df_hour.dropna(subset=[\"fnRank\"])\r\ndf_hour = df_hour.dropna(subset=[\"sigRank\"])\r\ndf_hour = df_hour.dropna(subset=[\"maxRank\"])\r\n\r\nreturn df_hour\r\n\r\n",
+        "out": "DATAFRAME",
+        "in": "DATAFRAME",
+        "goal": "Normalize hourly rank features by renaming columns and removing rows with NaN values in the DataFrame.",
+        "metadata": {
+          "keywords": [
+            3,
+            7,
+            8,
+            10,
+            11
+          ]
+        }
+      },
+      {
+        "id": "98c19c59-1c5b-4d3b-b2d5-5b2b1e303474",
+        "type": "COMPUTATION_ANALYSIS",
+        "x": 963.244731527461,
+        "y": -185.25829495854518,
+        "content": "df_dayofweek = arg[1]\r\n\r\ndf_dayofweek = df_dayofweek.rename(columns={\"resolutions.DAYOFWEEK.fnRank\": \"fnRank\", \"resolutions.DAYOFWEEK.sigRank\": \"sigRank\", \"resolutions.DAYOFWEEK.maxRank\": \"maxRank\"})\r\n\r\ndf_dayofweek = df_dayofweek.dropna(subset=[\"fnRank\"])\r\ndf_dayofweek = df_dayofweek.dropna(subset=[\"sigRank\"])\r\ndf_dayofweek = df_dayofweek.dropna(subset=[\"maxRank\"])\r\n\r\nreturn df_dayofweek",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Normalize daily rank features by renaming columns and removing rows with missing values for fnRank, sigRank, and maxRank.",
+        "metadata": {
+          "keywords": [
+            4,
+            7,
+            8,
+            10,
+            12
+          ]
+        }
+      },
+      {
+        "id": "ddc2c490-69f6-485d-8915-47c366a914c8",
+        "type": "COMPUTATION_ANALYSIS",
+        "x": 959.3533560485207,
+        "y": 177.74967659442245,
+        "content": "df_month = arg[2]\r\n\r\ndf_month = df_month.rename(columns={\"resolutions.MONTH.fnRank\": \"fnRank\", \"resolutions.MONTH.sigRank\": \"sigRank\", \"resolutions.MONTH.maxRank\": \"maxRank\"})\r\n\r\ndf_month = df_month.dropna(subset=[\"fnRank\"])\r\ndf_month = df_month.dropna(subset=[\"sigRank\"])\r\ndf_month = df_month.dropna(subset=[\"maxRank\"])\r\n\r\nreturn df_month",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Prepare the monthly ranks DataFrame by renaming specific columns and dropping rows with missing values for fnRank, sigRank, and maxRank.",
+        "metadata": {
+          "keywords": [
+            5,
+            7,
+            8,
+            10,
+            12
+          ]
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "reactflow__66a7b2b2-9bcc-4f49-a84f-cd4a8db60155_e413cafe-7f5f-4c29-a3df-6effae8fcfce_1",
+        "source": "66a7b2b2-9bcc-4f49-a84f-cd4a8db60155",
+        "target": "e413cafe-7f5f-4c29-a3df-6effae8fcfce",
+        "metadata": {
+          "keywords": [
+            0,
+            3
+          ]
+        }
+      },
+      {
+        "id": "reactflow__edge-66a7b2b2-9bcc-4f49-a84f-cd4a8db60155out-98c19c59-1c5b-4d3b-b2d5-5b2b1e303474in",
+        "source": "66a7b2b2-9bcc-4f49-a84f-cd4a8db60155",
+        "target": "98c19c59-1c5b-4d3b-b2d5-5b2b1e303474",
+        "metadata": {
+          "keywords": [
+            0,
+            4
+          ]
+        }
+      },
+      {
+        "id": "reactflow__edge-66a7b2b2-9bcc-4f49-a84f-cd4a8db60155out-ddc2c490-69f6-485d-8915-47c366a914c8in",
+        "source": "66a7b2b2-9bcc-4f49-a84f-cd4a8db60155",
+        "target": "ddc2c490-69f6-485d-8915-47c366a914c8",
+        "metadata": {
+          "keywords": [
+            0,
+            5
+          ]
+        }
+      }
+    ],
+    "name": "DefaultWorkflow",
+    "task": "Load the data from the JSON file, extracting ranking information for hourly, daily, and monthly resolutions into separate DataFrames. Normalize the hourly ranks DataFrame by renaming specific columns to improve readability and dropping any rows with NaN values. Additionally, normalize the daily ranks DataFrame in a similar manner by renaming the relevant columns and ensuring that no missing values are present. Finally, prepare the monthly ranks DataFrame, renaming columns for enhanced clarity and removing any rows that contain NaN entries.",
+    "timestamp": 1743111905413,
+    "provenance_id": "DefaultWorkflow"
+  }
+}

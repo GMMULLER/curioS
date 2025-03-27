@@ -106,9 +106,9 @@ export function UpMenu({ setDashBoardMode, setDashboardOn, dashboardOn }: { setD
                     {fileMenuOpen && (
                         <div style={dropdownMenu}>
                             <button style={dropdownItem}>New Workflow</button>
-                            <button style={dropdownItem} onClick={exportTrill}>Export as Trill</button>
+                            <button style={dropdownItem} onClick={exportTrill}>Export Specification</button>
                             <div>
-                                <button style={dropdownItem} onClick={loadTrillFile}>Load Trill</button>
+                                <button style={dropdownItem} onClick={loadTrillFile}>Load Specification</button>
                                 <input type="file" accept=".json" id="loadTrill" style={{ display: 'none' }} onChange={handleFileUpload}/>
                             </div>
                         </div>
@@ -116,7 +116,7 @@ export function UpMenu({ setDashBoardMode, setDashboardOn, dashboardOn }: { setD
                 </div>
                 <FileUpload style={button} />
                 <button style={{...button, ...(dashboardOn ? {background: "repeating-linear-gradient(-45deg, transparent 0px, transparent 8px,rgb(226, 45, 124) 8px, rgb(226, 45, 124) 12px)"} : {background: "transparent"})}} onClick={() => {setDashBoardMode(!dashboardOn); setDashboardOn(!dashboardOn);}}>Dashboard Mode</button>
-                <button style={{...button}} onClick={openTrillProvenanceModal}>Trill Provenance</button>
+                <button style={{...button}} onClick={openTrillProvenanceModal}>Provenance</button>
             </div>
             {/* Editable Workflow Name */}
             <div style={{...workflowNameContainer, ...(llmEvents.length > 0 ? {opacity: "60%", pointerEvents: "none"} : {})}}>
@@ -187,7 +187,7 @@ const dropdownMenu: CSS.Properties = {
 const dropdownItem: CSS.Properties = {
     display: "block",
     padding: "8px 12px",
-    width: "150px",
+    width: "200px",
     textAlign: "left",
     cursor: "pointer",
     backgroundColor: "#fff",

@@ -2,219 +2,242 @@
   "dataflow": {
     "nodes": [
       {
-        "id": "1919efd1-c2c5-440f-b2a5-444c99e83932",
+        "id": "66a7b2b2-9bcc-4f49-a84f-cd4a8db60155",
         "type": "DATA_LOADING",
-        "x": 96,
-        "y": 162,
-        "content": "import pandas as pd\r\nimport json\r\nimport numpy as np\r\n\r\njson_features_file = open(\"flickr-spring-features.json\")\r\n\r\nparsed_json_features = json.load(json_features_file)\r\n\r\ndf_scatterplot = pd.json_normalize(parsed_json_features[\"features\"])\r\n\r\ndf_scatterplot = df_scatterplot[[\"rank\", \"resolutions.ALL.fnRank\", \"resolutions.ALL.sigRank\", \"resolutions.ALL.maxRank\"]]\r\ndf_scatterplot = df_scatterplot.rename(columns={\"resolutions.ALL.fnRank\": \"fnRank\", \"resolutions.ALL.sigRank\": \"sigRank\", \"resolutions.ALL.maxRank\": \"maxRank\"})\r\n\r\ndf_scatterplot = df_scatterplot.dropna(subset=[\"fnRank\"])\r\ndf_scatterplot = df_scatterplot.dropna(subset=[\"sigRank\"])\r\ndf_scatterplot = df_scatterplot.dropna(subset=[\"maxRank\"])\r\n\r\ndf_scatterplot[\"combinedRanks\"] = np.sqrt(\r\n    df_scatterplot[\"maxRank\"] ** 2 +\r\n    df_scatterplot[\"fnRank\"] ** 2 +\r\n    df_scatterplot[\"sigRank\"] ** 2\r\n)\r\n\r\nreturn df_scatterplot",
+        "x": -9.007234423575937,
+        "y": -184.28753362077583,
+        "content": "import pandas as pd\r\nimport json\r\n\r\njson_features_file = open(\"flickr-features.json\")\r\n\r\nparsed_json_features = json.load(json_features_file)\r\n\r\ndf_features = pd.json_normalize(parsed_json_features[\"features\"])\r\n\r\ndf_features = df_features[[\"latLng\", \"rank\", \"resolutions.HOUR.fnRank\", \"resolutions.HOUR.sigRank\", \"resolutions.HOUR.maxRank\", \"resolutions.DAYOFWEEK.fnRank\", \"resolutions.DAYOFWEEK.sigRank\", \"resolutions.DAYOFWEEK.maxRank\", \"resolutions.MONTH.fnRank\", \"resolutions.MONTH.sigRank\", \"resolutions.MONTH.maxRank\"]]\r\n\r\ndf_hour = df_features[[\"latLng\", \"rank\", \r\n    \"resolutions.HOUR.fnRank\", \"resolutions.HOUR.sigRank\", \"resolutions.HOUR.maxRank\"]].copy()\r\n\r\ndf_dayofweek = df_features[[\"latLng\", \"rank\", \r\n    \"resolutions.DAYOFWEEK.fnRank\", \"resolutions.DAYOFWEEK.sigRank\", \"resolutions.DAYOFWEEK.maxRank\"]].copy()\r\n\r\ndf_month = df_features[[\"latLng\", \"rank\", \r\n    \"resolutions.MONTH.fnRank\", \"resolutions.MONTH.sigRank\", \"resolutions.MONTH.maxRank\"]].copy()\r\n\r\nreturn df_hour, df_dayofweek, df_month",
         "out": "DEFAULT",
         "in": "DEFAULT",
-        "goal": "Load and preprocess Flickr spring features data, extracting relevant columns and calculating combined ranks.",
+        "goal": "Load and preprocess features data from a JSON file, extracting specific ranking information for hour, day of the week, and month into separate DataFrames.",
         "metadata": {
           "keywords": [
             0,
             1,
             2,
-            6,
-            7,
-            8,
-            10,
-            12,
-            13
-          ]
-        }
-      },
-      {
-        "id": "cb61f686-ba32-4e8a-8c61-726f4be54213",
-        "type": "VIS_VEGA",
-        "x": 900,
-        "y": 100,
-        "content": "{ \r\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\", \r\n  \"title\": \"RANK (spring)\",\r\n  \"params\": [ {\"name\": \"clickSelect\", \"select\": \"interval\"} ], \r\n  \"mark\": { \"type\": \"point\", \"cursor\": \"pointer\" }, \r\n  \"encoding\": { \r\n    \"x\": {\"field\": \"combinedRanks\", \"type\": \"quantitative\"},\r\n    \"y\": {\"field\": \"rank\", \"type\": \"quantitative\"}, \r\n    \"fillOpacity\": { \r\n        \"condition\": {\"param\": \"clickSelect\", \"value\": 1}, \r\n        \"value\": 0.3 \r\n    }, \r\n    \"color\": { \r\n      \"field\": \"interacted\", \r\n      \"type\": \"nominal\", \r\n      \"condition\": {\r\n        \"test\": \"datum.interacted === '1'\", \"value\": \"red\", \"else\": \"blue\"} } \r\n  }, \r\n  \"config\": { \"scale\": { \"bandPaddingInner\": 0.2 } } \r\n}",
-        "out": "DEFAULT",
-        "in": "DEFAULT",
-        "goal": "",
-        "metadata": {
-          "keywords": [
-            12,
-            13,
-            5,
-            9
-          ]
-        }
-      },
-      {
-        "id": "30460ee7-4c9a-4fa0-9800-4ef82502afac",
-        "type": "DATA_LOADING",
-        "x": 96.99999999999983,
-        "y": 639.0000000000001,
-        "content": "import pandas as pd\r\nimport json\r\nimport numpy as np\r\n\r\njson_features_file = open(\"flickr-summer-features.json\")\r\n\r\nparsed_json_features = json.load(json_features_file)\r\n\r\ndf_scatterplot = pd.json_normalize(parsed_json_features[\"features\"])\r\n\r\ndf_scatterplot = df_scatterplot[[\"rank\", \"resolutions.ALL.fnRank\", \"resolutions.ALL.sigRank\", \"resolutions.ALL.maxRank\"]]\r\ndf_scatterplot = df_scatterplot.rename(columns={\"resolutions.ALL.fnRank\": \"fnRank\", \"resolutions.ALL.sigRank\": \"sigRank\", \"resolutions.ALL.maxRank\": \"maxRank\"})\r\n\r\ndf_scatterplot = df_scatterplot.dropna(subset=[\"fnRank\"])\r\ndf_scatterplot = df_scatterplot.dropna(subset=[\"sigRank\"])\r\ndf_scatterplot = df_scatterplot.dropna(subset=[\"maxRank\"])\r\n\r\ndf_scatterplot[\"combinedRanks\"] = np.sqrt(\r\n    df_scatterplot[\"maxRank\"] ** 2 +\r\n    df_scatterplot[\"fnRank\"] ** 2 +\r\n    df_scatterplot[\"sigRank\"] ** 2\r\n)\r\n\r\nreturn df_scatterplot",
-        "out": "DEFAULT",
-        "in": "DEFAULT",
-        "goal": "Load and preprocess Flickr summer features data, extracting rank and resolutions columns, dropping missing values, and calculating combinedRanks for visualization.",
-        "metadata": {
-          "keywords": [
-            0,
-            1,
             3,
-            6,
-            7,
-            8,
-            10,
-            12,
-            13
+            6
           ]
         }
       },
       {
-        "id": "5d737aab-f8b6-4d8d-8993-502db124bbd2",
-        "type": "VIS_VEGA",
-        "x": 896.9999999999999,
-        "y": 573.0000000000001,
-        "content": "{ \r\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\", \r\n  \"title\": \"RANK (summer)\",\r\n  \"params\": [ {\"name\": \"clickSelect\", \"select\": \"interval\"} ], \r\n  \"mark\": { \"type\": \"point\", \"cursor\": \"pointer\" }, \r\n  \"encoding\": { \r\n    \"x\": {\"field\": \"combinedRanks\", \"type\": \"quantitative\"},\r\n    \"y\": {\"field\": \"rank\", \"type\": \"quantitative\"}, \r\n    \"fillOpacity\": { \r\n        \"condition\": {\"param\": \"clickSelect\", \"value\": 1}, \r\n        \"value\": 0.3 \r\n    }, \r\n    \"color\": { \r\n      \"field\": \"interacted\", \r\n      \"type\": \"nominal\", \r\n      \"condition\": {\r\n        \"test\": \"datum.interacted === '1'\", \"value\": \"red\", \"else\": \"blue\"} } \r\n  }, \r\n  \"config\": { \"scale\": { \"bandPaddingInner\": 0.2 } } \r\n} ",
+        "id": "e413cafe-7f5f-4c29-a3df-6effae8fcfce",
+        "type": "COMPUTATION_ANALYSIS",
+        "x": 968.7770170016413,
+        "y": -545.0027364567123,
+        "content": "\r\nimport pandas as pd\r\n\r\ndf_hour = arg[0]\r\n\r\ndf_hour = df_hour.rename(columns={\"resolutions.HOUR.fnRank\": \"fnRank\", \"resolutions.HOUR.sigRank\": \"sigRank\", \"resolutions.HOUR.maxRank\": \"maxRank\"})\r\n\r\ndf_hour = df_hour.dropna(subset=[\"fnRank\"])\r\ndf_hour = df_hour.dropna(subset=[\"sigRank\"])\r\ndf_hour = df_hour.dropna(subset=[\"maxRank\"])\r\n\r\nreturn df_hour\r\n\r\n",
+        "out": "DATAFRAME",
+        "in": "DATAFRAME",
+        "goal": "Normalize hourly rank features by renaming columns and removing rows with NaN values in the DataFrame.",
+        "metadata": {
+          "keywords": [
+            7,
+            8,
+            11
+          ]
+        }
+      },
+      {
+        "id": "98c19c59-1c5b-4d3b-b2d5-5b2b1e303474",
+        "type": "COMPUTATION_ANALYSIS",
+        "x": 963.244731527461,
+        "y": -185.25829495854518,
+        "content": "df_dayofweek = arg[1]\r\n\r\ndf_dayofweek = df_dayofweek.rename(columns={\"resolutions.DAYOFWEEK.fnRank\": \"fnRank\", \"resolutions.DAYOFWEEK.sigRank\": \"sigRank\", \"resolutions.DAYOFWEEK.maxRank\": \"maxRank\"})\r\n\r\ndf_dayofweek = df_dayofweek.dropna(subset=[\"fnRank\"])\r\ndf_dayofweek = df_dayofweek.dropna(subset=[\"sigRank\"])\r\ndf_dayofweek = df_dayofweek.dropna(subset=[\"maxRank\"])\r\n\r\nreturn df_dayofweek",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Normalize daily rank features by renaming columns and removing rows with missing values for fnRank, sigRank, and maxRank.",
+        "metadata": {
+          "keywords": [
+            7,
+            8,
+            11,
+            12
+          ]
+        }
+      },
+      {
+        "id": "ddc2c490-69f6-485d-8915-47c366a914c8",
+        "type": "COMPUTATION_ANALYSIS",
+        "x": 968.3637320709595,
+        "y": 177.74967659442245,
+        "content": "df_month = arg[2]\r\n\r\ndf_month = df_month.rename(columns={\"resolutions.MONTH.fnRank\": \"fnRank\", \"resolutions.MONTH.sigRank\": \"sigRank\", \"resolutions.MONTH.maxRank\": \"maxRank\"})\r\n\r\ndf_month = df_month.dropna(subset=[\"fnRank\"])\r\ndf_month = df_month.dropna(subset=[\"sigRank\"])\r\ndf_month = df_month.dropna(subset=[\"maxRank\"])\r\n\r\nreturn df_month",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Prepare the monthly ranks DataFrame by renaming specific columns and dropping rows with missing values for fnRank, sigRank, and maxRank.",
+        "metadata": {
+          "keywords": [
+            7,
+            8,
+            11,
+            12
+          ]
+        }
+      },
+      {
+        "id": "8b23bec9-93cf-43f8-87ab-33b56250a9f1",
+        "type": "COMPUTATION_ANALYSIS",
+        "x": 1692.1888208109112,
+        "y": -545.3329992062935,
+        "content": "import numpy as np\r\n\r\ndf_scatterplot = arg[[\"rank\", \"fnRank\", \"sigRank\", \"maxRank\"]]\r\n\r\ndf_scatterplot[\"combinedRanks\"] = np.sqrt(\r\n    df_scatterplot[\"maxRank\"] ** 2 +\r\n    df_scatterplot[\"fnRank\"] ** 2 +\r\n    df_scatterplot[\"sigRank\"] ** 2\r\n)\r\n\r\ndf_scatterplot['linked'] = df_scatterplot.index.to_series().apply(lambda x: [x])\r\n\r\nreturn df_scatterplot",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Calculate combined ranks from multiple ranking columns and prepare data for visualization, ensuring each row is linked to its index.",
+        "metadata": {
+          "keywords": [
+            9,
+            10
+          ]
+        }
+      },
+      {
+        "id": "648b53be-0db2-4d76-8fa3-1e7243cad265",
+        "type": "COMPUTATION_ANALYSIS",
+        "x": 1686.8864638054408,
+        "y": -186.0442553115452,
+        "content": "import numpy as np\r\n\r\ndf_scatterplot = arg[[\"rank\", \"fnRank\", \"sigRank\", \"maxRank\"]]\r\n\r\ndf_scatterplot[\"combinedRanks\"] = np.sqrt(\r\n    df_scatterplot[\"maxRank\"] ** 2 +\r\n    df_scatterplot[\"fnRank\"] ** 2 +\r\n    df_scatterplot[\"sigRank\"] ** 2\r\n)\r\n\r\ndf_scatterplot['linked'] = df_scatterplot.index.to_series().apply(lambda x: [x])\r\n\r\nreturn df_scatterplot",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Calculate combined ranking metrics for features data, normalize by creating a new column with the computed values, and prepare indexed links for further analysis.",
+        "metadata": {
+          "keywords": [
+            9,
+            10
+          ]
+        }
+      },
+      {
+        "id": "60c56c59-6733-49e1-a867-717bf1a79eb1",
+        "type": "COMPUTATION_ANALYSIS",
+        "x": 1686.765073012873,
+        "y": 177.74967659442245,
+        "content": "import numpy as np\r\n\r\ndf_scatterplot = arg[[\"rank\", \"fnRank\", \"sigRank\", \"maxRank\"]]\r\n\r\ndf_scatterplot[\"combinedRanks\"] = np.sqrt(\r\n    df_scatterplot[\"maxRank\"] ** 2 +\r\n    df_scatterplot[\"fnRank\"] ** 2 +\r\n    df_scatterplot[\"sigRank\"] ** 2\r\n)\r\n\r\ndf_scatterplot['linked'] = df_scatterplot.index.to_series().apply(lambda x: [x])\r\n\r\nreturn df_scatterplot",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Calculate the combined rank for each entry in the DataFrame based on hourly, daily, and monthly ranking metrics while preparing a list of index links for further processing.",
+        "metadata": {
+          "keywords": [
+            9,
+            10
+          ]
+        }
+      },
+      {
+        "id": "586c9397-58ad-4768-9ad6-a4c534183209",
+        "type": "DATA_POOL",
+        "x": 2524.3523747508284,
+        "y": -192.1311937146227,
         "out": "DEFAULT",
         "in": "DEFAULT",
         "goal": "",
         "metadata": {
-          "keywords": [
-            12,
-            13,
-            5,
-            9
-          ]
+          "keywords": []
         }
       },
       {
-        "id": "ba06142d-bc60-4e73-969a-14c00c3879e5",
-        "type": "DATA_LOADING",
-        "x": 99.99999999999983,
-        "y": 1152.0000000000002,
-        "content": "import pandas as pd\r\nimport json\r\nimport numpy as np\r\n\r\njson_features_file = open(\"flickr-fall-features.json\")\r\n\r\nparsed_json_features = json.load(json_features_file)\r\n\r\ndf_scatterplot = pd.json_normalize(parsed_json_features[\"features\"])\r\n\r\ndf_scatterplot = df_scatterplot[[\"rank\", \"resolutions.ALL.fnRank\", \"resolutions.ALL.sigRank\", \"resolutions.ALL.maxRank\"]]\r\ndf_scatterplot = df_scatterplot.rename(columns={\"resolutions.ALL.fnRank\": \"fnRank\", \"resolutions.ALL.sigRank\": \"sigRank\", \"resolutions.ALL.maxRank\": \"maxRank\"})\r\n\r\ndf_scatterplot = df_scatterplot.dropna(subset=[\"fnRank\"])\r\ndf_scatterplot = df_scatterplot.dropna(subset=[\"sigRank\"])\r\ndf_scatterplot = df_scatterplot.dropna(subset=[\"maxRank\"])\r\n\r\ndf_scatterplot[\"combinedRanks\"] = np.sqrt(\r\n    df_scatterplot[\"maxRank\"] ** 2 +\r\n    df_scatterplot[\"fnRank\"] ** 2 +\r\n    df_scatterplot[\"sigRank\"] ** 2\r\n)\r\n\r\nreturn df_scatterplot",
-        "out": "DEFAULT",
-        "in": "DEFAULT",
-        "goal": "Load and process data from flickr-fall-features.json by extracting relevant columns, removing missing values, and calculating combinedRanks for visualization in a scatterplot.",
-        "metadata": {
-          "keywords": [
-            0,
-            1,
-            4,
-            6,
-            7,
-            8,
-            10,
-            12,
-            13
-          ]
-        }
-      },
-      {
-        "id": "2ee78370-1b6e-4fcb-af1f-f61260e9e3c1",
-        "type": "VIS_VEGA",
-        "x": 889.9999999999999,
-        "y": 1069.0000000000002,
-        "content": "{ \r\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\", \r\n  \"title\": \"RANK (fall)\",\r\n  \"params\": [ {\"name\": \"clickSelect\", \"select\": \"interval\"} ], \r\n  \"mark\": { \"type\": \"point\", \"cursor\": \"pointer\" }, \r\n  \"encoding\": { \r\n    \"x\": {\"field\": \"combinedRanks\", \"type\": \"quantitative\"},\r\n    \"y\": {\"field\": \"rank\", \"type\": \"quantitative\"}, \r\n    \"fillOpacity\": { \r\n        \"condition\": {\"param\": \"clickSelect\", \"value\": 1}, \r\n        \"value\": 0.3 \r\n    }, \r\n    \"color\": { \r\n      \"field\": \"interacted\", \r\n      \"type\": \"nominal\", \r\n      \"condition\": {\r\n        \"test\": \"datum.interacted === '1'\", \"value\": \"red\", \"else\": \"blue\"} } \r\n  }, \r\n  \"config\": { \"scale\": { \"bandPaddingInner\": 0.2 } } \r\n} ",
+        "id": "ce3662eb-851c-4796-94e8-1f4ca844b86b",
+        "type": "DATA_POOL",
+        "x": 2527.155716382886,
+        "y": 174.30358152943134,
         "out": "DEFAULT",
         "in": "DEFAULT",
         "goal": "",
         "metadata": {
-          "keywords": [
-            12,
-            13,
-            5,
-            9
-          ]
+          "keywords": []
         }
       },
       {
-        "id": "a97981a5-b6d6-4c6f-9b54-b302f47caf3c",
-        "type": "DATA_LOADING",
-        "x": 80.99999999999977,
-        "y": 1752.0000000000002,
-        "content": "import pandas as pd\r\nimport json\r\nimport numpy as np\r\n\r\njson_features_file = open(\"flickr-winter-features.json\")\r\n\r\nparsed_json_features = json.load(json_features_file)\r\n\r\ndf_scatterplot = pd.json_normalize(parsed_json_features[\"features\"])\r\n\r\ndf_scatterplot = df_scatterplot[[\"rank\", \"resolutions.ALL.fnRank\", \"resolutions.ALL.sigRank\", \"resolutions.ALL.maxRank\"]]\r\ndf_scatterplot = df_scatterplot.rename(columns={\"resolutions.ALL.fnRank\": \"fnRank\", \"resolutions.ALL.sigRank\": \"sigRank\", \"resolutions.ALL.maxRank\": \"maxRank\"})\r\n\r\ndf_scatterplot = df_scatterplot.dropna(subset=[\"fnRank\"])\r\ndf_scatterplot = df_scatterplot.dropna(subset=[\"sigRank\"])\r\ndf_scatterplot = df_scatterplot.dropna(subset=[\"maxRank\"])\r\n\r\ndf_scatterplot[\"combinedRanks\"] = np.sqrt(\r\n    df_scatterplot[\"maxRank\"] ** 2 +\r\n    df_scatterplot[\"fnRank\"] ** 2 +\r\n    df_scatterplot[\"sigRank\"] ** 2\r\n)\r\n\r\nreturn df_scatterplot",
-        "out": "DEFAULT",
-        "in": "DEFAULT",
-        "goal": "Load and preprocess data from flickr-winter-features.json by extracting relevant columns and calculating a new column named combinedRanks. Drop rows with missing values in crucial columns.",
-        "metadata": {
-          "keywords": [
-            0,
-            1,
-            5,
-            6,
-            7,
-            8,
-            10,
-            12,
-            13
-          ]
-        }
-      },
-      {
-        "id": "18b028b8-8c0f-4f91-b21b-672fa0608caf",
-        "type": "VIS_VEGA",
-        "x": 888.9999999999999,
-        "y": 1673.0000000000002,
-        "content": "{ \r\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\", \r\n  \"title\": \"RANK (fall)\",\r\n  \"params\": [ {\"name\": \"clickSelect\", \"select\": \"interval\"} ], \r\n  \"mark\": { \"type\": \"point\", \"cursor\": \"pointer\" }, \r\n  \"encoding\": { \r\n    \"x\": {\"field\": \"combinedRanks\", \"type\": \"quantitative\"},\r\n    \"y\": {\"field\": \"rank\", \"type\": \"quantitative\"}, \r\n    \"fillOpacity\": { \r\n        \"condition\": {\"param\": \"clickSelect\", \"value\": 1}, \r\n        \"value\": 0.3 \r\n    }, \r\n    \"color\": { \r\n      \"field\": \"interacted\", \r\n      \"type\": \"nominal\", \r\n      \"condition\": {\r\n        \"test\": \"datum.interacted === '1'\", \"value\": \"red\", \"else\": \"blue\"} } \r\n  }, \r\n  \"config\": { \"scale\": { \"bandPaddingInner\": 0.2 } } \r\n} ",
+        "id": "e9020e3f-607a-4e00-badf-057cdaca5e47",
+        "type": "DATA_POOL",
+        "x": 2526.512962949953,
+        "y": -545.9302870537093,
         "out": "DEFAULT",
         "in": "DEFAULT",
         "goal": "",
         "metadata": {
-          "keywords": [
-            12,
-            13,
-            5,
-            9
-          ]
+          "keywords": []
         }
       }
     ],
     "edges": [
       {
-        "id": "reactflow__edge-1919efd1-c2c5-440f-b2a5-444c99e83932out-cb61f686-ba32-4e8a-8c61-726f4be54213in",
-        "source": "1919efd1-c2c5-440f-b2a5-444c99e83932",
-        "target": "cb61f686-ba32-4e8a-8c61-726f4be54213",
+        "id": "reactflow__66a7b2b2-9bcc-4f49-a84f-cd4a8db60155_e413cafe-7f5f-4c29-a3df-6effae8fcfce_1",
+        "source": "66a7b2b2-9bcc-4f49-a84f-cd4a8db60155",
+        "target": "e413cafe-7f5f-4c29-a3df-6effae8fcfce",
         "metadata": {
           "keywords": [
-            1,
-            12
+            0
           ]
         }
       },
       {
-        "id": "reactflow__edge-30460ee7-4c9a-4fa0-9800-4ef82502afacout-5d737aab-f8b6-4d8d-8993-502db124bbd2in",
-        "source": "30460ee7-4c9a-4fa0-9800-4ef82502afac",
-        "target": "5d737aab-f8b6-4d8d-8993-502db124bbd2",
+        "id": "reactflow__edge-66a7b2b2-9bcc-4f49-a84f-cd4a8db60155out-98c19c59-1c5b-4d3b-b2d5-5b2b1e303474in",
+        "source": "66a7b2b2-9bcc-4f49-a84f-cd4a8db60155",
+        "target": "98c19c59-1c5b-4d3b-b2d5-5b2b1e303474",
         "metadata": {
           "keywords": [
-            1,
-            12
+            0
           ]
         }
       },
       {
-        "id": "reactflow__edge-ba06142d-bc60-4e73-969a-14c00c3879e5out-2ee78370-1b6e-4fcb-af1f-f61260e9e3c1in",
-        "source": "ba06142d-bc60-4e73-969a-14c00c3879e5",
-        "target": "2ee78370-1b6e-4fcb-af1f-f61260e9e3c1",
+        "id": "reactflow__edge-66a7b2b2-9bcc-4f49-a84f-cd4a8db60155out-ddc2c490-69f6-485d-8915-47c366a914c8in",
+        "source": "66a7b2b2-9bcc-4f49-a84f-cd4a8db60155",
+        "target": "ddc2c490-69f6-485d-8915-47c366a914c8",
         "metadata": {
           "keywords": [
-            1,
-            12
+            0
           ]
         }
       },
       {
-        "id": "reactflow__edge-a97981a5-b6d6-4c6f-9b54-b302f47caf3cout-18b028b8-8c0f-4f91-b21b-672fa0608cafin",
-        "source": "a97981a5-b6d6-4c6f-9b54-b302f47caf3c",
-        "target": "18b028b8-8c0f-4f91-b21b-672fa0608caf",
+        "id": "reactflow__edge-e413cafe-7f5f-4c29-a3df-6effae8fcfceout-8b23bec9-93cf-43f8-87ab-33b56250a9f1in",
+        "source": "e413cafe-7f5f-4c29-a3df-6effae8fcfce",
+        "target": "8b23bec9-93cf-43f8-87ab-33b56250a9f1",
         "metadata": {
           "keywords": [
-            1,
-            12
+            7
           ]
         }
+      },
+      {
+        "id": "reactflow__edge-98c19c59-1c5b-4d3b-b2d5-5b2b1e303474out-648b53be-0db2-4d76-8fa3-1e7243cad265in",
+        "source": "98c19c59-1c5b-4d3b-b2d5-5b2b1e303474",
+        "target": "648b53be-0db2-4d76-8fa3-1e7243cad265",
+        "metadata": {
+          "keywords": [
+            7
+          ]
+        }
+      },
+      {
+        "id": "reactflow__edge-ddc2c490-69f6-485d-8915-47c366a914c8out-60c56c59-6733-49e1-a867-717bf1a79eb1in",
+        "source": "ddc2c490-69f6-485d-8915-47c366a914c8",
+        "target": "60c56c59-6733-49e1-a867-717bf1a79eb1",
+        "metadata": {
+          "keywords": [
+            7
+          ]
+        }
+      },
+      {
+        "id": "reactflow__edge-8b23bec9-93cf-43f8-87ab-33b56250a9f1out-e9020e3f-607a-4e00-badf-057cdaca5e47in",
+        "source": "8b23bec9-93cf-43f8-87ab-33b56250a9f1",
+        "target": "e9020e3f-607a-4e00-badf-057cdaca5e47"
+      },
+      {
+        "id": "reactflow__edge-648b53be-0db2-4d76-8fa3-1e7243cad265out-586c9397-58ad-4768-9ad6-a4c534183209in",
+        "source": "648b53be-0db2-4d76-8fa3-1e7243cad265",
+        "target": "586c9397-58ad-4768-9ad6-a4c534183209"
+      },
+      {
+        "id": "reactflow__edge-60c56c59-6733-49e1-a867-717bf1a79eb1out-ce3662eb-851c-4796-94e8-1f4ca844b86bin",
+        "source": "60c56c59-6733-49e1-a867-717bf1a79eb1",
+        "target": "ce3662eb-851c-4796-94e8-1f4ca844b86b"
       }
     ],
     "name": "DefaultWorkflow",
-    "task": "Load and preprocess data from the JSON file flickr-spring-features.json by extracting relevant columns such as rank, fnRank, sigRank, and maxRank. Drop any rows with missing values in the fnRank, sigRank, and maxRank columns. Calculate a new column named combinedRanks using the square root of the sum of squares of the maxRank, fnRank, and sigRank. Visualize the processed data using a Vega-Lite scatterplot, where the x-axis represents combinedRanks and the y-axis represents rank, incorporating interactive elements to enhance user engagement. Load and preprocess data from flickr-summer-features.json in a similar manner, extracting the same columns and calculating combinedRanks, followed by visualization in a scatterplot format. Finally, load and process data from flickr-fall-features.json similarly, ensuring that all data is accurately prepared for comparative visualization with the spring and summer datasets.",
-    "timestamp": 1743022635173,
+    "task": "Load the features data from a JSON file, extracting specific ranking information for hourly, daily, and monthly resolutions into separate DataFrames. Normalize the hourly ranks DataFrame by renaming columns to improve readability and removing rows with NaN values in the fnRank, sigRank, and maxRank columns. Normalize the daily ranks DataFrame by renaming relevant columns and ensuring there are no missing values in fnRank, sigRank, and maxRank. Prepare the monthly ranks DataFrame by renaming specific columns for enhanced clarity and dropping any rows that incorporate NaN values. Additionally, calculate the combined ranks for each entry based on the multiple ranking columns, creating a new column with the computed values and preparing a list of linked indices for further analysis.",
+    "timestamp": 1743112382627,
     "provenance_id": "DefaultWorkflow"
   }
 }

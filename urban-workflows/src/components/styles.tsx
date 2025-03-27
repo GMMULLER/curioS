@@ -134,14 +134,6 @@ export const BoxContainer = ({
     useEffect(() => {
 
         if(data.output != undefined && data.output.code == 'success'){
-
-            if(goal == ""){ // If subtask is empty generate it based on the content of the node after execution
-
-                generateSubtaskFromExec((code ? code : ""), data.nodeType, workflowGoal);
-
-
-            } 
-
             setExpectedOutputType(data.output.outputType);
         }
 
@@ -470,13 +462,13 @@ export const BoxContainer = ({
             {!minimized && isSubtasksOpen ?
                 <div style={{...goalInput, ...(currentBoxWidth ? {width: (currentBoxWidth-4)+"px"} : {}), ...((data.suggestionType != "none" && data.suggestionType != undefined) ? {opacity: "50%", pointerEvents: "none"} : {})}} className={"nodrag"}>
                     <label htmlFor={nodeId+"_goal_box_input"}>Subtask: </label>
-                    <input id={nodeId+"_goal_box_input"} type={"text"} style={{width: "240px", border: "none", background: "transparent", color: "rgb(251, 252, 246)", borderBottom: "1px solid rgb(46, 91, 136)"}} value={goal} onBlur={() => {updateDataGoal(goal)}} onChange={(value: any) => {if(llmEvents.length > 0){alert("Wait a few seconds, we are still processing requests.")}else{setGoal(value.target.value)}}}/>
+                    <input id={nodeId+"_goal_box_input"} type={"text"} style={{width: "65%", border: "none", background: "transparent", color: "rgb(251, 252, 246)", borderBottom: "1px solid rgb(46, 91, 136)"}} value={goal} onBlur={() => {updateDataGoal(goal)}} onChange={(value: any) => {if(llmEvents.length > 0){alert("Wait a few seconds, we are still processing requests.")}else{setGoal(value.target.value)}}}/>
                     {data.nodeType != BoxType.VIS_UTK ? <button style={buttonStyle} onClick={clickGenerateContentNode} >Get code</button> : null}
                 </div> : null
             }
 
             {!minimized && data.warnings != undefined && data.warnings.length > 0 ?
-                <div style={{display: "flex", flexDirection: "row", position: "absolute", bottom: "-45px", right: "0", ...((data.suggestionType != "none" && data.suggestionType != undefined) ? {opacity: "50%"} : {})}}>   
+                <div style={{display: "flex", flexDirection: "row", position: "absolute", bottom: "-45px", right: "20px", ...((data.suggestionType != "none" && data.suggestionType != undefined) ? {opacity: "50%"} : {})}}>   
                     <FontAwesomeIcon style={{fontSize: "24px", color: "#e8c548"}} icon={faTriangleExclamation} onMouseEnter={() => {setShowWarnings(true)}} onMouseLeave={() => {setShowWarnings(false)}} />
                     <ul style={{padding: "5px", backgroundColor: "white", border: "1px solid black", zIndex: 300, position: "fixed", width: "300px", height: "200px", marginLeft: "30px", overflowY: "auto", ...(showWarnings ? {} : {display: "none"})}}>
                         {   
@@ -577,6 +569,7 @@ export const BoxContainer = ({
                         <Col md={2}><FontAwesomeIcon className={"nowheel nodrag"} icon={faCirclePlay} style={{...{cursor: "pointer", fontSize: "27px", color: "rgb(35, 198, 134)"}, ...(llmEvents.length > 0 ? {opacity: "60%", pointerEvents: "none"} : {})}} onClick={() => {
                             setOutputCallback({code: "exec", content: ""});
                             sendCodeToWidgets(code); // will resolve markers
+                            generateSubtaskFromExec((code ? code : ""), data.nodeType, workflowGoal);
                         }} /></Col>
                         {
                             output != undefined ? <Col md={3} className="d-flex align-items-center" style={{paddingLeft: "19px"}}>

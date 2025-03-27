@@ -1,0 +1,465 @@
+{
+  "dataflow": {
+    "nodes": [
+      {
+        "id": "66a7b2b2-9bcc-4f49-a84f-cd4a8db60155",
+        "type": "DATA_LOADING",
+        "x": -9.007234423575937,
+        "y": -184.28753362077583,
+        "content": "import pandas as pd\r\nimport json\r\n\r\njson_features_file = open(\"flickr-features.json\")\r\n\r\nparsed_json_features = json.load(json_features_file)\r\n\r\ndf_features = pd.json_normalize(parsed_json_features[\"features\"])\r\n\r\ndf_features = df_features[[\"latLng\", \"rank\", \"resolutions.HOUR.fnRank\", \"resolutions.HOUR.sigRank\", \"resolutions.HOUR.maxRank\", \"resolutions.DAYOFWEEK.fnRank\", \"resolutions.DAYOFWEEK.sigRank\", \"resolutions.DAYOFWEEK.maxRank\", \"resolutions.MONTH.fnRank\", \"resolutions.MONTH.sigRank\", \"resolutions.MONTH.maxRank\"]]\r\n\r\ndf_hour = df_features[[\"latLng\", \"rank\", \r\n    \"resolutions.HOUR.fnRank\", \"resolutions.HOUR.sigRank\", \"resolutions.HOUR.maxRank\"]].copy()\r\n\r\ndf_dayofweek = df_features[[\"latLng\", \"rank\", \r\n    \"resolutions.DAYOFWEEK.fnRank\", \"resolutions.DAYOFWEEK.sigRank\", \"resolutions.DAYOFWEEK.maxRank\"]].copy()\r\n\r\ndf_month = df_features[[\"latLng\", \"rank\", \r\n    \"resolutions.MONTH.fnRank\", \"resolutions.MONTH.sigRank\", \"resolutions.MONTH.maxRank\"]].copy()\r\n\r\nreturn df_hour, df_dayofweek, df_month",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Load and preprocess features data from a JSON file, extracting specific ranking information for hour, day of the week, and month into separate DataFrames.",
+        "metadata": {
+          "keywords": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      },
+      {
+        "id": "e413cafe-7f5f-4c29-a3df-6effae8fcfce",
+        "type": "COMPUTATION_ANALYSIS",
+        "x": 968.7770170016413,
+        "y": -545.0027364567123,
+        "content": "\r\nimport pandas as pd\r\n\r\ndf_hour = arg[0]\r\n\r\ndf_hour = df_hour.rename(columns={\"resolutions.HOUR.fnRank\": \"fnRank\", \"resolutions.HOUR.sigRank\": \"sigRank\", \"resolutions.HOUR.maxRank\": \"maxRank\"})\r\n\r\ndf_hour = df_hour.dropna(subset=[\"fnRank\"])\r\ndf_hour = df_hour.dropna(subset=[\"sigRank\"])\r\ndf_hour = df_hour.dropna(subset=[\"maxRank\"])\r\n\r\nreturn df_hour\r\n\r\n",
+        "out": "DATAFRAME",
+        "in": "DATAFRAME",
+        "goal": "Normalize hourly rank features by renaming columns to fnRank, sigRank, and maxRank, and removing any rows with NaN values in these columns.",
+        "metadata": {
+          "keywords": [
+            7,
+            8
+          ]
+        }
+      },
+      {
+        "id": "98c19c59-1c5b-4d3b-b2d5-5b2b1e303474",
+        "type": "COMPUTATION_ANALYSIS",
+        "x": 963.244731527461,
+        "y": -185.25829495854518,
+        "content": "df_dayofweek = arg[1]\r\n\r\ndf_dayofweek = df_dayofweek.rename(columns={\"resolutions.DAYOFWEEK.fnRank\": \"fnRank\", \"resolutions.DAYOFWEEK.sigRank\": \"sigRank\", \"resolutions.DAYOFWEEK.maxRank\": \"maxRank\"})\r\n\r\ndf_dayofweek = df_dayofweek.dropna(subset=[\"fnRank\"])\r\ndf_dayofweek = df_dayofweek.dropna(subset=[\"sigRank\"])\r\ndf_dayofweek = df_dayofweek.dropna(subset=[\"maxRank\"])\r\n\r\nreturn df_dayofweek",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Normalize daily rank features by renaming columns to fnRank, sigRank, and maxRank, ensuring there are no missing values.",
+        "metadata": {
+          "keywords": [
+            7,
+            9
+          ]
+        }
+      },
+      {
+        "id": "ddc2c490-69f6-485d-8915-47c366a914c8",
+        "type": "COMPUTATION_ANALYSIS",
+        "x": 968.3637320709595,
+        "y": 177.74967659442245,
+        "content": "df_month = arg[2]\r\n\r\ndf_month = df_month.rename(columns={\"resolutions.MONTH.fnRank\": \"fnRank\", \"resolutions.MONTH.sigRank\": \"sigRank\", \"resolutions.MONTH.maxRank\": \"maxRank\"})\r\n\r\ndf_month = df_month.dropna(subset=[\"fnRank\"])\r\ndf_month = df_month.dropna(subset=[\"sigRank\"])\r\ndf_month = df_month.dropna(subset=[\"maxRank\"])\r\n\r\nreturn df_month",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Prepare the monthly ranks DataFrame by renaming specific columns for enhanced clarity and dropping any rows that incorporate NaN values.",
+        "metadata": {
+          "keywords": [
+            7,
+            10
+          ]
+        }
+      },
+      {
+        "id": "8b23bec9-93cf-43f8-87ab-33b56250a9f1",
+        "type": "COMPUTATION_ANALYSIS",
+        "x": 1692.1888208109112,
+        "y": -545.3329992062935,
+        "content": "import numpy as np\r\n\r\ndf_scatterplot = arg[[\"rank\", \"fnRank\", \"sigRank\", \"maxRank\"]]\r\n\r\ndf_scatterplot[\"combinedRanks\"] = np.sqrt(\r\n    df_scatterplot[\"maxRank\"] ** 2 +\r\n    df_scatterplot[\"fnRank\"] ** 2 +\r\n    df_scatterplot[\"sigRank\"] ** 2\r\n)\r\n\r\ndf_scatterplot['linked'] = df_scatterplot.index.to_series().apply(lambda x: [x])\r\n\r\nreturn df_scatterplot",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Calculate combined ranks from hourly, daily, and monthly ranking metrics while preparing a linked list of indices for additional processing.",
+        "metadata": {
+          "keywords": [
+            11
+          ]
+        }
+      },
+      {
+        "id": "648b53be-0db2-4d76-8fa3-1e7243cad265",
+        "type": "COMPUTATION_ANALYSIS",
+        "x": 1686.8864638054408,
+        "y": -186.0442553115452,
+        "content": "import numpy as np\r\n\r\ndf_scatterplot = arg[[\"rank\", \"fnRank\", \"sigRank\", \"maxRank\"]]\r\n\r\ndf_scatterplot[\"combinedRanks\"] = np.sqrt(\r\n    df_scatterplot[\"maxRank\"] ** 2 +\r\n    df_scatterplot[\"fnRank\"] ** 2 +\r\n    df_scatterplot[\"sigRank\"] ** 2\r\n)\r\n\r\ndf_scatterplot['linked'] = df_scatterplot.index.to_series().apply(lambda x: [x])\r\n\r\nreturn df_scatterplot",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Calculate the combined rank for each entry in the DataFrame based on hourly, daily, and monthly ranking metrics while preparing a list of index links for further processing.",
+        "metadata": {
+          "keywords": [
+            11
+          ]
+        }
+      },
+      {
+        "id": "60c56c59-6733-49e1-a867-717bf1a79eb1",
+        "type": "COMPUTATION_ANALYSIS",
+        "x": 1686.765073012873,
+        "y": 177.74967659442245,
+        "content": "import numpy as np\r\n\r\ndf_scatterplot = arg[[\"rank\", \"fnRank\", \"sigRank\", \"maxRank\"]]\r\n\r\ndf_scatterplot[\"combinedRanks\"] = np.sqrt(\r\n    df_scatterplot[\"maxRank\"] ** 2 +\r\n    df_scatterplot[\"fnRank\"] ** 2 +\r\n    df_scatterplot[\"sigRank\"] ** 2\r\n)\r\n\r\ndf_scatterplot['linked'] = df_scatterplot.index.to_series().apply(lambda x: [x])\r\n\r\nreturn df_scatterplot",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Calculate the combined rank for each entry in the DataFrame based on hourly, daily, and monthly ranking metrics while preparing a list of index links for further processing.",
+        "metadata": {
+          "keywords": [
+            11
+          ]
+        }
+      },
+      {
+        "id": "586c9397-58ad-4768-9ad6-a4c534183209",
+        "type": "DATA_POOL",
+        "x": 2524.3523747508284,
+        "y": -192.1311937146227,
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "",
+        "metadata": {
+          "keywords": [
+            12,
+            14,
+            15
+          ]
+        }
+      },
+      {
+        "id": "ce3662eb-851c-4796-94e8-1f4ca844b86b",
+        "type": "DATA_POOL",
+        "x": 2527.155716382886,
+        "y": 174.30358152943134,
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "",
+        "metadata": {
+          "keywords": [
+            12,
+            14,
+            15
+          ]
+        }
+      },
+      {
+        "id": "e9020e3f-607a-4e00-badf-057cdaca5e47",
+        "type": "DATA_POOL",
+        "x": 2526.512962949953,
+        "y": -545.9302870537093,
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "",
+        "metadata": {
+          "keywords": [
+            12,
+            14,
+            15
+          ]
+        }
+      },
+      {
+        "id": "node2_visualization_scatter",
+        "type": "VIS_VEGA",
+        "x": 3653.891994124107,
+        "y": -545.9302870537092,
+        "content": "{ \r\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\", \r\n  \"title\": \"RANK (HOUR)\",\r\n  \"params\": [ {\"name\": \"clickSelect\", \"select\": \"interval\"} ], \r\n  \"mark\": { \"type\": \"point\", \"cursor\": \"pointer\" }, \r\n  \"encoding\": { \r\n    \"x\": {\"field\": \"combinedRanks\", \"type\": \"quantitative\"},\r\n    \"y\": {\"field\": \"rank\", \"type\": \"quantitative\"}, \r\n    \"fillOpacity\": { \r\n        \"condition\": {\"param\": \"clickSelect\", \"value\": 1}, \r\n        \"value\": 0.3 \r\n    }, \r\n    \"color\": { \r\n      \"field\": \"interacted\", \r\n      \"type\": \"nominal\", \r\n      \"condition\": {\r\n        \"test\": \"datum.interacted === '1'\", \"value\": \"red\", \"else\": \"blue\"} } \r\n  }, \r\n  \"config\": { \"scale\": { \"bandPaddingInner\": 0.2 } } \r\n} ",
+        "out": "DATAFRAME",
+        "in": "DATAFRAME",
+        "goal": "Visualize the correlation between combined ranks and their attributes using an interactive scatterplot, allowing users to select and highlight linked data points.",
+        "metadata": {
+          "keywords": [
+            13,
+            12,
+            14,
+            15
+          ]
+        }
+      },
+      {
+        "id": "3389576f-2652-4989-80b5-edecbdec28c2",
+        "type": "VIS_VEGA",
+        "x": 3655.9836310410456,
+        "y": -192.09795207229186,
+        "content": "{ \r\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\", \r\n  \"title\": \"RANK (DAYOFWEEK)\",\r\n  \"params\": [ {\"name\": \"clickSelect\", \"select\": \"interval\"} ], \r\n  \"mark\": { \"type\": \"point\", \"cursor\": \"pointer\" }, \r\n  \"encoding\": { \r\n    \"x\": {\"field\": \"combinedRanks\", \"type\": \"quantitative\"},\r\n    \"y\": {\"field\": \"rank\", \"type\": \"quantitative\"}, \r\n    \"fillOpacity\": { \r\n        \"condition\": {\"param\": \"clickSelect\", \"value\": 1}, \r\n        \"value\": 0.3 \r\n    }, \r\n    \"color\": { \r\n      \"field\": \"interacted\", \r\n      \"type\": \"nominal\", \r\n      \"condition\": {\r\n        \"test\": \"datum.interacted === '1'\", \"value\": \"red\", \"else\": \"blue\"} } \r\n  }, \r\n  \"config\": { \"scale\": { \"bandPaddingInner\": 0.2 } } \r\n} ",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Visualize the correlation between combined ranks and their attributes using an interactive scatterplot, allowing users to select and highlight linked data points.",
+        "metadata": {
+          "keywords": [
+            13,
+            12,
+            14,
+            15
+          ]
+        }
+      },
+      {
+        "id": "1d5ad0f4-f0e8-4a75-8997-794b6a5816fd",
+        "type": "VIS_VEGA",
+        "x": 3655.9836310410474,
+        "y": 173.74967659442248,
+        "content": "{ \r\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\", \r\n  \"title\": \"RANK (MONTH)\",\r\n  \"params\": [ {\"name\": \"clickSelect\", \"select\": \"interval\"} ], \r\n  \"mark\": { \"type\": \"point\", \"cursor\": \"pointer\" }, \r\n  \"encoding\": { \r\n    \"x\": {\"field\": \"combinedRanks\", \"type\": \"quantitative\"},\r\n    \"y\": {\"field\": \"rank\", \"type\": \"quantitative\"}, \r\n    \"fillOpacity\": { \r\n        \"condition\": {\"param\": \"clickSelect\", \"value\": 1}, \r\n        \"value\": 0.3 \r\n    }, \r\n    \"color\": { \r\n      \"field\": \"interacted\", \r\n      \"type\": \"nominal\", \r\n      \"condition\": {\r\n        \"test\": \"datum.interacted === '1'\", \"value\": \"red\", \"else\": \"blue\"} } \r\n  }, \r\n  \"config\": { \"scale\": { \"bandPaddingInner\": 0.2 } } \r\n} ",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Visualize the correlation between combined ranks and their attributes with an interactive scatterplot, enabling user selection of data points for highlighting the interactions.",
+        "metadata": {
+          "keywords": [
+            13,
+            12,
+            14,
+            15
+          ]
+        }
+      },
+      {
+        "id": "3430339a-2c5a-4d71-9458-c776e6472b37",
+        "type": "DATA_LOADING",
+        "x": 5.729151471260934,
+        "y": 921.1998576493124,
+        "content": "import pandas as pd\r\nimport json\r\n\r\njson_features_file = open(\"flickr-features.json\")\r\n\r\nparsed_json_features = json.load(json_features_file)\r\n\r\ndf_features = pd.json_normalize(parsed_json_features[\"features\"])\r\n\r\ndf_features = df_features[[\"latLng\"]]\r\n\r\nreturn df_features",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Load data from a JSON file containing flickr features, extracting latitude and longitude values for further analysis and visualization.",
+        "metadata": {
+          "keywords": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      },
+      {
+        "id": "700cc191-bddb-4ea9-a1d8-43ecbb5d333a",
+        "type": "DATA_TRANSFORMATION",
+        "x": 961.6638797007747,
+        "y": 922.1850020643926,
+        "content": "import pandas as pd\r\nimport geopandas as gpd\r\nfrom shapely.geometry import Point\r\n\r\ndf_points = arg\r\n\r\ndf_points = df_points.explode(\"latLng\", ignore_index=True)\r\n\r\ndf_points[\"geometry\"] = df_points[\"latLng\"].apply(lambda x: Point(x[1], x[0]))  # (lon, lat)\r\n\r\ngdf_points = gpd.GeoDataFrame(df_points, geometry=\"geometry\", crs=\"EPSG:4326\")\r\n\r\ngdf_points = gdf_points.drop(columns=[\"latLng\"])\r\n\r\ngdf_points = gdf_points.to_crs(3857)\r\n\r\ngdf_points[\"geometry\"] = gdf_points[\"geometry\"].buffer(50)\r\n\r\ngdf_points[\"value\"] = 1\r\n\r\ngdf_points['linked'] = gdf_points.index.to_series().apply(lambda x: [x])\r\n\r\ngdf_points = gdf_points[[\"geometry\", \"value\", \"linked\"]]\r\n\r\ngdf_points = gdf_points.to_crs(3395)\r\n\r\ngdf_points.metadata = {\r\n    'name': 'pulse'\r\n}\r\n\r\nreturn gdf_points",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Transform latitude and longitude values into geometry Points, create a 50-meter buffer, and prepare a GeoDataFrame for visualization with linked index references.",
+        "metadata": {
+          "keywords": [
+            0
+          ]
+        }
+      },
+      {
+        "id": "0527c49e-581b-43bd-9042-ef643b22f25b",
+        "type": "DATA_POOL",
+        "x": 1685.9836310410474,
+        "y": 922.4439009378003,
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "",
+        "metadata": {
+          "keywords": []
+        }
+      },
+      {
+        "id": "c9ddec90-ef0f-4702-baa5-312e1416b9e2",
+        "type": "DATA_LOADING",
+        "x": 1694.1518382033648,
+        "y": 1395.151261033307,
+        "content": "import utk\r\n\r\nuc = utk.OSM.load([40.67187576076156, -74.0703927880446, 40.928446768674455, -73.8413807958497], layers=['parks'])\r\n\r\n#parks\r\njson_parks = uc.layers['json'][0]\r\ngdf_parks = uc.layers['gdf']['objects'][0]\r\ngdf_parks.metadata = {\r\n 'name': 'parks',\r\n 'style': 'parks'\r\n}\r\n\r\nreturn gdf_parks",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Load parks data from OpenStreetMap using specified geographical boundaries for further spatial analysis and visualization.",
+        "metadata": {
+          "keywords": [
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "id": "6b406a65-17d7-4c9b-a8a8-a79c96420d4b",
+        "type": "DATA_LOADING",
+        "x": 1690.5093907422183,
+        "y": 1829.6117211913886,
+        "content": "import geopandas as gpd\r\nfrom shapely.geometry import box\r\n\r\ngdf_zip = gpd.read_file(\"nyc_zip.geojson\")\r\n\r\ngdf_zip = gdf_zip[[\"geometry\"]]\r\n\r\ngdf_zip = gdf_zip.to_crs(\"EPSG:4326\")\r\n\r\nmin_lat, max_lat = 40.67187576076156, 40.928446768674455\r\nmin_lon, max_lon = -74.0703927880446, -73.8413807958497\r\nbbox = box(min_lon, min_lat, max_lon, max_lat)\r\nbbox_gdf = gpd.GeoDataFrame(geometry=[bbox], crs=\"EPSG:4326\")\r\n\r\ngdf_zip = gdf_zip[gdf_zip.within(bbox_gdf.iloc[0].geometry)]\r\n\r\ngdf_zip = gdf_zip.to_crs(\"3395\")\r\n\r\ngdf_zip.metadata = {\r\n    'name': 'zip'\r\n}\r\n\r\nreturn gdf_zip",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Load the NYC zip code geometries, filter them by a specified bounding box, and transform the coordinate reference system for further spatial analysis.",
+        "metadata": {
+          "keywords": [
+            0
+          ]
+        }
+      },
+      {
+        "id": "fd273f03-b10e-46a3-bd3b-fd92b0a7e2d5",
+        "type": "DATA_LOADING",
+        "x": 1689.7282983814364,
+        "y": 2254.5855815566556,
+        "content": "import utk\r\n\r\nuc = utk.OSM.load([40.67187576076156, -74.0703927880446, 40.928446768674455, -73.8413807958497], layers=['water'])\r\n\r\njson_water = uc.layers['json'][0]\r\ngdf_water = uc.layers['gdf']['objects'][0]\r\ngdf_water.metadata = {\r\n 'name': 'water',\r\n 'style': 'water'\r\n}\r\n\r\nreturn gdf_water",
+        "out": "DEFAULT",
+        "in": "DEFAULT",
+        "goal": "Load water data from OSM using specified coordinates and prepare a GeoDataFrame for further analysis and visualization.",
+        "metadata": {
+          "keywords": [
+            0
+          ]
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "reactflow__66a7b2b2-9bcc-4f49-a84f-cd4a8db60155_e413cafe-7f5f-4c29-a3df-6effae8fcfce_1",
+        "source": "66a7b2b2-9bcc-4f49-a84f-cd4a8db60155",
+        "target": "e413cafe-7f5f-4c29-a3df-6effae8fcfce",
+        "metadata": {
+          "keywords": [
+            0
+          ]
+        }
+      },
+      {
+        "id": "reactflow__edge-66a7b2b2-9bcc-4f49-a84f-cd4a8db60155out-98c19c59-1c5b-4d3b-b2d5-5b2b1e303474in",
+        "source": "66a7b2b2-9bcc-4f49-a84f-cd4a8db60155",
+        "target": "98c19c59-1c5b-4d3b-b2d5-5b2b1e303474",
+        "metadata": {
+          "keywords": [
+            0
+          ]
+        }
+      },
+      {
+        "id": "reactflow__edge-66a7b2b2-9bcc-4f49-a84f-cd4a8db60155out-ddc2c490-69f6-485d-8915-47c366a914c8in",
+        "source": "66a7b2b2-9bcc-4f49-a84f-cd4a8db60155",
+        "target": "ddc2c490-69f6-485d-8915-47c366a914c8",
+        "metadata": {
+          "keywords": [
+            0
+          ]
+        }
+      },
+      {
+        "id": "reactflow__edge-e413cafe-7f5f-4c29-a3df-6effae8fcfceout-8b23bec9-93cf-43f8-87ab-33b56250a9f1in",
+        "source": "e413cafe-7f5f-4c29-a3df-6effae8fcfce",
+        "target": "8b23bec9-93cf-43f8-87ab-33b56250a9f1",
+        "metadata": {
+          "keywords": [
+            7
+          ]
+        }
+      },
+      {
+        "id": "reactflow__edge-98c19c59-1c5b-4d3b-b2d5-5b2b1e303474out-648b53be-0db2-4d76-8fa3-1e7243cad265in",
+        "source": "98c19c59-1c5b-4d3b-b2d5-5b2b1e303474",
+        "target": "648b53be-0db2-4d76-8fa3-1e7243cad265",
+        "metadata": {
+          "keywords": [
+            7
+          ]
+        }
+      },
+      {
+        "id": "reactflow__edge-ddc2c490-69f6-485d-8915-47c366a914c8out-60c56c59-6733-49e1-a867-717bf1a79eb1in",
+        "source": "ddc2c490-69f6-485d-8915-47c366a914c8",
+        "target": "60c56c59-6733-49e1-a867-717bf1a79eb1",
+        "metadata": {
+          "keywords": [
+            7
+          ]
+        }
+      },
+      {
+        "id": "reactflow__edge-8b23bec9-93cf-43f8-87ab-33b56250a9f1out-e9020e3f-607a-4e00-badf-057cdaca5e47in",
+        "source": "8b23bec9-93cf-43f8-87ab-33b56250a9f1",
+        "target": "e9020e3f-607a-4e00-badf-057cdaca5e47",
+        "metadata": {
+          "keywords": [
+            11
+          ]
+        }
+      },
+      {
+        "id": "reactflow__edge-648b53be-0db2-4d76-8fa3-1e7243cad265out-586c9397-58ad-4768-9ad6-a4c534183209in",
+        "source": "648b53be-0db2-4d76-8fa3-1e7243cad265",
+        "target": "586c9397-58ad-4768-9ad6-a4c534183209",
+        "metadata": {
+          "keywords": [
+            11
+          ]
+        }
+      },
+      {
+        "id": "reactflow__edge-60c56c59-6733-49e1-a867-717bf1a79eb1out-ce3662eb-851c-4796-94e8-1f4ca844b86bin",
+        "source": "60c56c59-6733-49e1-a867-717bf1a79eb1",
+        "target": "ce3662eb-851c-4796-94e8-1f4ca844b86b",
+        "metadata": {
+          "keywords": [
+            11
+          ]
+        }
+      },
+      {
+        "id": "reactflow__e9020e3f-607a-4e00-badf-057cdaca5e47_node2_visualization_scatter_1",
+        "source": "e9020e3f-607a-4e00-badf-057cdaca5e47",
+        "target": "node2_visualization_scatter",
+        "metadata": {
+          "keywords": [
+            13,
+            12,
+            14,
+            15
+          ]
+        }
+      },
+      {
+        "id": "reactflow__edge-586c9397-58ad-4768-9ad6-a4c534183209out-3389576f-2652-4989-80b5-edecbdec28c2in",
+        "source": "586c9397-58ad-4768-9ad6-a4c534183209",
+        "target": "3389576f-2652-4989-80b5-edecbdec28c2",
+        "metadata": {
+          "keywords": [
+            13,
+            12,
+            14,
+            15
+          ]
+        }
+      },
+      {
+        "id": "reactflow__edge-ce3662eb-851c-4796-94e8-1f4ca844b86bout-1d5ad0f4-f0e8-4a75-8997-794b6a5816fdin",
+        "source": "ce3662eb-851c-4796-94e8-1f4ca844b86b",
+        "target": "1d5ad0f4-f0e8-4a75-8997-794b6a5816fd",
+        "metadata": {
+          "keywords": [
+            13,
+            12,
+            14,
+            15
+          ]
+        }
+      },
+      {
+        "id": "reactflow__edge-3430339a-2c5a-4d71-9458-c776e6472b37out-700cc191-bddb-4ea9-a1d8-43ecbb5d333ain",
+        "source": "3430339a-2c5a-4d71-9458-c776e6472b37",
+        "target": "700cc191-bddb-4ea9-a1d8-43ecbb5d333a",
+        "metadata": {
+          "keywords": [
+            0
+          ]
+        }
+      },
+      {
+        "id": "reactflow__edge-700cc191-bddb-4ea9-a1d8-43ecbb5d333aout-0527c49e-581b-43bd-9042-ef643b22f25bin",
+        "source": "700cc191-bddb-4ea9-a1d8-43ecbb5d333a",
+        "target": "0527c49e-581b-43bd-9042-ef643b22f25b",
+        "metadata": {
+          "keywords": [
+            0
+          ]
+        }
+      }
+    ],
+    "name": "DefaultWorkflow",
+    "task": "Load the data from a JSON file containing flickr features, extracting latitude and longitude values for further analysis and visualization. Transform these latitude and longitude values into geometry Points, create a 50-meter buffer around each point, and prepare a GeoDataFrame for visualization with linked index references. Normalize the hourly rank DataFrame by renaming columns to fnRank, sigRank, and maxRank, while removing any rows with NaN values in these columns. Similarly, normalize the daily rank DataFrame, ensuring there are no missing values in the renamed columns. Prepare the monthly ranks DataFrame by renaming specific columns for clarity and dropping rows that contain NaN values. Calculate combined ranks from the metrics of hourly, daily, and monthly ranking entries, and prepare a linked list of indices for further processing. Finally, visualize the correlation between combined ranks and their attributes using interactive scatterplots, allowing users to select and highlight linked data points.",
+    "timestamp": 1743116531091,
+    "provenance_id": "DefaultWorkflow"
+  }
+}
