@@ -11,3 +11,5 @@ dataset
 *.csv
 *.geojson
 *.json
+data
+flood_case
