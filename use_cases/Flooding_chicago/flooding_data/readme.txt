@@ -13,7 +13,7 @@
     },
     "model_attr": {
         "case_folder": "./flooding_data",
-        "birthday": "2025-03-30 20:45",
+        "birthday": "2025-03-30 22:58",
         "num_GPU": 1,
         "run_time": "[0, 3600, 60, 60]",
         "num_gauges": 2

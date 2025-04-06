@@ -146,7 +146,7 @@ const FlowProvider = ({ children }: { children: ReactNode }) => {
 
     // const [workflowName, setWorkflowName] = useState<string>("DefaultWorkflow");
   
-    const [workflowName, _setWorkflowName] = useState<string>("DefaultWorkflow"); 
+    const [workflowName, _setWorkflowName] = useState<string>("Flooding Simulation"); 
     const workflowNameRef = React.useRef(workflowName);
     const setWorkflowName = (data: any) => {
         workflowNameRef.current = data;

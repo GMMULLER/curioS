@@ -381,13 +381,14 @@ export function MainCanvas() {
                         id={"explainButton"}
                         style={{
                             bottom: "50px",
-                            left: "30%",
+                            left: "45%",
                             position: "absolute",
                             zIndex: 10,
                             padding: "8px 16px",
-                            backgroundColor: "#007bff",
-                            color: "#fff",
+                            backgroundColor: "rgb(29, 56, 83)",
+                            color: "rgb(251, 252, 246)",
                             border: "none",
+                            fontWeight: "bold",
                             borderRadius: "4px",
                             cursor: "pointer",
                         }}
@@ -401,14 +402,15 @@ export function MainCanvas() {
                     <button
                         style={{
                             bottom: "50px",
-                            left: "40%",
+                            left: "50%",
                             position: "absolute",
                             zIndex: 10,
                             padding: "8px 16px",
-                            backgroundColor: "#007bff",
-                            color: "#fff",
+                            backgroundColor: "rgb(29, 56, 83)",
+                            color: "rgb(251, 252, 246)",
                             border: "none",
                             borderRadius: "4px",
+                            fontWeight: "bold",
                             cursor: "pointer",
                         }}
                         onClick={generateDebug}

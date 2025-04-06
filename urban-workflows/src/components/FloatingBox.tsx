@@ -92,18 +92,18 @@ const FloatingBox: React.FC<FloatingBoxProps> = ({
         handle=".drag-handle"
         defaultPosition={{x: 50, y: 500}}
     >
-      <div style={{backgroundColor: "white", zIndex: 300, position: "absolute", boxShadow: "0px 0px 5px 0px black", padding: "10px", height: "500px", width: "400px"}}>
+      <div style={{backgroundColor: "rgb(251, 252, 246)", zIndex: 300, position: "absolute", boxShadow: "rgba(0, 0, 0, 0.1) 0px 0px 50px", padding: "10px", height: "500px", width: "450px", borderRadius: "10px", fontFamily: "Rubik"}}>
         {/* Draggable Header */}
-        <div className="drag-handle cursor-move" style={{height: "50px", width: "100%", cursor: "move", backgroundColor: "rgb(0, 123, 255)", color: "white", display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: "12px"}}>
+        <div className="drag-handle cursor-move" style={{height: "50px", width: "100%", cursor: "move", backgroundColor: "rgb(29, 56, 83)", color: "rgb(251, 252, 246)", display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: "12px"}}>
           <span style={{fontWeight: "bold"}}>{title}</span>
-          <button onClick={onClose} style={{border: "none", background: "none", fontWeight: "bold", color: "white"}}>
+          <button onClick={onClose} style={{border: "none", background: "none", fontWeight: "bold", color: "rgb(251, 252, 246)"}}>
             X
           </button>
         </div>
 
         {/* Content */}
         <div ref={componentRef} className="p-2" style={{overflowY: "auto", height: "370px", border: "1px solid #00000030", marginTop: "10px"}}>
-          {imageUrl && <img src={imageUrl} style={{textAlign: "center"}} width={"360px"} height={"200px"} className="w-full rounded-lg mb-2" />}
+          {imageUrl && <img src={imageUrl} style={{textAlign: "center", border: "1px solid rgb(29, 56, 83)", display: "block", marginLeft: "auto", marginRight: "auto"}} width={"360px"} height={"200px"} className="w-full rounded-lg mb-2" />}
           <div className="prose max-w-none">
             <ReactMarkdown>{markdownText}</ReactMarkdown>
           </div>
@@ -111,7 +111,7 @@ const FloatingBox: React.FC<FloatingBoxProps> = ({
 
         {/* Export Button */}
         <div className="mt-2">
-          <button onClick={() => {exportToMarkdown(title, markdownText)}} style={{border: "none", backgroundColor: "rgb(0, 123, 255)", color: "white", padding: "5px"}}>
+          <button onClick={() => {exportToMarkdown(title, markdownText)}} style={{border: "none", backgroundColor: "rgb(29, 56, 83)", color: "rgb(251, 252, 246)", padding: "5px"}}>
             Export to Markdown
           </button>
         </div>

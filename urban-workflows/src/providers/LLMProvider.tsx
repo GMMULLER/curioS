@@ -36,9 +36,9 @@ const LLMProvider = ({ children }: { children: ReactNode }) => {
     }, [llmEvents]);
 
     const addNewEvent = (event: {type: LLMEvents, status: LLMEventStatus, data?: any}) => {
-        // setLLMEvents((prevEvents: {type: LLMEvents, status: LLMEventStatus, data?: any}[]) => { // Overwrite previous events
-        //     return [event];
-        // });
+        setLLMEvents((prevEvents: {type: LLMEvents, status: LLMEventStatus, data?: any}[]) => { // Overwrite previous events
+            return [event];
+        });
     };
 
     const consumeEvent = (newEvent?: {type: LLMEvents, status: LLMEventStatus,  data?: any}) => {

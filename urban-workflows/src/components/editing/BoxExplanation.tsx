@@ -64,7 +64,7 @@ export default function BoxExplanation({
 
 const buttonExplanation: CSS.Properties = {
     border: "none",
-    backgroundColor: "rgb(0, 123, 255)",
-    color: "white",
+    backgroundColor: "rgb(29, 56, 83)",
+    color: "rgb(251, 252, 246)",
     padding: "5px"
 }

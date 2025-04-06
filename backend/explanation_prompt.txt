@@ -8,6 +8,8 @@ Include details and separate the explanation by node and explaining the flow of 
 
 Explain what the code in each node does, what is being visualized (if something is), what is the purpose of each node and what is the format of the data that is being passed forward. But do not include specific information about the trill structure like node or edge numeric ids. 
 
+**DO NOT TALK ABOUT THE COORDINATES OF THE BOXES**
+
 Produce an explanation summarizing logic, purpose, and expected behavior. **DO NOT PRODUCE MORE THAN 500 WORDS**
 
 **DO NOT PROVIDE EXPLANATIONS FOR THE EXAMPLE DATAFLOW**

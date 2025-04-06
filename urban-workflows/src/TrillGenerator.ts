@@ -21,7 +21,7 @@ export class TrillGenerator {
         this.provenanceJSON.id = trill_spec.dataflow.provenance_id;
         this.provenanceJSON.nodes.push({
             id: trill_spec.dataflow.name+"_"+trill_spec.dataflow.timestamp,
-            label: trill_spec.dataflow.name+" ("+trill_spec.dataflow.timestamp+")",
+            label: trill_spec.dataflow.name,
             timestamp: trill_spec.dataflow.timestamp
         });
     }
@@ -38,7 +38,7 @@ export class TrillGenerator {
 
         this.provenanceJSON.nodes.push({
             id: new_trill.dataflow.name+"_"+new_trill.dataflow.timestamp,
-            label: new_trill.dataflow.name+" ("+new_trill.dataflow.timestamp+")",
+            label: change,
             timestamp: new_trill.dataflow.timestamp
         });        
 
@@ -50,8 +50,7 @@ export class TrillGenerator {
             this.provenanceJSON.edges.push({        
                 id: this.latestTrill+"_to_"+new_trill.dataflow.name+"_"+new_trill.dataflow.timestamp,
                 source: this.latestTrill,
-                target: new_trill.dataflow.name+"_"+new_trill.dataflow.timestamp,
-                label: change
+                target: new_trill.dataflow.name+"_"+new_trill.dataflow.timestamp
             })
         }
 

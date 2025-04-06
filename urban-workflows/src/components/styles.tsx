@@ -41,7 +41,8 @@ import {
     faChartLine,
     faCirclePlus,
     faTriangleExclamation,
-    faAnglesUp
+    faAnglesUp,
+    faMagnifyingGlass
 } from "@fortawesome/free-solid-svg-icons";
 import { AccessLevelType, BoxType, LLMEvents, LLMEventStatus, SupportedType } from "../constants";
 import './styles.css';
@@ -479,6 +480,10 @@ export const BoxContainer = ({
                     </ul> 
                 </div> : null
             }
+
+            {/* {!minimized ?
+                <FontAwesomeIcon style={{fontSize: "24px", color: "rgb(46, 91, 136)", position: "absolute", bottom: "-80px", right: "15px"}} icon={faMagnifyingGlass} /> : null
+            } */}
 
             {!minimized && (handleType == "in/out" || handleType == "in") ?
                 <button style={{border: "none", background: "none", color: "#1d3853", ...(isConnectionLeftOpen ? openConnectionLeftButton : closedConnectionLeftButton), ...(llmEvents.length > 0 ? {opacity: "60%"} : {})}} onClick={() => setIsConnectionLeftOpen(!isConnectionLeftOpen)}>
